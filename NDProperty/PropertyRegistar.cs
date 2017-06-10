@@ -30,7 +30,11 @@ namespace NDProperty
 
             AddEventHandler(property, (sender, e) =>
             {
-                // TODO: Call ChangedHandler for Inherited Stuff
+                if (inheritedPropertysSet.Count != 0)
+                {
+                    // TODO: Call ChangedHandler for Inherited Stuff
+
+                }
                 var tree = Tree.GetTree(sender);
                 System.Diagnostics.Debug.Assert(Equals(tree.Parent.Current, e.OldValue));
 
@@ -60,7 +64,7 @@ namespace NDProperty
 
                 if (!Equals(onChangedArg.OldValue, onChangedArg.NewValue))
                 {
-                    FireValueChanged(property, obj, onChangedArg.OldValue, onChangedArg.NewValue);
+                    FireValueChanged(property, obj, obj, onChangedArg.OldValue, onChangedArg.NewValue);
                     if (property.Inherited)
                     {
                         var tree = Tree.GetTree(obj);
@@ -70,7 +74,7 @@ namespace NDProperty
                         {
                             tree = queue.Dequeue();
                             if (inheritedPropertysSet.Contains((tree.Current.GetType(), property)))
-                                FireValueChanged(property, (TType)tree.Current, onChangedArg.OldValue, onChangedArg.NewValue);
+                                FireValueChanged(property, (TType)tree.Current, obj, onChangedArg.OldValue, onChangedArg.NewValue);
                             foreach (var child in tree.Childrean)
                                 queue.Enqueue(child);
                         }
@@ -79,22 +83,22 @@ namespace NDProperty
             }
         }
 
-        private static void FireValueChanged<TValue, TType>(NDProperty<TValue, TType> property, TType obj, TValue oldValue, TValue newValue)
+        private static void FireValueChanged<TValue, TType>(NDProperty<TValue, TType> property, TType obj, object sender, TValue oldValue, TValue newValue)
         {
             if (!Lookup<TValue, TType>.Handler.ContainsKey((obj, property)))
                 return;
             var list = Lookup<TValue, TType>.Handler[(obj, property)];
             foreach (var handler in list)
                 handler(obj, ChangedEventArgs.Create(oldValue, newValue));
-            FireValueForAllChanged(property, obj, oldValue, newValue);
+            FireValueForAllChanged(property, obj, sender, oldValue, newValue);
         }
-        private static void FireValueForAllChanged<TValue, TType>(NDProperty<TValue, TType> property, TType obj, TValue oldValue, TValue newValue)
+        private static void FireValueForAllChanged<TValue, TType>(NDProperty<TValue, TType> property, TType obj, object sender, TValue oldValue, TValue newValue)
         {
             if (!Lookup<TValue, TType>.PropertyHandler.ContainsKey(property))
                 return;
             var list = Lookup<TValue, TType>.PropertyHandler[property];
             foreach (var handler in list)
-                handler(obj, ChangedEventArgs.Create(oldValue, newValue));
+                handler(sender, ChangedEventArgs.Create(oldValue, newValue));
         }
 
         public static TValue GetValue<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj)

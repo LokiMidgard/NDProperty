@@ -81,7 +81,7 @@ To Implement a ReadOnlyProperty you can declare it like this:
 ```c#
 
 private static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue);
-public static readonly NDReadOnlyProperty<string, TestObject> StrProperty2 = StrProperty.ReadOnlyProperty;
+public static readonly NDReadOnlyProperty<string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
 
 public string Str
 {

@@ -22,8 +22,10 @@ namespace NDProperty.Generator
 
 
             //this.suffix = (string)attributeData.ConstructorArguments[0].Value;
-            this.inherited = (bool)attributeData.NamedArguments.First(x => x.Key == nameof(NDPAttribute.Inherited)).Value.Value;
-            this.nullTreatment = (NullTreatment)attributeData.NamedArguments.First(x => x.Key == nameof(NDPAttribute.NullTreatment)).Value.Value;
+            var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
+
+            this.inherited = d.ContainsKey(nameof(NDPAttribute.Inherited)) ? (bool)d[nameof(NDPAttribute.Inherited)].Value : false;
+            this.nullTreatment = d.ContainsKey(nameof(NDPAttribute.NullTreatment)) ? (NullTreatment)d[nameof(NDPAttribute.Inherited)].Value : NullTreatment.RemoveLocalValue; 
         }
 
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)

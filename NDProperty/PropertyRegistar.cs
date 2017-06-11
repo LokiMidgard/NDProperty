@@ -316,32 +316,6 @@ namespace NDProperty
         }
     }
 
-    [System.AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    sealed class NDPAttribute : Attribute
-    {
-        // See the attribute guidelines at 
-        //  http://go.microsoft.com/fwlink/?LinkId=85236
-        readonly string positionalString;
-
-        // This is a positional argument
-        public NDPAttribute(string positionalString)
-        {
-            this.positionalString = positionalString;
-
-            // TODO: Implement code here
-
-            throw new NotImplementedException();
-        }
-
-        public string PositionalString
-        {
-            get { return positionalString; }
-        }
-
-        // This is a named argument
-        public int NamedInt { get; set; }
-    }
-
     public enum NullTreatment
     {
         RemoveLocalValue,

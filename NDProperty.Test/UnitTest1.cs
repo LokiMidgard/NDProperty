@@ -161,63 +161,94 @@ namespace NDProperty.Test
         }
 
 
-        public class TestObject
+    }
+
+    public partial class TestObject
+    {
+
+        [NDP]
+        private void OnTestAttributeChanged(OnChangedArg<string> arg)
         {
-            public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.RegisterParent<TestObject, TestObject>(t => t.OnParentChanged);
-            public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue);
-            public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, true, NullTreatment.RemoveLocalValue);
+            var test = TestAttributeProperty.ToString();
+        }
 
-            public string Str
-            {
-                get => PropertyRegistar.GetValue(StrProperty, this);
-                set => PropertyRegistar.SetValue(StrProperty, this, value);
-            }
+        [NDP]
+        private void OnMyBlaChanged(OnChangedArg<string> arg)
+        {
+            var test = TestAttributeProperty.ToString();
+        }
 
-            public event EventHandler<ChangedEventArgs<string, TestObject>> StrChanged
-            {
-                add => PropertyRegistar.AddEventHandler(StrProperty, this, value);
-                remove => PropertyRegistar.RemoveEventHandler(StrProperty, this, value);
-            }
+        #region Str
+        public static readonly global::NDProperty.NDProperty<string, TestObject> StrProperty = global::NDProperty.PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, global::NDProperty.NullTreatment.RemoveLocalValue);
 
-            private void OnStrChanged(OnChangedArg<string> arg)
-            {
+        public string Str
+        {
+            get { return global::NDProperty.PropertyRegistar.GetValue(StrProperty, this); }
+            set { global::NDProperty.PropertyRegistar.SetValue(StrProperty, this, value); }
+        }
 
-            }
-            public string InheritedStr
-            {
-                get => PropertyRegistar.GetValue(InheritedStrProperty, this);
-                set => PropertyRegistar.SetValue(InheritedStrProperty, this, value);
-            }
-
-            public event EventHandler<ChangedEventArgs<string, TestObject>> InheritedStrChanged
-            {
-                add => PropertyRegistar.AddEventHandler(InheritedStrProperty, this, value);
-                remove => PropertyRegistar.RemoveEventHandler(InheritedStrProperty, this, value);
-            }
-
-            private void OnInheritedStrChanged(OnChangedArg<string> arg)
-            {
-
-            }
+        public event EventHandler<global::NDProperty.ChangedEventArgs<string, TestObject>> StrChanged
+        {
+            add { global::NDProperty.PropertyRegistar.AddEventHandler(StrProperty, this, value); }
+            remove { global::NDProperty.PropertyRegistar.RemoveEventHandler(StrProperty, this, value); }
+        }
 
 
-            public TestObject Parent
-            {
-                get => PropertyRegistar.GetValue(ParentProperty, this);
-                set => PropertyRegistar.SetValue(ParentProperty, this, value);
-            }
-
-            public event EventHandler<ChangedEventArgs<TestObject, TestObject>> ParentChanged
-            {
-                add => PropertyRegistar.AddEventHandler(ParentProperty, this, value);
-                remove => PropertyRegistar.RemoveEventHandler(ParentProperty, this, value);
-            }
-
-            private void OnParentChanged(OnChangedArg<TestObject> arg)
-            {
-
-            }
+        private void OnStrChanged(OnChangedArg<string> arg)
+        {
 
         }
+        #endregion
+
+        #region InheritedStr
+        public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, true, NullTreatment.RemoveLocalValue);
+
+        public string InheritedStr
+        {
+            get => PropertyRegistar.GetValue(InheritedStrProperty, this);
+            set => PropertyRegistar.SetValue(InheritedStrProperty, this, value);
+        }
+
+        public event EventHandler<ChangedEventArgs<string, TestObject>> InheritedStrChanged
+        {
+            add => PropertyRegistar.AddEventHandler(InheritedStrProperty, this, value);
+            remove => PropertyRegistar.RemoveEventHandler(InheritedStrProperty, this, value);
+        }
+
+        private void OnInheritedStrChanged(OnChangedArg<string> arg)
+        {
+
+        }
+        #endregion
+
+
+        #region Parent
+        public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.RegisterParent<TestObject, TestObject>(t => t.OnParentChanged);
+        public TestObject Parent
+        {
+            get => PropertyRegistar.GetValue(ParentProperty, this);
+            set => PropertyRegistar.SetValue(ParentProperty, this, value);
+        }
+
+        public event EventHandler<ChangedEventArgs<TestObject, TestObject>> ParentChanged
+        {
+            add => PropertyRegistar.AddEventHandler(ParentProperty, this, value);
+            remove => PropertyRegistar.RemoveEventHandler(ParentProperty, this, value);
+        }
+
+        private void OnParentChanged(OnChangedArg<TestObject> arg)
+        {
+
+        }
+
+
+        #endregion
+
+        // BUg in Source code generator adds the triva at the end of the glass to the generated class. This leads to generating #endregion in the generated class. which produces an error.
+        public override string ToString()
+        {
+            return base.ToString();
+        }
     }
+
 }

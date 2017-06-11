@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.4</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CodeGeneration.Roslyn" Version="0.3.9" />
+    <PackageReference Include="CodeGeneration.Roslyn.BuildTime" Version="0.3.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\*.props;build\*.targets">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\NDProperty\NDProperty.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="build\" />
+  </ItemGroup>
+
+  
+</Project>

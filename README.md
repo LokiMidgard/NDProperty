@@ -1,6 +1,13 @@
 # NDProperty
 
-This Framework aims to provide simlar capabilitys as DependencyObjects.
+This Framework aims to provide simlar capabilitys as DependencyObjects. But with less boilerplate code thanks to code generation.
+
+```c#
+[NDP]
+private void OnStrChanged(OnChangedArg<string> arg) { }
+```
+
+This is all that is needed for Propertys with getter setter events and everything else.
 
 ## Features
 

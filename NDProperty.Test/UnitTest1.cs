@@ -179,18 +179,18 @@ namespace NDProperty.Test
         }
 
         #region Str
-        public static readonly global::NDProperty.NDProperty<string, TestObject> StrProperty = global::NDProperty.PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, global::NDProperty.NullTreatment.RemoveLocalValue);
+        public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue);
 
         public string Str
         {
-            get { return global::NDProperty.PropertyRegistar.GetValue(StrProperty, this); }
-            set { global::NDProperty.PropertyRegistar.SetValue(StrProperty, this, value); }
+            get { return PropertyRegistar.GetValue(StrProperty, this); }
+            set { PropertyRegistar.SetValue(StrProperty, this, value); }
         }
 
-        public event EventHandler<global::NDProperty.ChangedEventArgs<string, TestObject>> StrChanged
+        public event EventHandler<ChangedEventArgs<string, TestObject>> StrChanged
         {
-            add { global::NDProperty.PropertyRegistar.AddEventHandler(StrProperty, this, value); }
-            remove { global::NDProperty.PropertyRegistar.RemoveEventHandler(StrProperty, this, value); }
+            add { PropertyRegistar.AddEventHandler(StrProperty, this, value); }
+            remove { PropertyRegistar.RemoveEventHandler(StrProperty, this, value); }
         }
 
 

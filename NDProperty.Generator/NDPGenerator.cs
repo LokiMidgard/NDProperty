@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,54 +13,23 @@ namespace NDProperty.Generator
 {
     public class Class2 : ICodeGenerator
     {
+        private readonly bool inherited;
+        private readonly NullTreatment nullTreatment;
+
         public Class2(AttributeData attributeData)
         {
             Requires.NotNull(attributeData, nameof(attributeData));
 
 
-            //  this.suffix = (string)attributeData.ConstructorArguments[0].Value;
+            //this.suffix = (string)attributeData.ConstructorArguments[0].Value;
+            this.inherited = (bool)attributeData.NamedArguments.First(x => x.Key == nameof(NDPAttribute.Inherited)).Value.Value;
+            this.nullTreatment = (NullTreatment)attributeData.NamedArguments.First(x => x.Key == nameof(NDPAttribute.NullTreatment)).Value.Value;
         }
-        //public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
-        //{
-        //    var results = SyntaxFactory.List<MemberDeclarationSyntax>();
 
-        //    MemberDeclarationSyntax copy = null;
-        //    var applyToClass = applyTo as ClassDeclarationSyntax;
-        //    if (applyToClass != null)
-        //    {
-        //        copy = applyToClass
-        //            .WithIdentifier(SyntaxFactory.Identifier(applyToClass.Identifier.ValueText + this.suffix));
-        //    }
-
-        //    if (copy != null)
-        //    {
-        //        results = results.Add(copy);
-        //    }
-
-        //    return Task.FromResult(results);
-        //}
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
 
-            //var results = SyntaxFactory.List<MemberDeclarationSyntax>();
-
-            //MemberDeclarationSyntax copy = null;
-            //var applyToClass = applyTo as ClassDeclarationSyntax;
-            //if (applyToClass != null)
-            //{
-            //    copy = applyToClass
-            //        .WithIdentifier(SyntaxFactory.Identifier(applyToClass.Identifier.ValueText + "Test"));
-            //}
-
-            //if (copy != null)
-            //{
-            //    results = results.Add(copy);
-            //}
-
-            //return Task.FromResult(results);
-
             var results = SyntaxFactory.List<MemberDeclarationSyntax>();
-            //return Task.FromResult(results);
 
             //if (!System.Diagnostics.Debugger.IsAttached)
             //    System.Diagnostics.Debugger.Launch();
@@ -97,37 +67,15 @@ namespace NDProperty.Generator
 
             var propertyName = nameMatch.Groups["name"].Value;
 
-
-            //var property = SyntaxFactory.PropertyDeclaration(valueType, propertyName)
-            //    .WithAccessorList(SyntaxFactory.List(
-            //        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, )
-
-            //        ));
-
-
-            //var newClass = SyntaxFactory.ClassDeclaration(originalClassDeclaration.Identifier)
-            //    .WithModifiers(originalClassDeclaration.Modifiers)
-            //    .WithMembers(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text));
-
-            //var trailingTrivia = newClass.GetTrailingTrivia();
-            //originalClassDeclaration.WithMembers()
-
-
-            //return Task.FromResult(results);
-
-            //return Task.FromResult(SyntaxFactory.SingletonList<MemberDeclarationSyntax>(newClass));
             return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text));
         }
 
-        private static SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className)
+        private SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className)
         {
             var propertyKey = propertyName + "Property";
             var propertyEvent = propertyName + "Changed";
             var propertyChangedMethod = $"On{propertyName}Changed";
 
-
-            //return SyntaxFactory.List<MemberDeclarationSyntax>(
-            //        new MemberDeclarationSyntax[0]);
             return SyntaxFactory.List<MemberDeclarationSyntax>(
                     new MemberDeclarationSyntax[]{
                     SyntaxFactory.FieldDeclaration(
@@ -148,7 +96,7 @@ namespace NDProperty.Generator
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                 SyntaxFactory.IdentifierName(className)})))))
                         .WithVariables(
-                            SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(
+                            SyntaxFactory.SingletonSeparatedList(
                                 SyntaxFactory.VariableDeclarator(
                                     SyntaxFactory.Identifier(propertyKey))
                                 .WithInitializer(
@@ -162,9 +110,9 @@ namespace NDProperty.Generator
                                                         SyntaxFactory.IdentifierName(
                                                             SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                         SyntaxFactory.IdentifierName("NDProperty")),
-                                                    SyntaxFactory.IdentifierName("PropertyRegistar")),
+                                                    SyntaxFactory.IdentifierName(nameof( PropertyRegistar))),
                                                 SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("Register"))
+                                                    SyntaxFactory.Identifier(nameof(PropertyRegistar.Register)))
                                                 .WithTypeArgumentList(
                                                     SyntaxFactory.TypeArgumentList(
                                                         SyntaxFactory.SeparatedList<TypeSyntax>(
@@ -188,7 +136,7 @@ namespace NDProperty.Generator
                                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                         SyntaxFactory.Argument(
                                                             SyntaxFactory.LiteralExpression(
-                                                                SyntaxKind.FalseLiteralExpression)),
+                                                                this.inherited ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
                                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                         SyntaxFactory.Argument(
                                                             SyntaxFactory.MemberAccessExpression(
@@ -199,8 +147,8 @@ namespace NDProperty.Generator
                                                                         SyntaxFactory.IdentifierName(
                                                                             SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                         SyntaxFactory.IdentifierName("NDProperty")),
-                                                                    SyntaxFactory.IdentifierName("NullTreatment")),
-                                                                SyntaxFactory.IdentifierName("RemoveLocalValue")))}))))))))
+                                                                    SyntaxFactory.IdentifierName(nameof(NullTreatment))),
+                                                                SyntaxFactory.IdentifierName(this.nullTreatment.ToString())))}))))))))
                     .WithModifiers(
                         SyntaxFactory.TokenList(
                             new []{
@@ -233,8 +181,8 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName("PropertyRegistar")),
-                                                            SyntaxFactory.IdentifierName("GetValue")))
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.GetValue))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -259,8 +207,8 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName("PropertyRegistar")),
-                                                            SyntaxFactory.IdentifierName("SetValue")))
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.SetValue))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -275,7 +223,7 @@ namespace NDProperty.Generator
                                                                         SyntaxFactory.IdentifierName("value"))})))))))}))),
                     SyntaxFactory.EventDeclaration(
                         SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier("EventHandler"))
+                            SyntaxFactory.Identifier(nameof(EventHandler)))
                         .WithTypeArgumentList(
                             SyntaxFactory.TypeArgumentList(
                                 SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
@@ -285,7 +233,7 @@ namespace NDProperty.Generator
                                                 SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                             SyntaxFactory.IdentifierName("NDProperty")),
                                         SyntaxFactory.GenericName(
-                                            SyntaxFactory.Identifier("ChangedEventArgs"))
+                                            SyntaxFactory.Identifier(nameof(ChangedEventArgs)))
                                         .WithTypeArgumentList(
                                             SyntaxFactory.TypeArgumentList(
                                                 SyntaxFactory.SeparatedList<TypeSyntax>(
@@ -317,8 +265,8 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName("PropertyRegistar")),
-                                                            SyntaxFactory.IdentifierName("AddEventHandler")))
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.AddEventHandler))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -346,8 +294,8 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName("PropertyRegistar")),
-                                                            SyntaxFactory.IdentifierName("RemoveEventHandler")))
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.RemoveEventHandler))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -363,7 +311,7 @@ namespace NDProperty.Generator
 
 
 
-               }
+        }
 
         //private void OnStrChanged(OnChangedArg<string> arg)
         //{

@@ -15,17 +15,17 @@ namespace NDProperty.Generator
     {
         private readonly bool inherited;
         private readonly NullTreatment nullTreatment;
+        private readonly bool isReadOnly;
 
         public Class2(AttributeData attributeData)
         {
             Requires.NotNull(attributeData, nameof(attributeData));
 
-
-            //this.suffix = (string)attributeData.ConstructorArguments[0].Value;
             var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
+            this.isReadOnly = d.ContainsKey(nameof(NDPAttribute.IsReadOnly)) ? (bool)d[nameof(NDPAttribute.IsReadOnly)].Value : false;
             this.inherited = d.ContainsKey(nameof(NDPAttribute.Inherited)) ? (bool)d[nameof(NDPAttribute.Inherited)].Value : false;
-            this.nullTreatment = d.ContainsKey(nameof(NDPAttribute.NullTreatment)) ? (NullTreatment)d[nameof(NDPAttribute.Inherited)].Value : NullTreatment.RemoveLocalValue; 
+            this.nullTreatment = d.ContainsKey(nameof(NDPAttribute.NullTreatment)) ? (NullTreatment)d[nameof(NDPAttribute.Inherited)].Value : NullTreatment.RemoveLocalValue;
         }
 
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
@@ -69,189 +69,64 @@ namespace NDProperty.Generator
 
             var propertyName = nameMatch.Groups["name"].Value;
 
-            return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text));
+            return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text, isReadOnly));
         }
 
-        private SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className)
+        private SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className, bool isReadOnly)
         {
             var propertyKey = propertyName + "Property";
+            var propertyReadOnlyKey = propertyName + "ReadOnlyProperty";
             var propertyEvent = propertyName + "Changed";
             var propertyChangedMethod = $"On{propertyName}Changed";
 
-            return SyntaxFactory.List<MemberDeclarationSyntax>(
-                    new MemberDeclarationSyntax[]{
-                    SyntaxFactory.FieldDeclaration(
-                        SyntaxFactory.VariableDeclaration(
-                            SyntaxFactory.QualifiedName(
-                                SyntaxFactory.AliasQualifiedName(
-                                    SyntaxFactory.IdentifierName(
-                                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                    SyntaxFactory.IdentifierName("NDProperty")),
-                                SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("NDProperty"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]{
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.IdentifierName(className)})))))
-                        .WithVariables(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.VariableDeclarator(
-                                    SyntaxFactory.Identifier(propertyKey))
-                                .WithInitializer(
-                                    SyntaxFactory.EqualsValueClause(
-                                        SyntaxFactory.InvocationExpression(
-                                            SyntaxFactory.MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    SyntaxFactory.AliasQualifiedName(
-                                                        SyntaxFactory.IdentifierName(
-                                                            SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                        SyntaxFactory.IdentifierName("NDProperty")),
-                                                    SyntaxFactory.IdentifierName(nameof( PropertyRegistar))),
-                                                SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier(nameof(PropertyRegistar.Register)))
-                                                .WithTypeArgumentList(
-                                                    SyntaxFactory.TypeArgumentList(
-                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                            new SyntaxNodeOrToken[]{
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.IdentifierName(className)})))))
-                                        .WithArgumentList(
-                                            SyntaxFactory.ArgumentList(
-                                                SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                    new SyntaxNodeOrToken[]{
-                                                        SyntaxFactory.Argument(
-                                                            SyntaxFactory.SimpleLambdaExpression(
-                                                                SyntaxFactory.Parameter(
-                                                                    SyntaxFactory.Identifier("t")),
-                                                                SyntaxFactory.MemberAccessExpression(
-                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                    SyntaxFactory.IdentifierName("t"),
-                                                                    SyntaxFactory.IdentifierName(propertyChangedMethod)))),
-                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                        SyntaxFactory.Argument(
-                                                            SyntaxFactory.LiteralExpression(
-                                                                this.inherited ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
-                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                        SyntaxFactory.Argument(
-                                                            SyntaxFactory.MemberAccessExpression(
-                                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                                SyntaxFactory.MemberAccessExpression(
-                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                    SyntaxFactory.AliasQualifiedName(
-                                                                        SyntaxFactory.IdentifierName(
-                                                                            SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                                        SyntaxFactory.IdentifierName("NDProperty")),
-                                                                    SyntaxFactory.IdentifierName(nameof(NullTreatment))),
-                                                                SyntaxFactory.IdentifierName(this.nullTreatment.ToString())))}))))))))
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            new []{
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)})),
-                    SyntaxFactory.PropertyDeclaration(
-                        SyntaxFactory.PredefinedType(
-                            SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                        SyntaxFactory.Identifier(propertyName))
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                    .WithAccessorList(
-                        SyntaxFactory.AccessorList(
-                            SyntaxFactory.List<AccessorDeclarationSyntax>(
-                                new AccessorDeclarationSyntax[]{
-                                    SyntaxFactory.AccessorDeclaration(
-                                        SyntaxKind.GetAccessorDeclaration)
-                                    .WithBody(
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.SingletonList<StatementSyntax>(
-                                                SyntaxFactory.ReturnStatement(
-                                                    SyntaxFactory.InvocationExpression(
-                                                        SyntaxFactory.MemberAccessExpression(
-                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                            SyntaxFactory.MemberAccessExpression(
-                                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                                SyntaxFactory.AliasQualifiedName(
-                                                                    SyntaxFactory.IdentifierName(
-                                                                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                                    SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.GetValue))))
-                                                    .WithArgumentList(
-                                                        SyntaxFactory.ArgumentList(
-                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                                new SyntaxNodeOrToken[]{
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.IdentifierName(propertyKey)),
-                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.ThisExpression())}))))))),
-                                    SyntaxFactory.AccessorDeclaration(
-                                        SyntaxKind.SetAccessorDeclaration)
-                                    .WithBody(
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.SingletonList<StatementSyntax>(
-                                                SyntaxFactory.ExpressionStatement(
-                                                    SyntaxFactory.InvocationExpression(
-                                                        SyntaxFactory.MemberAccessExpression(
-                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                            SyntaxFactory.MemberAccessExpression(
-                                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                                SyntaxFactory.AliasQualifiedName(
-                                                                    SyntaxFactory.IdentifierName(
-                                                                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                                    SyntaxFactory.IdentifierName("NDProperty")),
-                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.SetValue))))
-                                                    .WithArgumentList(
-                                                        SyntaxFactory.ArgumentList(
-                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                                new SyntaxNodeOrToken[]{
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.IdentifierName(propertyKey)),
-                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.ThisExpression()),
-                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.IdentifierName("value"))})))))))}))),
-                    SyntaxFactory.EventDeclaration(
-                        SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(EventHandler)))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.QualifiedName(
-                                        SyntaxFactory.AliasQualifiedName(
-                                            SyntaxFactory.IdentifierName(
-                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                            SyntaxFactory.IdentifierName("NDProperty")),
-                                        SyntaxFactory.GenericName(
-                                            SyntaxFactory.Identifier(nameof(ChangedEventArgs)))
-                                        .WithTypeArgumentList(
-                                            SyntaxFactory.TypeArgumentList(
-                                                SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                    new SyntaxNodeOrToken[]{
+
+            var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
+            if (isReadOnly)
+            {
+                list.Add(GeneratePropertyKey(propertyName, className, propertyKey, propertyChangedMethod, Accessibility.Private));
+                list.Add(GenerateReadOnlyPropertyKey(propertyName, propertyReadOnlyKey, className, propertyKey, propertyChangedMethod));
+            }
+            else
+            {
+                list.Add(GeneratePropertyKey(propertyName, className, propertyKey, propertyChangedMethod, Accessibility.Public));
+            }
+
+            list.Add(GeneratePropertyProperty(propertyName, propertyKey));
+            list.Add(GenerateEvent(propertyKey, propertyEvent, className));
+            return SyntaxFactory.List<MemberDeclarationSyntax>(list);
+        }
+
+        private MemberDeclarationSyntax GenerateEvent(string propertyKey, string propertyEvent, string className)
+        {
+            return SyntaxFactory.EventDeclaration(
+                           SyntaxFactory.GenericName(
+                               SyntaxFactory.Identifier(nameof(EventHandler)))
+                           .WithTypeArgumentList(
+                               SyntaxFactory.TypeArgumentList(
+                                   SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                       SyntaxFactory.QualifiedName(
+                                           SyntaxFactory.AliasQualifiedName(
+                                               SyntaxFactory.IdentifierName(
+                                                   SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                               SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                           SyntaxFactory.GenericName(
+                                               SyntaxFactory.Identifier(nameof(ChangedEventArgs)))
+                                           .WithTypeArgumentList(
+                                               SyntaxFactory.TypeArgumentList(
+                                                   SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                       new SyntaxNodeOrToken[]{
                                                         SyntaxFactory.PredefinedType(
                                                             SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                         SyntaxFactory.IdentifierName(className)}))))))),
-                        SyntaxFactory.Identifier(propertyEvent))
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                    .WithAccessorList(
-                        SyntaxFactory.AccessorList(
-                            SyntaxFactory.List<AccessorDeclarationSyntax>(
-                                new AccessorDeclarationSyntax[]{
+                           SyntaxFactory.Identifier(propertyEvent))
+                       .WithModifiers(
+                           SyntaxFactory.TokenList(
+                               SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                       .WithAccessorList(
+                           SyntaxFactory.AccessorList(
+                               SyntaxFactory.List<AccessorDeclarationSyntax>(
+                                   new AccessorDeclarationSyntax[]{
                                     SyntaxFactory.AccessorDeclaration(
                                         SyntaxKind.AddAccessorDeclaration)
                                     .WithBody(
@@ -266,7 +141,7 @@ namespace NDProperty.Generator
                                                                 SyntaxFactory.AliasQualifiedName(
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                                    SyntaxFactory.IdentifierName("NDProperty")),
+                                                                    SyntaxFactory.IdentifierName(nameof(NDProperty))),
                                                                 SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
                                                             SyntaxFactory.IdentifierName(nameof(PropertyRegistar.AddEventHandler))))
                                                     .WithArgumentList(
@@ -295,7 +170,7 @@ namespace NDProperty.Generator
                                                                 SyntaxFactory.AliasQualifiedName(
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                                    SyntaxFactory.IdentifierName("NDProperty")),
+                                                                    SyntaxFactory.IdentifierName(nameof(NDProperty))),
                                                                 SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
                                                             SyntaxFactory.IdentifierName(nameof(PropertyRegistar.RemoveEventHandler))))
                                                     .WithArgumentList(
@@ -309,16 +184,203 @@ namespace NDProperty.Generator
                                                                         SyntaxFactory.ThisExpression()),
                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                                     SyntaxFactory.Argument(
-                                                                        SyntaxFactory.IdentifierName("value"))})))))))})))});
+                                                                        SyntaxFactory.IdentifierName("value"))})))))))})));
+        }
 
+        private MemberDeclarationSyntax GeneratePropertyProperty(string propertyName, string propertyKey)
+        {
+            return SyntaxFactory.PropertyDeclaration(
+                         SyntaxFactory.PredefinedType(
+                             SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                         SyntaxFactory.Identifier(propertyName))
+                     .WithModifiers(
+                         SyntaxFactory.TokenList(
+                             SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                     .WithAccessorList(
+                         SyntaxFactory.AccessorList(
+                             SyntaxFactory.List<AccessorDeclarationSyntax>(
+                                 new AccessorDeclarationSyntax[]{
+                                    SyntaxFactory.AccessorDeclaration(
+                                        SyntaxKind.GetAccessorDeclaration)
+                                    .WithBody(
+                                        SyntaxFactory.Block(
+                                            SyntaxFactory.SingletonList<StatementSyntax>(
+                                                SyntaxFactory.ReturnStatement(
+                                                    SyntaxFactory.InvocationExpression(
+                                                        SyntaxFactory.MemberAccessExpression(
+                                                            SyntaxKind.SimpleMemberAccessExpression,
+                                                            SyntaxFactory.MemberAccessExpression(
+                                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                                SyntaxFactory.AliasQualifiedName(
+                                                                    SyntaxFactory.IdentifierName(
+                                                                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                                    SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.GetValue))))
+                                                    .WithArgumentList(
+                                                        SyntaxFactory.ArgumentList(
+                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.IdentifierName(propertyKey)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.ThisExpression())}))))))),
+                                    SyntaxFactory.AccessorDeclaration(
+                                        SyntaxKind.SetAccessorDeclaration)
+                                    .WithBody(
+                                        SyntaxFactory.Block(
+                                            SyntaxFactory.SingletonList<StatementSyntax>(
+                                                SyntaxFactory.ExpressionStatement(
+                                                    SyntaxFactory.InvocationExpression(
+                                                        SyntaxFactory.MemberAccessExpression(
+                                                            SyntaxKind.SimpleMemberAccessExpression,
+                                                            SyntaxFactory.MemberAccessExpression(
+                                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                                SyntaxFactory.AliasQualifiedName(
+                                                                    SyntaxFactory.IdentifierName(
+                                                                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                                    SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.SetValue))))
+                                                    .WithArgumentList(
+                                                        SyntaxFactory.ArgumentList(
+                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.IdentifierName(propertyKey)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.ThisExpression()),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.IdentifierName("value"))})))))))})))
+;
+        }
+
+        private MemberDeclarationSyntax GeneratePropertyKey(string propertyName, string className, string propertyKey, string propertyChangedMethod, Accessibility filedAccessibility)
+        {
+            var register = SyntaxFactory.InvocationExpression(
+                                                            SyntaxFactory.MemberAccessExpression(
+                                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.AliasQualifiedName(
+                                                                        SyntaxFactory.IdentifierName(
+                                                                            SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                                        SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                                    SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                                SyntaxFactory.GenericName(
+                                                                    SyntaxFactory.Identifier(nameof(PropertyRegistar.Register)))
+                                                                .WithTypeArgumentList(
+                                                                    SyntaxFactory.TypeArgumentList(
+                                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                            new SyntaxNodeOrToken[]{
+                                                                SyntaxFactory.PredefinedType(
+                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.IdentifierName(className)})))))
+                                                        .WithArgumentList(
+                                                            SyntaxFactory.ArgumentList(
+                                                                SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                                    new SyntaxNodeOrToken[]{
+                                                        SyntaxFactory.Argument(
+                                                            SyntaxFactory.SimpleLambdaExpression(
+                                                                SyntaxFactory.Parameter(
+                                                                    SyntaxFactory.Identifier("t")),
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.IdentifierName("t"),
+                                                                    SyntaxFactory.IdentifierName(propertyChangedMethod)))),
+                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                        SyntaxFactory.Argument(
+                                                            SyntaxFactory.LiteralExpression(
+                                                                this.inherited ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
+                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                        SyntaxFactory.Argument(
+                                                            SyntaxFactory.MemberAccessExpression(
+                                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.AliasQualifiedName(
+                                                                        SyntaxFactory.IdentifierName(
+                                                                            SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                                        SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                                    SyntaxFactory.IdentifierName(nameof(NullTreatment))),
+                                                                SyntaxFactory.IdentifierName(this.nullTreatment.ToString())))})));
+
+            return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility);
+        }
+
+        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, string propertyReadOnlyKey, string className, string propertyKey, string propertyChangedMethod)
+        {
+            var register = SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName(propertyKey),
+                                SyntaxFactory.IdentifierName(nameof(NDProperty<object, object>.ReadOnlyProperty)));
+
+            return GenerateLeftKeyPart(className, propertyReadOnlyKey, register, Accessibility.Public);
+        }
+
+        private static FieldDeclarationSyntax GenerateLeftKeyPart(string className, string propertyKey, ExpressionSyntax register, Accessibility filedAccessibility)
+        {
+            SyntaxKind accesibility;
+
+            switch (filedAccessibility)
+            {
+                case Accessibility.Private:
+                    accesibility = SyntaxKind.PrivateKeyword;
+                    break;
+                //case Accessibility.ProtectedAndFriend:
+                case Accessibility.Protected:
+                    accesibility = SyntaxKind.ProtectedKeyword;
+                    break;
+                //case Accessibility.Friend:
+                case Accessibility.Internal:
+                    accesibility = SyntaxKind.InternalKeyword;
+                    break;
+                case Accessibility.Public:
+                    accesibility = SyntaxKind.PublicKeyword;
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.ProtectedOrInternal:
+                //case Accessibility.ProtectedOrFriend:
+                case Accessibility.NotApplicable:
+                default:
+                    throw new ArgumentException($"Not supported access level {filedAccessibility}", nameof(filedAccessibility));
+            }
+
+            return SyntaxFactory.FieldDeclaration(
+                                                    SyntaxFactory.VariableDeclaration(
+                                                        SyntaxFactory.QualifiedName(
+                                                            SyntaxFactory.AliasQualifiedName(
+                                                                SyntaxFactory.IdentifierName(
+                                                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                                SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                            SyntaxFactory.GenericName(
+                                                                SyntaxFactory.Identifier(nameof(NDProperty<object, object>)))
+                                                            .WithTypeArgumentList(
+                                                                SyntaxFactory.TypeArgumentList(
+                                                                    SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                        new SyntaxNodeOrToken[]{
+                                                SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.IdentifierName(className)})))))
+                                                    .WithVariables(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.VariableDeclarator(
+                                                                SyntaxFactory.Identifier(propertyKey))
+                                                            .WithInitializer(
+                                                                SyntaxFactory.EqualsValueClause(register)))))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[]{
+                                SyntaxFactory.Token(accesibility),
+                                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)}));
 
 
         }
-
-        //private void OnStrChanged(OnChangedArg<string> arg)
-        //{
-
-        //}
-
     }
 }

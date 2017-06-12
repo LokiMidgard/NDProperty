@@ -6,8 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="CodeGeneration.Roslyn" Version="0.3.9" />
-    <PackageReference Include="CodeGeneration.Roslyn.BuildTime" Version="0.3.9" />
-  </ItemGroup>
+   </ItemGroup>
 
   <ItemGroup>
     <Content Include="build\*.props;build\*.targets">

@@ -19,6 +19,7 @@ namespace NDProperty
 
         public bool Inherited { get; set; } = false;
         public bool IsReadOnly { get; set; } = false;
+        public bool IsParentReference { get; set; } = false;
         public NullTreatment NullTreatment { get; set; } = NullTreatment.RemoveLocalValue;
     }
 

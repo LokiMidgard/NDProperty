@@ -10,7 +10,7 @@ namespace NDProperty
 
         private static readonly Dictionary<Type, List<INDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<INDReadOnlyProperty>>();
 
-        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment)
+        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent)
         {
             var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment);
             if (p.Inherited)
@@ -19,9 +19,12 @@ namespace NDProperty
                     inheritedPropertys.Add(typeof(TType), new List<INDReadOnlyProperty>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
+            if (isParent)
+                AddParentHandler(p);
+
             return p;
         }
-        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType, THost>(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment)
+        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType, THost>(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent)
         {
             var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment);
             if (p.Inherited)
@@ -30,14 +33,15 @@ namespace NDProperty
                     inheritedPropertys.Add(typeof(TType), new List<INDReadOnlyProperty>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
+            if (isParent)
+                AddParentHandler(p);
+
             return p;
         }
 
-        public static NDProperty<TValue, TType> RegisterParent<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod)
+        private static void AddParentHandler<TValue, TType>(NDReadOnlyProperty<TValue, TType> p)
         {
-            var property = Register(changedMethod, false, NullTreatment.RemoveLocalValue);
-
-            AddEventHandler(property, (sender, e) =>
+            AddEventHandler(p, (sender, e) =>
             {
                 var tree = Tree.GetTree(e.ChangedObject);
                 var affectedItems = new List<(object affectedObject, object oldValue, INDReadOnlyProperty affectedProperty)>();
@@ -80,9 +84,7 @@ namespace NDProperty
                         item.affectedProperty.CallChangeHandler(item.affectedObject, sender, item.oldValue, newValue);
                 }
             });
-            return property;
         }
-
 
         public static void SetValue<TValue, TType>(NDProperty<TValue, TType> property, TType changedObject, TValue value)
         {

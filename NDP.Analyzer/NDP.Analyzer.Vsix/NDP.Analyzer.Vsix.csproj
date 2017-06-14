@@ -73,12 +73,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDP.Analyzer\NDP.Analyzer.csproj">
-      <Project>{0DB2CAA6-766D-45A5-B61C-3C6F172AB2CB}</Project>
-      <Name>NDP.Analyzer</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.2">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.6.2 %28x86 und x64%29</ProductName>

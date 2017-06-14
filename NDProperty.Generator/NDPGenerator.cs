@@ -13,6 +13,14 @@ namespace NDProperty.Generator
 {
     public class Class2 : ICodeGenerator
     {
+
+        public static readonly DiagnosticDescriptor RuleNDP0001 = new DiagnosticDescriptor("NDP0001", "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor RuleNDP0002 = new DiagnosticDescriptor("NDP0002", $"Wrong Parameter Type", $"The parameter of the method must be of type {typeof(OnChangedArg).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor RuleNDP0003 = new DiagnosticDescriptor("NDP0003", "Wrong Parameter Count", $"The method may have only a singel parameter", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor RuleNDP0004 = new DiagnosticDescriptor("NDP0004", "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor RuleNDP0005 = new DiagnosticDescriptor("NDP0005", "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+
+
         private readonly bool inherited;
         private readonly NullTreatment nullTreatment;
         private readonly bool isReadOnly;
@@ -34,8 +42,7 @@ namespace NDProperty.Generator
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
 
-            var results = SyntaxFactory.List<MemberDeclarationSyntax>();
-
+            bool detectedError = false;
             //if (!System.Diagnostics.Debugger.IsAttached)
             //    System.Diagnostics.Debugger.Launch();
             //else
@@ -43,36 +50,51 @@ namespace NDProperty.Generator
 
             var nameRegex = new Regex(@"On(?<name>\S+)Changed");
 
-            var m = applyTo as MethodDeclarationSyntax;
+            var method = applyTo as MethodDeclarationSyntax;
 
             var originalClassDeclaration = applyTo.Parent as ClassDeclarationSyntax;
 
             if (originalClassDeclaration == null)
-                return Task.FromResult(results);
+            {
+                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0005", "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true), originalClassDeclaration.Identifier.GetLocation()));
+                detectedError = true;
+            }
 
             // check if class is partial
             if (!originalClassDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
-                return Task.FromResult(results);
+            {
+                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0004", "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true), originalClassDeclaration.Identifier.GetLocation()));
+                detectedError = true;
+            }
 
 
-            if (m.ParameterList.Parameters.Count != 1)
-                return Task.FromResult(results);
-
-            var changedMethodParameter = m.ParameterList.Parameters[0];
-            var parameterType = changedMethodParameter.Type as GenericNameSyntax;
-            if (parameterType?.Identifier.Text != "OnChangedArg")
-                return Task.FromResult(results);
-
+            if (method.ParameterList.Parameters.Count != 1)
+            {
+                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0003", "Wrong Parameter Count", $"The method may have only a singel parameter", "NDP", DiagnosticSeverity.Error, true), method.Identifier.GetLocation()));
+                detectedError = true;
+            }
+            var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
+            var parameterType = changedMethodParameter?.Type as GenericNameSyntax;
+            if (parameterType?.Identifier.Text != nameof(OnChangedArg))
+            {
+                var parameterLocation = parameterType?.Identifier.GetLocation() ?? method.Identifier.GetLocation();
+                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0002", $"Wrong Parameter Type", $"The parameter of the method must be of type {typeof(OnChangedArg).FullName}.", "NDP", DiagnosticSeverity.Error, true), parameterLocation));
+                detectedError = true;
+            }
             var valueType = parameterType.TypeArgumentList.Arguments[0];
 
 
-            var nameMatch = nameRegex.Match(m.Identifier.Text);
+            var nameMatch = nameRegex.Match(method.Identifier.Text);
             if (!nameMatch.Success)
-                return Task.FromResult(results);
+            {
+                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0001", "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true), method.Identifier.GetLocation()));
+                detectedError = true;
+            }
 
             var propertyName = nameMatch.Groups["name"].Value;
-
-            return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text, isReadOnly));
+            if (detectedError)
+                return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
+            return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text, this.isReadOnly));
         }
 
         private SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className, bool isReadOnly)
@@ -94,7 +116,7 @@ namespace NDProperty.Generator
                 list.Add(GeneratePropertyKey(propertyName, className, propertyKey, propertyChangedMethod, Accessibility.Public));
             }
 
-            list.Add(GeneratePropertyProperty(propertyName, propertyKey, isReadOnly? Accessibility.Private: Accessibility.NotApplicable));
+            list.Add(GeneratePropertyProperty(propertyName, propertyKey, isReadOnly ? Accessibility.Private : Accessibility.NotApplicable));
             list.Add(GenerateEvent(propertyKey, propertyEvent, className));
             return SyntaxFactory.List<MemberDeclarationSyntax>(list);
         }

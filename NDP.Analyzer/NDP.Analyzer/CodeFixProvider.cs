@@ -20,10 +20,11 @@ namespace NDP.Analyzer
     {
         private const string title = "Make uppercase";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(NDPAnalyzerAnalyzer.DiagnosticId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
+            NDProperty.Generator.Class2.NDP0001,
+            NDProperty.Generator.Class2.NDP0002,
+            NDProperty.Generator.Class2.NDP0003,
+            NDProperty.Generator.Class2.NDP0003);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -31,31 +32,114 @@ namespace NDP.Analyzer
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
-            var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                switch (diagnostic.Id)
+                {
+                    case NDProperty.Generator.Class2.NDP0001:
+                        context.RegisterCodeFix(
+                        CodeAction.Create(
+                            title: "The Method was not named after Convention",
+                            createChangedSolution: c => RenameMethod(diagnostic, context, c),
+                            equivalenceKey: diagnostic.Id),
+                        diagnostic);
+                        break;
+                    case NDProperty.Generator.Class2.NDP0002:
 
-            // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().First();
+
+                        context.RegisterCodeFix(
+                        CodeAction.Create(
+                            title: "Wrong parameters",
+                            createChangedSolution: c => ReplaceParameter(diagnostic, context, c),
+                            equivalenceKey: diagnostic.Id),
+                        diagnostic);
+                        break;
+                    case NDProperty.Generator.Class2.NDP0003:
+                        context.RegisterCodeFix(
+                        CodeAction.Create(
+                            title: "The class is not partial",
+                            createChangedSolution: c => AddPartial(diagnostic, context, c),
+                            equivalenceKey: diagnostic.Id),
+                        diagnostic);
+                        break;
+                    default:
+                        continue;
+                }
+
+
+            }
+
 
             // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: title,
-                    createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c),
-                    equivalenceKey: title),
-                diagnostic);
+            return Task.FromResult<object>(null);
         }
 
-        private async Task<Solution> MakeUppercaseAsync(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Solution> AddPartial(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
         {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            // Find the type declaration identified by the diagnostic.
+            var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().First();
+            var newClassDeclaretaion = classDeclaration.WithModifiers(classDeclaration.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
+
+
+            root = root.ReplaceNode(classDeclaration, newClassDeclaretaion);
+
+            // Produce a new solution that has all references to that type renamed, including the declaration.
+            var originalSolution = context.Document.Project.Solution;
+            return originalSolution.WithDocumentSyntaxRoot(context.Document.Id, root);
+        }
+
+        private async Task<Solution> ReplaceParameter(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            // Find the type declaration identified by the diagnostic.
+            var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
+            var parameterList = methodDeclaration.ParameterList;
+
+            TypeSyntax genericType;
+            if (parameterList.Parameters.Count > 0)
+                genericType = parameterList.Parameters[0].Type;
+            else
+                genericType = SyntaxFactory.PredefinedType(
+                                        SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+
+            var newParameterList = SyntaxFactory.ParameterList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.Identifier("arg"))
+                    .WithType(
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg)))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    genericType))))));
+
+            root = root.ReplaceNode(parameterList, newParameterList);
+
+            // Produce a new solution that has all references to that type renamed, including the declaration.
+            var originalSolution = context.Document.Project.Solution;
+            return originalSolution.WithDocumentSyntaxRoot(context.Document.Id, root);
+        }
+
+        private async Task<Solution> RenameMethod(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            var document = context.Document;
+
+            var typeDecl = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
+
+
             // Compute new uppercase name.
             var identifierToken = typeDecl.Identifier;
-            var newName = identifierToken.Text.ToUpperInvariant();
+            var oldName = identifierToken.Text;
+            var newName = (oldName.StartsWith("On") ? "" : "On") + oldName + (oldName.EndsWith("Changed") ? "" : "Changed");
 
             // Get the symbol representing the type to be renamed.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken);

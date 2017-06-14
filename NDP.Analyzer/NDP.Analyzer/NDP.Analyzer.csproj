@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <PackageId>Analyzer3</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
+    <PackageVersion>1.0.1.12</PackageVersion>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
     <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
@@ -25,17 +25,28 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.0.0" PrivateAssets="all" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+    <PackageReference Include="CodeGeneration.Roslyn" Version="0.3.9" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
+
+  <!-- Not posible to include dependencys So this is a temporary FIX -->
+  <ItemGroup>
+    <None Include="..\..\packages\codegeneration.roslyn\0.3.9\lib\netstandard1.3\CodeGeneration.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\packages\codegeneration.roslyn.attributes\0.3.9\lib\netstandard1.0\CodeGeneration.Roslyn.Attributes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\packages\validation\2.4.13\lib\netstandard1.3\Validation.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\packages\validation\2.4.13\lib\netstandard1.3\Validation.xml" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="tools" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NDProperty.Generator\NDProperty.Generator.csproj" />
-    <ProjectReference Include="..\..\NDProperty\NDProperty.csproj" />
+    <ProjectReference Include="..\..\NDProperty.Generator\NDProperty.Generator.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\NDProperty\NDProperty.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>

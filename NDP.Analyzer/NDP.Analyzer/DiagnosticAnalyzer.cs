@@ -25,11 +25,15 @@ namespace NDP.Analyzer
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
-        
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NDProperty.Generator.Class2.RuleNDP0003); } }
 
-        
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            NDProperty.Generator.Class2.RuleNDP0001,
+            NDProperty.Generator.Class2.RuleNDP0002,
+            NDProperty.Generator.Class2.RuleNDP0003,
+            NDProperty.Generator.Class2.RuleNDP0003,
+            NDProperty.Generator.Class2.RuleNDP0004);
+
 
         public override void Initialize(AnalysisContext context)
         {
@@ -42,16 +46,19 @@ namespace NDP.Analyzer
         private void AnalyzeMethods(SyntaxNodeAnalysisContext context)
         {
             var attribute = context.Node as AttributeSyntax;
+
             var attributeType = context.SemanticModel.GetTypeInfo(attribute);
             if (!TypeSymbolMatchesType(attributeType.ConvertedType, typeof(NDPAttribute), context.SemanticModel))
                 return; // Not our Attribute.
 
 
-            var method = attribute.Parent as MethodDeclarationSyntax;
-            if (method.ParameterList.Parameters.Count != 1)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(NDProperty.Generator.Class2.RuleNDP0003, method.Identifier.GetLocation()));
-            }
+            var method = attribute.Parent.Parent as MethodDeclarationSyntax;
+
+            var diagnostics = NDProperty.Generator.Class2.GenerateDiagnostics(method);
+
+            foreach (var d in diagnostics)
+                context.ReportDiagnostic(d);
+            
         }
 
 

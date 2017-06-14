@@ -56,21 +56,21 @@ namespace NDProperty.Generator
 
             if (originalClassDeclaration == null)
             {
-                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0005", "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true), originalClassDeclaration.Identifier.GetLocation()));
+                progress.Report(Diagnostic.Create(RuleNDP0005, originalClassDeclaration.Identifier.GetLocation()));
                 detectedError = true;
             }
 
             // check if class is partial
             if (!originalClassDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
-                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0004", "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true), originalClassDeclaration.Identifier.GetLocation()));
+                progress.Report(Diagnostic.Create(RuleNDP0004, originalClassDeclaration.Identifier.GetLocation()));
                 detectedError = true;
             }
 
 
             if (method.ParameterList.Parameters.Count != 1)
             {
-                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0003", "Wrong Parameter Count", $"The method may have only a singel parameter", "NDP", DiagnosticSeverity.Error, true), method.Identifier.GetLocation()));
+                progress.Report(Diagnostic.Create(RuleNDP0003, method.Identifier.GetLocation()));
                 detectedError = true;
             }
             var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
@@ -78,7 +78,7 @@ namespace NDProperty.Generator
             if (parameterType?.Identifier.Text != nameof(OnChangedArg))
             {
                 var parameterLocation = parameterType?.Identifier.GetLocation() ?? method.Identifier.GetLocation();
-                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0002", $"Wrong Parameter Type", $"The parameter of the method must be of type {typeof(OnChangedArg).FullName}.", "NDP", DiagnosticSeverity.Error, true), parameterLocation));
+                progress.Report(Diagnostic.Create(RuleNDP0002, parameterLocation));
                 detectedError = true;
             }
             var valueType = parameterType.TypeArgumentList.Arguments[0];
@@ -87,7 +87,7 @@ namespace NDProperty.Generator
             var nameMatch = nameRegex.Match(method.Identifier.Text);
             if (!nameMatch.Success)
             {
-                progress.Report(Diagnostic.Create(new DiagnosticDescriptor("NDP0001", "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true), method.Identifier.GetLocation()));
+                progress.Report(Diagnostic.Create(RuleNDP0001, method.Identifier.GetLocation()));
                 detectedError = true;
             }
 

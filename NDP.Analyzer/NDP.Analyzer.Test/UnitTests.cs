@@ -71,12 +71,12 @@ namespace NDP.Analyzer.Test
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new NDPAnalyzerCodeFixProvider();
+            return new NDPPropertyAnalyzerCodeFixProvider();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new NDPAnalyzerAnalyzer();
+            return new NDPPropertyAnalyzer();
         }
     }
 }

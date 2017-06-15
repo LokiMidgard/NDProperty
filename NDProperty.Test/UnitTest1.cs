@@ -167,8 +167,8 @@ namespace NDProperty.Test
     {
 
         [NDP]
-        private void OnTestAttributeChanged(OnChangedArg<string> arg)
-        {
+        private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<string> arg)
+        { 
             var test = TestAttributeProperty.ToString();
         }
 

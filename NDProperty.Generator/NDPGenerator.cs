@@ -12,41 +12,130 @@ using Validation;
 
 namespace NDProperty.Generator
 {
-    public class Class2 : ICodeGenerator
+    public class NDPGeneratorProperty : NDPGenerator
     {
+        public NDPGeneratorProperty(AttributeData attributeData) : base(attributeData) { }
+
+        public NDPGeneratorProperty() { }
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public const string NDP0001 = "NDP0001";
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public const string NDP0002 = "NDP0002";
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangedArg<>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
-        public const string NDP0003 = "NDP0004";
+        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0003, "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Generator could not find Class
         /// </summary>
-        public const string NDP0004 = "NDP0005";
+        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0004, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+
+        public override DiagnosticDescriptor MethodNameConvention => methodNameConvention;
+
+        public override DiagnosticDescriptor WrongParameter => wrongParameter;
+
+        public override DiagnosticDescriptor ClassNotPartial => classNotPartial;
+
+        public override DiagnosticDescriptor ClassNotFound => classNotFound;
+
+        public override Type OnChangedArgs => typeof(OnChangedArg<>);
+        public override Type AttributeType => typeof(NDPAttribute);
+    }
+
+    public class NDPGeneratorAttachedProperty : NDPGenerator
+    {
+        public NDPGeneratorAttachedProperty(AttributeData attributeData) : base(attributeData) { }
+
+        public NDPGeneratorAttachedProperty() { }
 
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public static readonly DiagnosticDescriptor RuleNDP0001 = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0005, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor RuleNDP0002 = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangedArg).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangedArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
-        public static readonly DiagnosticDescriptor RuleNDP0003 = new DiagnosticDescriptor(NDP0003, "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0007, "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Generator could not find Class
         /// </summary>
-        public static readonly DiagnosticDescriptor RuleNDP0004 = new DiagnosticDescriptor(NDP0004, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0008, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+
+        public override DiagnosticDescriptor MethodNameConvention => methodNameConvention;
+
+        public override DiagnosticDescriptor WrongParameter => wrongParameter;
+
+        public override DiagnosticDescriptor ClassNotPartial => classNotPartial;
+
+        public override DiagnosticDescriptor ClassNotFound => classNotFound;
+
+        public override Type OnChangedArgs => typeof(OnChangedArg<,>);
+
+        public override Type AttributeType => typeof(NDPAttachAttribute);
+    }
+    public abstract class NDPGenerator : ICodeGenerator
+    {
+        /// <summary>
+        /// Method must be named after Convention. Normal Attribute.
+        /// </summary>
+        public const string NDP0001 = "NDP0001";
+        /// <summary>
+        /// Wrong Parameter. Normal Attribute.
+        /// </summary>
+        public const string NDP0002 = "NDP0002";
+        /// <summary>
+        /// Class is not partial. Normal Attribute.
+        /// </summary>
+        public const string NDP0003 = "NDP0003";
+        /// <summary>
+        /// Generator could not find Class. Normal Attribute.
+        /// </summary>
+        public const string NDP0004 = "NDP0004";
+
+
+        /// <summary>
+        /// Method must be named after Convention. Normal Attribute.
+        /// </summary>
+        public const string NDP0005 = "NDP0005";
+        /// <summary>
+        /// Wrong Parameter. Normal Attribute.
+        /// </summary>
+        public const string NDP0006 = "NDP0006";
+        /// <summary>
+        /// Class is not partial. Normal Attribute.
+        /// </summary>
+        public const string NDP0007 = "NDP0007";
+        /// <summary>
+        /// Generator could not find Class. Normal Attribute.
+        /// </summary>
+        public const string NDP0008 = "NDP0008";
+
+        public abstract Type OnChangedArgs { get; }
+        public abstract Type AttributeType { get; }
+
+        public abstract DiagnosticDescriptor MethodNameConvention { get; }
+        /// <summary>
+        /// Wrong Parameter
+        /// </summary>
+        public abstract DiagnosticDescriptor WrongParameter { get; }
+        /// <summary>
+        /// Class is not partial
+        /// </summary>
+        public abstract DiagnosticDescriptor ClassNotPartial { get; }
+        /// <summary>
+        /// Generator could not find Class
+        /// </summary>
+        public abstract DiagnosticDescriptor ClassNotFound { get; }
+
+
 
 
         private readonly bool inherited;
@@ -55,7 +144,7 @@ namespace NDProperty.Generator
         private readonly bool isParentReference;
         private static readonly Regex nameRegex = new Regex(@"On(?<name>\S+)Changed", RegexOptions.Compiled);
 
-        public Class2(AttributeData attributeData)
+        internal NDPGenerator(AttributeData attributeData)
         {
             Requires.NotNull(attributeData, nameof(attributeData));
 
@@ -65,13 +154,13 @@ namespace NDProperty.Generator
             this.inherited = d.ContainsKey(nameof(NDPAttribute.Inherited)) ? (bool)d[nameof(NDPAttribute.Inherited)].Value : false;
             this.isParentReference = d.ContainsKey(nameof(NDPAttribute.IsParentReference)) ? (bool)d[nameof(NDPAttribute.IsParentReference)].Value : false;
             this.nullTreatment = d.ContainsKey(nameof(NDPAttribute.NullTreatment)) ? (NullTreatment)d[nameof(NDPAttribute.Inherited)].Value : NullTreatment.RemoveLocalValue;
-
         }
+        internal NDPGenerator() { }
 
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
             var method = applyTo as MethodDeclarationSyntax;
-            var diagnostics = GenerateDiagnostics(method);
+            var diagnostics = GenerateDiagnostics(method, compilation.GetSemanticModel(method.SyntaxTree, true));
 
             bool detectedError = false;
 
@@ -92,32 +181,62 @@ namespace NDProperty.Generator
             return Task.FromResult(GenerateProperty(propertyName, originalClassDeclaration.Identifier.Text, this.isReadOnly));
         }
 
-        public static IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method)
+        public void Test()
+        {
+
+        }
+
+        public IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
         {
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
 
             if (originalClassDeclaration == null)
             {
-                yield return Diagnostic.Create(RuleNDP0004, originalClassDeclaration.Identifier.GetLocation());
+                yield return Diagnostic.Create(ClassNotFound, originalClassDeclaration.Identifier.GetLocation());
                 yield break; // no other diagnostics if this one
             }
 
             // check if class is partial
             if (!originalClassDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
-                yield return Diagnostic.Create(RuleNDP0003, originalClassDeclaration.Identifier.GetLocation());
+                yield return Diagnostic.Create(ClassNotPartial, originalClassDeclaration.Identifier.GetLocation());
 
 
-            var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
-            var parameterType = changedMethodParameter?.Type as GenericNameSyntax;
-            if (method.ParameterList.Parameters.Count != 1 || parameterType?.Identifier.Text != nameof(OnChangedArg))
-                yield return Diagnostic.Create(RuleNDP0002, method.ParameterList.Parameters.Count != 1 ? method.ParameterList.GetLocation() : changedMethodParameter.Identifier.GetLocation());
+            if (method.ParameterList.Parameters.Count != 1) // No parameters, or more then one Mark Parameter List (includes parenthise)
+                yield return Diagnostic.Create(WrongParameter, method.ParameterList.GetLocation());
+            else // One Parameter, Check type
+            {
+                var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
+                var typeInfo = model.GetTypeInfo(changedMethodParameter.Type);
+                if (!TypeSymbolMatchesType(typeInfo.ConvertedType, OnChangedArgs, model, false))
+                    yield return Diagnostic.Create(WrongParameter, changedMethodParameter.Type.GetLocation());
+            }
 
             var nameMatch = nameRegex.Match(method.Identifier.Text);
             if (!nameMatch.Success)
-                yield return Diagnostic.Create(RuleNDP0001, method.Identifier.GetLocation());
+                yield return Diagnostic.Create(MethodNameConvention, method.Identifier.GetLocation());
         }
 
+        public static bool TypeSymbolMatchesType(ITypeSymbol typeSymbol, Type type, SemanticModel semanticModel, bool expandGeneric = true)
+        {
+            if(!expandGeneric)
+                typeSymbol = (typeSymbol as INamedTypeSymbol)?.ConstructedFrom ?? typeSymbol;
 
+            return GetTypeSymbolForType(type, semanticModel, expandGeneric).Equals(typeSymbol);
+        }
+
+        private static INamedTypeSymbol GetTypeSymbolForType(Type type, SemanticModel semanticModel, bool expandGeneric)
+        {
+
+            if (!type.IsConstructedGenericType || !expandGeneric)
+                return semanticModel.Compilation.GetTypeByMetadataName(type.FullName);
+
+            // get all typeInfo's for the Type arguments 
+            var typeArgumentsTypeInfos = type.GenericTypeArguments.Select(a => GetTypeSymbolForType(a, semanticModel, true));
+
+            var openType = type.GetGenericTypeDefinition();
+            var typeSymbol = semanticModel.Compilation.GetTypeByMetadataName(openType.FullName);
+            return typeSymbol.Construct(typeArgumentsTypeInfos.ToArray<ITypeSymbol>());
+        }
 
         private SyntaxList<MemberDeclarationSyntax> GenerateProperty(string propertyName, string className, bool isReadOnly)
         {

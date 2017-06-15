@@ -4,24 +4,26 @@ using CodeGeneration.Roslyn;
 
 namespace NDProperty
 {
-    [System.AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    [CodeGenerationAttribute(typeof(Generator.Class2))]
-    [Conditional("CodeGeneration")]
-    public sealed class NDPAttribute : Attribute
+
+    public abstract class NDPAttributeBase : Attribute
     {
-        // See the attribute guidelines at 
-        //  http://go.microsoft.com/fwlink/?LinkId=85236
-
-        public NDPAttribute()
-        {
-
-        }
+        internal NDPAttributeBase() { }
 
         public bool Inherited { get; set; } = false;
         public bool IsReadOnly { get; set; } = false;
         public bool IsParentReference { get; set; } = false;
         public NullTreatment NullTreatment { get; set; } = NullTreatment.RemoveLocalValue;
     }
+
+    [System.AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [CodeGenerationAttribute(typeof(Generator.NDPGeneratorProperty))]
+    [Conditional("CodeGeneration")]
+    public sealed class NDPAttribute : NDPAttributeBase { }
+
+    [System.AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [CodeGenerationAttribute(typeof(Generator.NDPGeneratorAttachedProperty))]
+    [Conditional("CodeGeneration")]
+    public sealed class NDPAttachAttribute : NDPAttributeBase { }
 
 
 }

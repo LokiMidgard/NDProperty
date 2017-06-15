@@ -12,19 +12,52 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
+using NDProperty.Generator;
 
 namespace NDP.Analyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NDPAnalyzerCodeFixProvider)), Shared]
-    public class NDPAnalyzerCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NDPPropertyAnalyzerCodeFixProvider)), Shared]
+    public class NDPPropertyAnalyzerCodeFixProvider : NDPAnalyzerCodeFixProvider
+    {
+        public override NDPGenerator Generator { get; } = new NDPGeneratorProperty();
+
+        internal override GenericNameSyntax GetTypeArgumentList(GenericNameSyntax qualifiedNameSyntax, TypeSyntax type)
+        {
+
+
+            return qualifiedNameSyntax.WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(type)));
+        }
+    }
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NDPAttachedAnalyzerCodeFixProvider)), Shared]
+    public class NDPAttachedAnalyzerCodeFixProvider : NDPAnalyzerCodeFixProvider
+    {
+        public override NDPGenerator Generator { get; } = new NDPGeneratorAttachedProperty();
+
+        internal override GenericNameSyntax GetTypeArgumentList(GenericNameSyntax qualifiedNameSyntax, TypeSyntax type)
+        {
+            return qualifiedNameSyntax.WithTypeArgumentList(
+            SyntaxFactory.TypeArgumentList(
+                SyntaxFactory.SeparatedList<TypeSyntax>(
+                    new SyntaxNodeOrToken[]{
+                            type,
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.PredefinedType(
+                                SyntaxFactory.Token(SyntaxKind.ObjectKeyword))})));
+        }
+    }
+    public abstract class NDPAnalyzerCodeFixProvider : CodeFixProvider
     {
         private const string title = "Make uppercase";
 
+        public abstract NDProperty.Generator.NDPGenerator Generator { get; }
+
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            NDProperty.Generator.Class2.NDP0001,
-            NDProperty.Generator.Class2.NDP0002,
-            NDProperty.Generator.Class2.NDP0003,
-            NDProperty.Generator.Class2.NDP0003);
+            Generator.WrongParameter.Id,
+            Generator.MethodNameConvention.Id,
+            Generator.ClassNotPartial.Id);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -39,32 +72,38 @@ namespace NDP.Analyzer
             {
                 switch (diagnostic.Id)
                 {
-                    case NDProperty.Generator.Class2.NDP0001:
+                    case NDProperty.Generator.NDPGenerator.NDP0001:
+                    case NDProperty.Generator.NDPGenerator.NDP0005:
                         context.RegisterCodeFix(
                         CodeAction.Create(
-                            title: "The Method was not named after Convention",
+                            title: "Rename Method",
                             createChangedSolution: c => RenameMethod(diagnostic, context, c),
                             equivalenceKey: diagnostic.Id),
                         diagnostic);
                         break;
-                    case NDProperty.Generator.Class2.NDP0002:
 
-
+                    case NDProperty.Generator.NDPGenerator.NDP0002:
+                    case NDProperty.Generator.NDPGenerator.NDP0006:
+                        if (!context.Document.SupportsSemanticModel)
+                            continue;
                         context.RegisterCodeFix(
                         CodeAction.Create(
-                            title: "Wrong parameters",
+                            title: "Convert to correct aparameters",
                             createChangedSolution: c => ReplaceParameter(diagnostic, context, c),
                             equivalenceKey: diagnostic.Id),
                         diagnostic);
                         break;
-                    case NDProperty.Generator.Class2.NDP0003:
+
+                    case NDProperty.Generator.NDPGenerator.NDP0003:
+                    case NDProperty.Generator.NDPGenerator.NDP0007:
                         context.RegisterCodeFix(
                         CodeAction.Create(
-                            title: "The class is not partial",
+                            title: "Make class partial",
                             createChangedSolution: c => AddPartial(diagnostic, context, c),
                             equivalenceKey: diagnostic.Id),
                         diagnostic);
                         break;
+
                     default:
                         continue;
                 }
@@ -73,7 +112,6 @@ namespace NDP.Analyzer
             }
 
 
-            // Register a code action that will invoke the fix.
             return Task.FromResult<object>(null);
         }
 
@@ -96,29 +134,54 @@ namespace NDP.Analyzer
         private async Task<Solution> ReplaceParameter(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             // Find the type declaration identified by the diagnostic.
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
             var parameterList = methodDeclaration.ParameterList;
 
-            TypeSyntax genericType;
+            TypeSyntax parameterTypeSyntax;
             if (parameterList.Parameters.Count > 0)
-                genericType = parameterList.Parameters[0].Type;
+            {
+                var firstParameter = parameterList.Parameters.First();
+                var typeInfo = semanticModel.GetTypeInfo(firstParameter.Type);
+
+
+                if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, Generator.OnChangedArgs, semanticModel, false))
+                    parameterTypeSyntax = firstParameter.Type; // if we had the correct type then its ok.
+                else
+                {
+                    var newType = firstParameter.Type;
+                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangedArg<,>), semanticModel, false)
+                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangedArg<>), semanticModel, false))
+                        newType = firstParameter.Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
+                    parameterTypeSyntax = SyntaxFactory.QualifiedName(
+                            SyntaxFactory.AliasQualifiedName(
+                                SyntaxFactory.IdentifierName(
+                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                            GetTypeArgumentList(SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg))), newType));
+                }
+            }
             else
-                genericType = SyntaxFactory.PredefinedType(
-                                        SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+            {
+                parameterTypeSyntax = SyntaxFactory.QualifiedName(
+                            SyntaxFactory.AliasQualifiedName(
+                                SyntaxFactory.IdentifierName(
+                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                            GetTypeArgumentList(SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg))), SyntaxFactory.PredefinedType(
+                                        SyntaxFactory.Token(SyntaxKind.ObjectKeyword))));
+            }
 
             var newParameterList = SyntaxFactory.ParameterList(
                 SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Parameter(
                         SyntaxFactory.Identifier("arg"))
-                    .WithType(
-                        SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg)))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    genericType))))));
+                    .WithType(parameterTypeSyntax)));
 
             root = root.ReplaceNode(parameterList, newParameterList);
 
@@ -126,6 +189,8 @@ namespace NDP.Analyzer
             var originalSolution = context.Document.Project.Solution;
             return originalSolution.WithDocumentSyntaxRoot(context.Document.Id, root);
         }
+
+        internal abstract GenericNameSyntax GetTypeArgumentList(GenericNameSyntax qualifiedNameSyntax, TypeSyntax type);
 
         private async Task<Solution> RenameMethod(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
         {

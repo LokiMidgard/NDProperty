@@ -87,9 +87,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDP.Analyzer\NDP.Analyzer.csproj">
+    <ProjectReference Include="..\NDProperty.Analyzer\NDProperty.Analyzer.csproj">
       <Project>{1c464ccb-3cdb-4a4c-8edd-667066700314}</Project>
-      <Name>NDP.Analyzer</Name>
+      <Name>NDProperty.Analyzer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

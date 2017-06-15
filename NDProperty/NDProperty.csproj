@@ -22,9 +22,12 @@
   
   <ItemGroup>
     <ProjectReference Include="..\NDProperty.Analyzer\NDProperty.Analyzer\NDProperty.Analyzer.csproj" />
-    <ProjectReference Include="..\NDProperty.Core\NDProperty.Core.csproj" />
-    <ProjectReference Include="..\NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj" />
-    <ProjectReference Include="..\NDProperty.Generator\NDProperty.Generator.csproj" />
+    <ProjectReference Include="..\NDProperty.Core\NDProperty.Core.csproj">
+    </ProjectReference>
+    <ProjectReference Include="..\NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj">
+    </ProjectReference>
+    <ProjectReference Include="..\NDProperty.Generator\NDProperty.Generator.csproj">
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

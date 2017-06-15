@@ -14,7 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj" />
     <ProjectReference Include="..\NDProperty.Generator\NDProperty.Generator.csproj" />
-    <ProjectReference Include="..\NDProperty\NDProperty.csproj" />
+    <ProjectReference Include="..\NDProperty.Core\NDProperty.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

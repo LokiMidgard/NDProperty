@@ -8,17 +8,16 @@
 
   <PropertyGroup>
     <PackageId>NDProperty.Analyzer</PackageId>
-    <PackageVersion>0.0.0.8</PackageVersion>
+    <PackageVersion>0.0.1</PackageVersion>
     <Authors>Patrick Kranz</Authors>
-    <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
-    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/LokiMidgard/NDProperty</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/LokiMidgard/NDProperty.git</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>Analyzer3</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
-    <Copyright>Copyright</Copyright>
-    <PackageTags>Analyzer3, analyzers</PackageTags>
+    <Description>An Analyzer for the NDProperty Framework that prevents problems with code generation.</Description>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <Copyright>Patrick Kranz</Copyright>
+    <PackageTags>NDProperty</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
 
@@ -48,6 +47,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj" />
     <ProjectReference Include="..\..\NDProperty.Generator\NDProperty.Generator.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\NDProperty\NDProperty.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\NDProperty.Core\NDProperty.Core.csproj" />
   </ItemGroup>
 </Project>

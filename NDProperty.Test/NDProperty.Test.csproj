@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj" />
     <ProjectReference Include="..\NDProperty.Generator\NDProperty.Generator.csproj" />
     <ProjectReference Include="..\NDProperty\NDProperty.csproj" />
   </ItemGroup>

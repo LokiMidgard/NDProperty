@@ -43,7 +43,6 @@ namespace NDProperty.Generator
         public override DiagnosticDescriptor ClassNotFound => classNotFound;
 
         public override Type OnChangedArgs => typeof(OnChangedArg<>);
-        public override Type AttributeType => typeof(NDPAttribute);
     }
 
     public class NDPGeneratorAttachedProperty : NDPGenerator
@@ -79,7 +78,6 @@ namespace NDProperty.Generator
 
         public override Type OnChangedArgs => typeof(OnChangedArg<,>);
 
-        public override Type AttributeType => typeof(NDPAttachAttribute);
     }
     public abstract class NDPGenerator : ICodeGenerator
     {
@@ -119,8 +117,7 @@ namespace NDProperty.Generator
         public const string NDP0008 = "NDP0008";
 
         public abstract Type OnChangedArgs { get; }
-        public abstract Type AttributeType { get; }
-
+      
         public abstract DiagnosticDescriptor MethodNameConvention { get; }
         /// <summary>
         /// Wrong Parameter
@@ -150,10 +147,10 @@ namespace NDProperty.Generator
 
             var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
-            this.isReadOnly = d.ContainsKey(nameof(NDPAttribute.IsReadOnly)) ? (bool)d[nameof(NDPAttribute.IsReadOnly)].Value : false;
-            this.inherited = d.ContainsKey(nameof(NDPAttribute.Inherited)) ? (bool)d[nameof(NDPAttribute.Inherited)].Value : false;
-            this.isParentReference = d.ContainsKey(nameof(NDPAttribute.IsParentReference)) ? (bool)d[nameof(NDPAttribute.IsParentReference)].Value : false;
-            this.nullTreatment = d.ContainsKey(nameof(NDPAttribute.NullTreatment)) ? (NullTreatment)d[nameof(NDPAttribute.Inherited)].Value : NullTreatment.RemoveLocalValue;
+            this.isReadOnly = d.ContainsKey("IsReadOnly") ? (bool)d["IsReadOnly"].Value : false;
+            this.inherited = d.ContainsKey("Inherited") ? (bool)d["Inherited"].Value : false;
+            this.isParentReference = d.ContainsKey("IsParentReference") ? (bool)d["IsParentReference"].Value : false;
+            this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
         }
         internal NDPGenerator() { }
 

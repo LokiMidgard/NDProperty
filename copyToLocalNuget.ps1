@@ -1,0 +1,1 @@
+ls -Directory | where {$_.Name -ne 'packages'} | ls -Filter *.nupkg  -Recurse | Copy-Item -Destination '~\Source\LocalNugetRepo'

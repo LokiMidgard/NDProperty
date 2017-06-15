@@ -15,7 +15,7 @@ namespace NDP.Analyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NDPPropertyAnalyzer : NDPBaseAnalyzer
     {
-        public override Type AttributeType => typeof(NDProperty.NDPAttachAttribute);
+        public override Type AttributeType => typeof(NDProperty.NDPAttribute);
 
         public override NDPGenerator Generator { get; } = new NDPGeneratorProperty();
     }

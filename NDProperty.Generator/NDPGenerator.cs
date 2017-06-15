@@ -12,7 +12,7 @@ using Validation;
 
 namespace NDProperty.Generator
 {
-    public class NDPGeneratorProperty : NDPGenerator
+    public class NDPGeneratorProperty : NDPGenerator, ICodeGenerator
     {
         public NDPGeneratorProperty(AttributeData attributeData) : base(attributeData) { }
 
@@ -45,7 +45,7 @@ namespace NDProperty.Generator
         public override Type OnChangedArgs => typeof(OnChangedArg<>);
     }
 
-    public class NDPGeneratorAttachedProperty : NDPGenerator
+    public class NDPGeneratorAttachedProperty : NDPGenerator, ICodeGenerator
     {
         public NDPGeneratorAttachedProperty(AttributeData attributeData) : base(attributeData) { }
 
@@ -117,7 +117,7 @@ namespace NDProperty.Generator
         public const string NDP0008 = "NDP0008";
 
         public abstract Type OnChangedArgs { get; }
-      
+
         public abstract DiagnosticDescriptor MethodNameConvention { get; }
         /// <summary>
         /// Wrong Parameter
@@ -215,7 +215,7 @@ namespace NDProperty.Generator
 
         public static bool TypeSymbolMatchesType(ITypeSymbol typeSymbol, Type type, SemanticModel semanticModel, bool expandGeneric = true)
         {
-            if(!expandGeneric)
+            if (!expandGeneric)
                 typeSymbol = (typeSymbol as INamedTypeSymbol)?.ConstructedFrom ?? typeSymbol;
 
             return GetTypeSymbolForType(type, semanticModel, expandGeneric).Equals(typeSymbol);

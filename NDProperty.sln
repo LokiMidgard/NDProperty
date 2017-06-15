@@ -10,13 +10,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ECADA391-9B34-4910-A8F7-A81BAD338AA6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		NuGet.Config = NuGet.Config
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Test", "NDProperty.Test\NDProperty.Test.csproj", "{D6EA9C7F-EEE8-47D4-A171-45DEB2E6B340}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Generator", "NDProperty.Generator\NDProperty.Generator.csproj", "{66887DB5-5C82-4048-AA93-2F061C09B1F3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A1D6FC6B-D0B5-41E6-AC64-967FED3078D6} = {A1D6FC6B-D0B5-41E6-AC64-967FED3078D6}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Analyzer", "NDProperty.Analyzer\NDProperty.Analyzer\NDProperty.Analyzer.csproj", "{1C464CCB-3CDB-4A4C-8EDD-667066700314}"
 	ProjectSection(ProjectDependencies) = postProject

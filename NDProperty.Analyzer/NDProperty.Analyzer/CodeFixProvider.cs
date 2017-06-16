@@ -35,6 +35,8 @@ namespace NDP.Analyzer
     {
         public override NDPGenerator Generator { get; } = new NDPGeneratorAttachedProperty();
 
+        public override ImmutableArray<string> FixableDiagnosticIds => base.FixableDiagnosticIds.Add((Generator as NDPGeneratorAttachedProperty).NotStatic.Id);
+
         internal override GenericNameSyntax GetTypeArgumentList(GenericNameSyntax qualifiedNameSyntax, TypeSyntax type)
         {
             return qualifiedNameSyntax.WithTypeArgumentList(
@@ -46,15 +48,51 @@ namespace NDP.Analyzer
                             SyntaxFactory.PredefinedType(
                                 SyntaxFactory.Token(SyntaxKind.ObjectKeyword))})));
         }
+
+        protected override void CheckForFix(Diagnostic diagnostic, CodeFixContext context)
+        {
+            base.CheckForFix(diagnostic, context);
+
+
+            switch (diagnostic.Id)
+            {
+                case NDProperty.Generator.NDPGenerator.NDP0009:
+                    context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: "Make method static",
+                        createChangedSolution: c => AddStatic(diagnostic, context, c),
+                        equivalenceKey: diagnostic.Id),
+                    diagnostic);
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+
+        private async Task<Solution> AddStatic(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            // Find the type declaration identified by the diagnostic.
+            var methodDeclartion = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
+            var newClassDeclaretaion = methodDeclartion.WithModifiers(methodDeclartion.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
+
+
+            root = root.ReplaceNode(methodDeclartion, newClassDeclaretaion);
+
+            // Produce a new solution that has all references to that type renamed, including the declaration.
+            var originalSolution = context.Document.Project.Solution;
+            return originalSolution.WithDocumentSyntaxRoot(context.Document.Id, root);
+        }
     }
     public abstract class NDPAnalyzerCodeFixProvider : CodeFixProvider
     {
-        private const string title = "Make uppercase";
-
         public abstract NDProperty.Generator.NDPGenerator Generator { get; }
 
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             Generator.WrongParameter.Id,
             Generator.MethodNameConvention.Id,
             Generator.ClassNotPartial.Id);
@@ -69,50 +107,51 @@ namespace NDP.Analyzer
         {
 
             foreach (var diagnostic in context.Diagnostics)
-            {
-                switch (diagnostic.Id)
-                {
-                    case NDProperty.Generator.NDPGenerator.NDP0001:
-                    case NDProperty.Generator.NDPGenerator.NDP0005:
-                        context.RegisterCodeFix(
-                        CodeAction.Create(
-                            title: "Rename Method",
-                            createChangedSolution: c => RenameMethod(diagnostic, context, c),
-                            equivalenceKey: diagnostic.Id),
-                        diagnostic);
-                        break;
-
-                    case NDProperty.Generator.NDPGenerator.NDP0002:
-                    case NDProperty.Generator.NDPGenerator.NDP0006:
-                        if (!context.Document.SupportsSemanticModel)
-                            continue;
-                        context.RegisterCodeFix(
-                        CodeAction.Create(
-                            title: "Convert to correct aparameters",
-                            createChangedSolution: c => ReplaceParameter(diagnostic, context, c),
-                            equivalenceKey: diagnostic.Id),
-                        diagnostic);
-                        break;
-
-                    case NDProperty.Generator.NDPGenerator.NDP0003:
-                    case NDProperty.Generator.NDPGenerator.NDP0007:
-                        context.RegisterCodeFix(
-                        CodeAction.Create(
-                            title: "Make class partial",
-                            createChangedSolution: c => AddPartial(diagnostic, context, c),
-                            equivalenceKey: diagnostic.Id),
-                        diagnostic);
-                        break;
-
-                    default:
-                        continue;
-                }
-
-
-            }
+                CheckForFix(diagnostic, context);
 
 
             return Task.FromResult<object>(null);
+        }
+
+        protected virtual void CheckForFix(Diagnostic diagnostic, CodeFixContext context)
+        {
+            switch (diagnostic.Id)
+            {
+                case NDProperty.Generator.NDPGenerator.NDP0001:
+                case NDProperty.Generator.NDPGenerator.NDP0005:
+                    context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: "Rename Method",
+                        createChangedSolution: c => RenameMethod(diagnostic, context, c),
+                        equivalenceKey: diagnostic.Id),
+                    diagnostic);
+                    break;
+
+                case NDProperty.Generator.NDPGenerator.NDP0002:
+                case NDProperty.Generator.NDPGenerator.NDP0006:
+                    if (!context.Document.SupportsSemanticModel)
+                        break;
+                    context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: "Convert to correct aparameters",
+                        createChangedSolution: c => ReplaceParameter(diagnostic, context, c),
+                        equivalenceKey: diagnostic.Id),
+                    diagnostic);
+                    break;
+
+                case NDProperty.Generator.NDPGenerator.NDP0003:
+                case NDProperty.Generator.NDPGenerator.NDP0007:
+                    context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: "Make class partial",
+                        createChangedSolution: c => AddPartial(diagnostic, context, c),
+                        equivalenceKey: diagnostic.Id),
+                    diagnostic);
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         private async Task<Solution> AddPartial(Diagnostic diagnostic, CodeFixContext context, CancellationToken cancellationToken)

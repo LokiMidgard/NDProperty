@@ -25,6 +25,8 @@ namespace NDP.Analyzer
         public override Type AttributeType => typeof(NDPAttachAttribute);
 
         public override NDPGenerator Generator { get; } = new NDPGeneratorAttachedProperty();
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => base.SupportedDiagnostics.Add((Generator as NDPGeneratorAttachedProperty).NotStatic);
     }
     public abstract class NDPBaseAnalyzer : DiagnosticAnalyzer
     {

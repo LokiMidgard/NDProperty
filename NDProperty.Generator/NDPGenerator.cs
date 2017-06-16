@@ -266,6 +266,8 @@ namespace NDProperty.Generator
         /// </summary>
         public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0008, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
 
+        public static readonly DiagnosticDescriptor notStatic = new DiagnosticDescriptor(NDP0009, "Change handler must be static", $"The Change handler of an Attached Property must be static.", "NDP", DiagnosticSeverity.Error, true);
+
         public override DiagnosticDescriptor MethodNameConvention => methodNameConvention;
 
         public override DiagnosticDescriptor WrongParameter => wrongParameter;
@@ -273,6 +275,8 @@ namespace NDProperty.Generator
         public override DiagnosticDescriptor ClassNotPartial => classNotPartial;
 
         public override DiagnosticDescriptor ClassNotFound => classNotFound;
+
+        public DiagnosticDescriptor NotStatic => notStatic;
 
         public override Type OnChangedArgs => typeof(OnChangedArg<,>);
 
@@ -299,6 +303,17 @@ namespace NDProperty.Generator
 
             list.Add(GenerateHelper(propertyName, genericTypeType, genericValueType));
             return SyntaxFactory.List(list);
+        }
+
+        public override IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
+        {
+            foreach (var diagnostic in base.GenerateDiagnostics(method, model))
+            {
+                yield return diagnostic;
+            }
+            if (!method.Modifiers.Any(SyntaxKind.StaticKeyword))
+                yield return Diagnostic.Create(NotStatic, method.Identifier.GetLocation());
+
         }
 
 
@@ -398,6 +413,12 @@ namespace NDProperty.Generator
         public const string NDP0008 = "NDP0008";
 
 
+        /// <summary>
+        /// Attached Change handler must be static
+        /// </summary>
+        public const string NDP0009 = "NDP0009";
+
+
 
 
         public abstract Type OnChangedArgs { get; }
@@ -457,7 +478,7 @@ namespace NDProperty.Generator
             return Task.FromResult(GenerateProperty(method, this.isReadOnly));
         }
 
-        public IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
+        public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
         {
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
 

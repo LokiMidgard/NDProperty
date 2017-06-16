@@ -1,3 +1,7 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/f2thpg6u4b3pb5p6?svg=true)](https://ci.appveyor.com/project/LokiMidgard/ndproperty)
+[![NuGet](https://img.shields.io/nuget/v/NDProperty.svg?style=flat-square)](https://www.nuget.org/packages/NDProperty/)
+
+
 # NDProperty
 
 This Framework aims to provide simlar capabilitys as DependencyObjects. But with less boilerplate code thanks to code generation.

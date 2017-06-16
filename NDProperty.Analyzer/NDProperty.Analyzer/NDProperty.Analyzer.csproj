@@ -10,7 +10,6 @@
 
   <PropertyGroup>
     <PackageId>NDProperty.Analyzer</PackageId>
-    <PackageVersion>$(Version)</PackageVersion>
     <Description>An Analyzer for the NDProperty Framework that prevents problems with code generation.</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>NDProperty</PackageTags>

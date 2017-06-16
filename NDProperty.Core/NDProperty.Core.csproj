@@ -8,12 +8,14 @@
 
   <PropertyGroup>
     <PackageId>NDProperty.Core</PackageId>
-    <PackageVersion>$(Version)</PackageVersion>
     <Description>These are the core classes that provides functionality for the NDProperty Framework.</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <VersionSuffix>Debug</VersionSuffix>
     <PackageTags>NDProperty</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
+
+
   
   <ItemGroup>
     <PackageReference Include="CodeGeneration.Roslyn.Attributes" Version="0.3.9" />

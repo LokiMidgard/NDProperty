@@ -9,7 +9,6 @@
 
   <PropertyGroup>
     <PackageId>NDProperty</PackageId>
-    <PackageVersion>$(Version)</PackageVersion>
     <Description>This Framework provides functionality like WPF DependencyObjects. Supporting value inheritance, change notification and Attached Property’s. Support for binding will follow. Easy to use thanks to code generation. For more information see Project site.</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>DependencyObject, DependencyProperty, Attached Property, Binding</PackageTags>

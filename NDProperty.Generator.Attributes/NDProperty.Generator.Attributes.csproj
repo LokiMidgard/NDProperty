@@ -8,7 +8,6 @@
 
   <PropertyGroup>
     <PackageId>NDProperty.Generator.Attributes</PackageId>
-    <PackageVersion>$(Version)</PackageVersion>
     <Description>Attributes used for code generation of NDProperty</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>NDProperty</PackageTags>

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using CodeGeneration.Roslyn;
 
 namespace NDProperty
-{
-
+{ 
+    [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class NDPAttributeBase : Attribute
     {
         internal NDPAttributeBase() { }

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="CodeGeneration.Roslyn.Attributes" Version="0.3.9" />
+    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <ProjectReference Include="..\NDProperty.Generator\NDProperty.Generator.csproj" />
     <ProjectReference Include="..\NDProperty.Core\NDProperty.Core.csproj" />
   </ItemGroup>

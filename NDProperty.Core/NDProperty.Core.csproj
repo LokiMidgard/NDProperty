@@ -12,6 +12,7 @@
     <Description>These are the core classes that provides functionality for the NDProperty Framework.</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>NDProperty</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
   
   <ItemGroup>

@@ -12,6 +12,7 @@
     <Description>Attributes used for code generation of NDProperty</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>NDProperty</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>

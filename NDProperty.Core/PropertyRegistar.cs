@@ -128,6 +128,7 @@ namespace NDProperty
                         }
                     }
                 }
+                onChangedArg.ExecuteAfterChange?.Invoke();
             }
         }
 

@@ -1,4 +1,6 @@
-﻿namespace NDProperty
+﻿using System;
+
+namespace NDProperty
 {
     public static class OnChangedArg
     {
@@ -25,6 +27,8 @@
         public bool Reject { get; set; }
 
         public StringResource Error { get; set; }
+
+        public Action ExecuteAfterChange;
 
     }
 

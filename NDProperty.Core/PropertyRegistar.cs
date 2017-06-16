@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace NDProperty
 {
-    public static class PropertyRegistar
+    public static partial  class PropertyRegistar
     {
 
         private static readonly Dictionary<Type, List<INDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<INDReadOnlyProperty>>();
@@ -24,7 +24,7 @@ namespace NDProperty
 
             return p;
         }
-        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType, THost>(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent)
+        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent)
         {
             var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment);
             if (p.Inherited)
@@ -328,12 +328,10 @@ namespace NDProperty
     {
         internal readonly Func<TType, OnChanged<TValue>> changedMethod;
 
-        public NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
         NDReadOnlyProperty<TValue, TType> INDProperty<TValue, TType>.ReadOnlyProperty => ReadOnlyProperty;
 
-        internal NDProperty(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment) : base(inherited, nullTreatment)
+        internal NDProperty(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment) : base(inherited, nullTreatment, new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment))
         {
-            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment);
             this.changedMethod = changedMethod;
         }
     }
@@ -341,12 +339,10 @@ namespace NDProperty
     {
         internal readonly OnChanged<TValue, TType> changedMethod;
 
-        internal NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
         NDReadOnlyProperty<TValue, TType> INDProperty<TValue, TType>.ReadOnlyProperty => ReadOnlyProperty;
 
-        internal NDAttachedProperty(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment) : base(inherited, nullTreatment)
+        internal NDAttachedProperty(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment) : base(inherited, nullTreatment, new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment))
         {
-            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment);
             this.changedMethod = changedMethod;
         }
 
@@ -357,9 +353,14 @@ namespace NDProperty
         public bool Inherited { get; }
 
         public NullTreatment NullTreatment { get; }
+        public NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
 
-        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment)
+        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment, NDReadOnlyProperty<TValue,TType> readonlyPropery = null)
         {
+            if (readonlyPropery == null)
+                ReadOnlyProperty = this;
+            else
+                ReadOnlyProperty = readonlyPropery;
             Inherited = inherited;
             NullTreatment = nullTreatment;
         }

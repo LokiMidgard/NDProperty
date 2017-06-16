@@ -168,18 +168,29 @@ namespace NDProperty.Test
 
         [NDP]
         private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<string> arg)
-        { 
+        {
             var test = TestAttributeProperty.ToString();
         }
 
-        [NDP(IsReadOnly =true)]
+        [NDP(IsReadOnly = true)]
         private void OnMyBlaChanged(OnChangedArg<string> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
 
+        #region Attach
+        public static readonly global::NDProperty.NDAttachedProperty<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
+
+        public static global::NDProperty.PropertyRegistar.AttachedHelper<string, object> Attach { get; } = global::NDProperty.PropertyRegistar.AttachedHelper.Create(AttachProperty);
+
+        private static void OnAttachChanged(OnChangedArg<string, object> arg)
+        {
+            
+        }
+        #endregion
+
         #region Str
-        public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue,false);
+        public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue, false);
 
         public string Str
         {
@@ -201,7 +212,7 @@ namespace NDProperty.Test
         #endregion
 
         #region InheritedStr
-        public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, true, NullTreatment.RemoveLocalValue,false);
+        public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, true, NullTreatment.RemoveLocalValue, false);
 
         public string InheritedStr
         {
@@ -223,7 +234,7 @@ namespace NDProperty.Test
 
 
         #region Parent
-        public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.Register<TestObject, TestObject>(t => t.OnParentChanged,false, NullTreatment.RemoveLocalValue, true);
+        public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.Register<TestObject, TestObject>(t => t.OnParentChanged, false, NullTreatment.RemoveLocalValue, true);
         public TestObject Parent
         {
             get => PropertyRegistar.GetValue(ParentProperty, this);

@@ -97,7 +97,7 @@ namespace NDProperty
             var oldValue = GetValue(property, changedObject);
             var onChangedArg = OnChangedArg.Create(changedObject, oldValue, value);
             property.changedMethod(onChangedArg);
-            SetValueInternal(property, changedObject, value, onChangedArg);
+            SetValueInternal(property, changedObject, onChangedArg.MutatedValue, onChangedArg);
         }
 
         private static void SetValueInternal<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj, TValue value, OnChangedArg<TValue> onChangedArg) where TType : class

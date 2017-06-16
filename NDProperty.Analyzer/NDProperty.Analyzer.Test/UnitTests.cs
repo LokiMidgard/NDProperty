@@ -8,12 +8,13 @@ using NDP.Analyzer;
 
 namespace NDP.Analyzer.Test
 {
+    
     [TestClass]
     public class UnitTest : CodeFixVerifier
     {
 
         //No diagnostics expected to show up
-        [TestMethod]
+        //[TestMethod]
         public void TestMethod1()
         {
             var test = @"";
@@ -22,7 +23,7 @@ namespace NDP.Analyzer.Test
         }
 
         //Diagnostic and CodeFix both triggered and checked for
-        [TestMethod]
+        //[TestMethod]
         public void TestMethod2()
         {
             var test = @"

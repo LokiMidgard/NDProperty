@@ -10,15 +10,28 @@ namespace NDProperty.Test
         [TestMethod]
         public void TestSetAndGet()
         {
-            var t = new TestObject();
+            var t1 = new TestObject();
             const string str1 = "Hallo Welt!";
             const string str2 = "Hallo Welt!2";
 
-            t.Str = str1;
-            Assert.AreEqual(str1, t.Str);
+            t1.Str = str1;
+            Assert.AreEqual(str1, t1.Str);
 
-            t.Str = str2;
-            Assert.AreEqual(str2, t.Str);
+            t1.Str = str2;
+            Assert.AreEqual(str2, t1.Str);
+        }
+        [TestMethod]
+        public void TestSetAndGetMultipleObjects()
+        {
+            var t1 = new TestObject();
+            var t2 = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+
+            t1.Str = str1;
+            t2.Str = str2;
+            Assert.AreEqual(str1, t1.Str);
+            Assert.AreEqual(str2, t2.Str);
         }
         [TestMethod]
         public void TestListener()
@@ -47,6 +60,82 @@ namespace NDProperty.Test
 
             Assert.IsNotNull(eventArg);
             Assert.AreEqual(str2, eventArg.NewValue);
+            Assert.AreEqual(str1, eventArg.OldValue);
+            Assert.AreSame(t, eventArg.ChangedObject);
+        }
+
+        [TestMethod]
+        public void TestReject()
+        {
+            var t = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+
+            ChangedEventArgs<string, TestObject> eventArg = null;
+            t.Str = str1;
+
+            t.Reject = true;
+
+            t.StrChanged += (sender, e) =>
+            {
+                eventArg = e;
+            };
+
+            t.Str = str2;
+
+            Assert.IsNull(eventArg);
+            Assert.AreEqual(str1, t.Str);
+        }
+
+        [TestMethod]
+        public void TestRejectAndMutate()
+        {
+            var t = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+            const string str3 = "Hallo Welt!3";
+
+            ChangedEventArgs<string, TestObject> eventArg = null;
+            t.Str = str1;
+
+            t.Reject = true;
+            t.Mutate = str3;
+
+            t.StrChanged += (sender, e) =>
+            {
+                eventArg = e;
+            };
+
+            t.Str = str2;
+
+            Assert.IsNull(eventArg);
+            Assert.AreEqual(str1, t.Str);
+        }
+
+        [TestMethod]
+        public void TestMutate()
+        {
+            var t = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+            const string str3 = "Hallo Welt!3";
+
+            ChangedEventArgs<string, TestObject> eventArg = null;
+            t.Str = str1;
+
+            t.Mutate = str3;
+
+            t.StrChanged += (sender, e) =>
+            {
+                eventArg = e;
+            };
+
+            t.Str = str2;
+
+ 
+
+            Assert.IsNotNull(eventArg);
+            Assert.AreEqual(str3, eventArg.NewValue);
             Assert.AreEqual(str1, eventArg.OldValue);
             Assert.AreSame(t, eventArg.ChangedObject);
         }
@@ -166,6 +255,9 @@ namespace NDProperty.Test
     public partial class TestObject
     {
 
+        public bool Reject { get; set; }
+        public string Mutate { get; set; }
+
         [NDP]
         private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<string> arg)
         {
@@ -185,7 +277,7 @@ namespace NDProperty.Test
 
         private static void OnAttachChanged(OnChangedArg<string, object> arg)
         {
-            
+
         }
         #endregion
 
@@ -207,7 +299,9 @@ namespace NDProperty.Test
 
         private void OnStrChanged(OnChangedArg<string> arg)
         {
-
+            arg.Reject = Reject;
+            if (Mutate != null)
+                arg.MutatedValue = Mutate;
         }
         #endregion
 

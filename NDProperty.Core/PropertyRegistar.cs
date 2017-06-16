@@ -90,18 +90,19 @@ namespace NDProperty
             var oldValue = GetValue(property, changedObject);
             var onChangedArg = OnChangedArg.Create(oldValue, value);
             property.changedMethod(changedObject)(onChangedArg);
-            SetValueInternal(property, changedObject, value, onChangedArg);
+            SetValueInternal(property, changedObject, onChangedArg);
         }
         public static void SetValue<TValue, TType>(NDAttachedProperty<TValue, TType> property, TType changedObject, TValue value) where TType : class
         {
             var oldValue = GetValue(property, changedObject);
             var onChangedArg = OnChangedArg.Create(changedObject, oldValue, value);
             property.changedMethod(onChangedArg);
-            SetValueInternal(property, changedObject, onChangedArg.MutatedValue, onChangedArg);
+            SetValueInternal(property, changedObject, onChangedArg);
         }
 
-        private static void SetValueInternal<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj, TValue value, OnChangedArg<TValue> onChangedArg) where TType : class
+        private static void SetValueInternal<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj, OnChangedArg<TValue> onChangedArg) where TType : class
         {
+            var value = onChangedArg.MutatedValue;
             if (!onChangedArg.Reject)
             {
                 if (value == null && property.NullTreatment == NullTreatment.RemoveLocalValue)
@@ -111,7 +112,7 @@ namespace NDProperty
 
                 if (!Equals(onChangedArg.OldValue, onChangedArg.NewValue))
                 {
-                    FireValueChanged(property, obj, obj, onChangedArg.OldValue, onChangedArg.NewValue);
+                    FireValueChanged(property, obj, obj, onChangedArg.OldValue, value);
                     if (property.Inherited)
                     {
                         var tree = Tree.GetTree(obj);
@@ -121,7 +122,7 @@ namespace NDProperty
                         {
                             tree = queue.Dequeue();
                             if (tree.Current is TType t)
-                                FireValueChanged(property, t, obj, onChangedArg.OldValue, onChangedArg.NewValue);
+                                FireValueChanged(property, t, obj, onChangedArg.OldValue, value);
                             foreach (var child in tree.Childrean)
                                 queue.Enqueue(child);
                         }

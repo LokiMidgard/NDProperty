@@ -28,7 +28,7 @@ namespace NDProperty
 
         public StringResource Error { get; set; }
 
-        public Action ExecuteAfterChange;
+        public event Action ExecuteAfterChange;
 
     }
 

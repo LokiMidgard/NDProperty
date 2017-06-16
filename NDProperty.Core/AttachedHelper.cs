@@ -10,9 +10,9 @@ namespace NDProperty
 
         public static class AttachedHelper
         {
-            public static AttachedHelper<TValue, TType> Create<TValue, TType>(NDAttachedProperty<TValue, TType> property) => new AttachedHelper<TValue, TType>(property);
+            public static AttachedHelper<TValue, TType> Create<TValue, TType>(NDAttachedProperty<TValue, TType> property) where TType : class => new AttachedHelper<TValue, TType>(property);
         }
-        public class AttachedHelper<TValue, TType>
+        public class AttachedHelper<TValue, TType> where TType : class
         {
             private readonly NDAttachedProperty<TValue, TType> property;
 

@@ -1,6 +1,6 @@
 ﻿namespace NDProperty
 {
-    internal interface INDProperty<TValue, TType>
+    public interface INDProperty<TValue, TType> where TType : class
     {
         NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
     }

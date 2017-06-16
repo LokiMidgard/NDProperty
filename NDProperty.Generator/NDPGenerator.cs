@@ -629,7 +629,7 @@ namespace NDProperty.Generator
             var register = SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.IdentifierName(propertyKey),
-                                SyntaxFactory.IdentifierName(nameof(NDReadOnlyProperty<object, object>.ReadOnlyProperty)));
+                                SyntaxFactory.IdentifierName(nameof(INDProperty<object, object>.ReadOnlyProperty)));
 
             return GenerateLeftKeyPart(className, propertyReadOnlyKey, register, Accessibility.Public, PropertyKind.Readonly, genericTypeArgument);
         }

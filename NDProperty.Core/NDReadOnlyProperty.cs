@@ -2,16 +2,26 @@
 
 namespace NDProperty
 {
+    [Flags]
+    public enum NDPropertySettings
+    {
+        None = 0,
+        /// <summary>
+        /// Normaly the OnPropertyChanged handler will only be called if old and new value are not equal. Using this setting it will even called if new and old value are the same.
+        /// </summary>
+        CallOnChangedHandlerOnEquals = 1 << 1,
+    }
     public class NDReadOnlyProperty<TValue, TType> : IInternalNDReadOnlyProperty where TType : class
     {
         public bool Inherited { get; }
-
+        public NDPropertySettings Settigns { get; }
         public NullTreatment NullTreatment { get; }
 
         public TValue DefaultValue { get; }
 
-        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment, TValue defaultValue)
+        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns)
         {
+            Settigns = settigns;
             DefaultValue = defaultValue;
             Inherited = inherited;
             NullTreatment = nullTreatment;

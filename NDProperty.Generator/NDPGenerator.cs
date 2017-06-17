@@ -47,7 +47,7 @@ namespace NDProperty.Generator
         public override Type OnChangedArgs => typeof(OnChangedArg<>);
 
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method,ExpressionSyntax defaultValueExpresion, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly)
         {
 
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
@@ -284,7 +284,7 @@ namespace NDProperty.Generator
 
         public override Type OnChangedArgs => typeof(OnChangedArg<,>);
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method,ExpressionSyntax defaultValueExpresion, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly)
         {
             var propertyName = GetPropertyName(method);
 
@@ -449,6 +449,7 @@ namespace NDProperty.Generator
         protected readonly NullTreatment nullTreatment;
         protected readonly bool isReadOnly;
         protected readonly bool isParentReference;
+        private readonly NDPropertySettings propertySettings;
         protected static readonly Regex nameRegex = new Regex(@"On(?<name>\S+)Changed", RegexOptions.Compiled);
 
         internal NDPGenerator(AttributeData attributeData)
@@ -461,6 +462,7 @@ namespace NDProperty.Generator
             this.inherited = d.ContainsKey("Inherited") ? (bool)d["Inherited"].Value : false;
             this.isParentReference = d.ContainsKey("IsParentReference") ? (bool)d["IsParentReference"].Value : false;
             this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
+            this.propertySettings = d.ContainsKey("Settigns") ? (NDPropertySettings)d["Settigns"].Value : NDPropertySettings.None;
         }
         internal NDPGenerator() { }
         [System.ComponentModel.DefaultValue("")]
@@ -745,7 +747,20 @@ namespace NDProperty.Generator
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.LiteralExpression(
-                                    this.isParentReference ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression))
+                                    this.isParentReference ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.Argument(
+                                                SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.AliasQualifiedName(
+                                                            SyntaxFactory.IdentifierName(
+                                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                        SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
+                                                    SyntaxFactory.IdentifierName(this.propertySettings.ToString())))
+
                         })));
 
             return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, propertyValue);

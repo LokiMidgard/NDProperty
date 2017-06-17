@@ -9,9 +9,10 @@ namespace NDProperty
 
         private static readonly Dictionary<Type, List<IInternalNDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<IInternalNDReadOnlyProperty>>();
 
-        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
+        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent, NDPropertySettings settigns)
+            where TType : class
         {
-            var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue);
+            var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -23,9 +24,10 @@ namespace NDProperty
 
             return p;
         }
-        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
+        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent, NDPropertySettings settigns)
+            where TType : class
         {
-            var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue);
+            var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -88,6 +90,8 @@ namespace NDProperty
         public static void SetValue<TValue, TType>(NDProperty<TValue, TType> property, TType changedObject, TValue value) where TType : class
         {
             var oldValue = GetValue(property, changedObject);
+            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
+                return;
             var onChangedArg = OnChangedArg.Create(oldValue, value);
             property.changedMethod(changedObject)(onChangedArg);
             SetValueInternal(property, changedObject, onChangedArg);
@@ -95,6 +99,8 @@ namespace NDProperty
         public static void SetValue<TValue, TType>(NDAttachedProperty<TValue, TType> property, TType changedObject, TValue value) where TType : class
         {
             var oldValue = GetValue(property, changedObject);
+            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
+                return;
             var onChangedArg = OnChangedArg.Create(changedObject, oldValue, value);
             property.changedMethod(onChangedArg);
             SetValueInternal(property, changedObject, onChangedArg);

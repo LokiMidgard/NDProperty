@@ -65,6 +65,25 @@ namespace NDProperty.Test
         }
 
         [TestMethod]
+        public void TestSettingsCallOnChangedEquals()
+        {
+            var t = new TestObject();
+            const string str1 = "Hallo Welt!";
+
+            var p1 = PropertyRegistar.Register<string, TestObject>(x => x.TestChangeMethod, str1, false, NullTreatment.RemoveLocalValue, false, NDPropertySettings.None);
+            var p2 = PropertyRegistar.Register<string, TestObject>(x => x.TestChangeMethod, str1, false, NullTreatment.RemoveLocalValue, false, NDPropertySettings.CallOnChangedHandlerOnEquals);
+
+
+            PropertyRegistar.SetValue(p1, t, str1);
+            Assert.IsNull(t.testArguments);
+
+            PropertyRegistar.SetValue(p2, t, str1);
+            Assert.IsNotNull(t.testArguments);
+            Assert.AreEqual(str1, t.testArguments.NewValue);
+            Assert.AreEqual(str1, t.testArguments.OldValue);
+        }
+
+        [TestMethod]
         public void TestReject()
         {
             var t = new TestObject();
@@ -258,7 +277,7 @@ namespace NDProperty.Test
         public bool Reject { get; set; }
         public string Mutate { get; set; }
 
-        [NDP]
+        [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
         [System.ComponentModel.DefaultValue("Test")]
         private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<string> arg)
         {
@@ -272,7 +291,7 @@ namespace NDProperty.Test
         }
 
         #region Attach
-        public static readonly global::NDProperty.NDAttachedProperty<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
+        public static readonly global::NDProperty.NDAttachedProperty<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), false, global::NDProperty.NullTreatment.RemoveLocalValue, false, global::NDProperty.NDPropertySettings.None);
 
         public static global::NDProperty.PropertyRegistar.AttachedHelper<string, object> Attach { get; } = global::NDProperty.PropertyRegistar.AttachedHelper.Create(AttachProperty);
 
@@ -283,7 +302,7 @@ namespace NDProperty.Test
         #endregion
 
         #region Str
-        public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, default(string), false, NullTreatment.RemoveLocalValue, false);
+        public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, default(string), false, NullTreatment.RemoveLocalValue, false, NDPropertySettings.None);
 
         public string Str
         {
@@ -307,7 +326,7 @@ namespace NDProperty.Test
         #endregion
 
         #region InheritedStr
-        public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, default(string), true, NullTreatment.RemoveLocalValue, false);
+        public static readonly NDProperty<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, default(string), true, NullTreatment.RemoveLocalValue, false, NDPropertySettings.None);
 
         public string InheritedStr
         {
@@ -329,7 +348,7 @@ namespace NDProperty.Test
 
 
         #region Parent
-        public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.Register<TestObject, TestObject>(t => t.OnParentChanged, default(TestObject), false, NullTreatment.RemoveLocalValue, true);
+        public static readonly NDProperty<TestObject, TestObject> ParentProperty = PropertyRegistar.Register<TestObject, TestObject>(t => t.OnParentChanged, default(TestObject), false, NullTreatment.RemoveLocalValue, true, NDPropertySettings.None);
         public TestObject Parent
         {
             get => PropertyRegistar.GetValue(ParentProperty, this);
@@ -354,6 +373,13 @@ namespace NDProperty.Test
         public override string ToString()
         {
             return base.ToString();
+        }
+
+        public OnChangedArg<string> testArguments;
+
+        internal void TestChangeMethod(OnChangedArg<string> arg)
+        {
+            testArguments = arg;
         }
     }
 

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using CodeGeneration.Roslyn;
 
 namespace NDProperty
-{ 
+{
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class NDPAttributeBase : Attribute
     {
@@ -14,6 +14,7 @@ namespace NDProperty
         public bool IsReadOnly { get; set; } = false;
         public bool IsParentReference { get; set; } = false;
         public NullTreatment NullTreatment { get; set; } = NullTreatment.RemoveLocalValue;
+        public NDPropertySettings Settigns { get; set; } = NDPropertySettings.None;
     }
 
     [System.AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

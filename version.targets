@@ -8,7 +8,14 @@
     <PackageProjectUrl>https://github.com/LokiMidgard/NDProperty</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LokiMidgard/NDProperty.git</RepositoryUrl>
     <Copyright>Patrick Kranz</Copyright>
-    <PackageReleaseNotes>Added Support for Default Values.</PackageReleaseNotes>
+    <PackageReleaseNotes>
+      <![CDATA[
+Added Support for:
+- Default Values.
+- Property Settings 
+  + Define when OnPropertyChanged handler is called.
+]]>
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup >

@@ -167,6 +167,8 @@ You can activate this behavior using the ```Register``` methods on the ```Proper
 In order to define the relation ship between objects, you should also define one Proeprty as the parent reference.
 This will be used to determin the structure of your tree. This can also be set using the Attributes or the ```Register``` methods.
 
+**Important!** If a property inhirets a value from its parent and this value is change, the EventHandler (```PropertyRegistar.AddEventHandler(...)```) of the Property is fired, but not the ```OnPropertyChanged``` method.
+
 #### Null treatment
 
 Normaly setting a value to null removes it from the Object. If this Property is inherited than it will have the value of its parent.

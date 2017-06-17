@@ -8,9 +8,9 @@ namespace NDProperty
 
         public NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
 
-        internal NDProperty(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment, TValue defaultValue) : base(inherited, nullTreatment, defaultValue)
+        internal NDProperty(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns) : base(inherited, nullTreatment, defaultValue, settigns)
         {
-            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment, defaultValue);
+            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment, defaultValue, settigns);
             this.changedMethod = changedMethod;
         }
     }

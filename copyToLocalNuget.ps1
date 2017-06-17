@@ -10,6 +10,7 @@ if (Test-Path $localNugetReposetory) {
     Get-ChildItem -Directory | Where-Object {$_.Name -ne 'packages'} | Get-ChildItem -Filter *.nupkg  -Recurse | Copy-Item -Destination $localNugetReposetory -Verbose
     Get-ChildItem -Directory | Where-Object {$_.Name -ne 'packages'} | Get-ChildItem -Filter *.nupkg  -Recurse | Remove-Item -Verbose
 
+ $nugetLocationOutput = nuget locals global-packages -list
     $nugetLocation = $nugetLocationOutput.SubString('global-packages:'.Length).Trim()
 
     if (Test-Path $nugetLocation) {

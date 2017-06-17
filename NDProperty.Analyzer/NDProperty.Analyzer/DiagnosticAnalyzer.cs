@@ -43,7 +43,8 @@ namespace NDP.Analyzer
             Generator.ClassNotFound,
             Generator.ClassNotPartial,
             Generator.MethodNameConvention,
-            Generator.WrongParameter);
+            Generator.WrongParameter,
+            Generator.DefaultValueWrongType);
 
 
         public override void Initialize(AnalysisContext context)

@@ -47,7 +47,7 @@ namespace NDProperty.Generator
         public override Type OnChangedArgs => typeof(OnChangedArg<>);
 
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
         {
 
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
@@ -58,10 +58,7 @@ namespace NDProperty.Generator
 
             var genericType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
             var genericTypeArgument = genericType.TypeArgumentList.Arguments.First();
-
-            if (defaultValueExpresion == null)
-                defaultValueExpresion = SyntaxFactory.DefaultExpression(genericTypeArgument);
-
+            var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericTypeArgument);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
@@ -78,6 +75,8 @@ namespace NDProperty.Generator
             list.Add(GenerateEvent(propertyName, className, genericTypeArgument));
             return SyntaxFactory.List(list);
         }
+
+
 
         private MemberDeclarationSyntax GenerateEvent(string propertyName, TypeSyntax className, TypeSyntax genericTypeArgument)
         {
@@ -284,7 +283,7 @@ namespace NDProperty.Generator
 
         public override Type OnChangedArgs => typeof(OnChangedArg<,>);
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
         {
             var propertyName = GetPropertyName(method);
 
@@ -292,8 +291,7 @@ namespace NDProperty.Generator
             var genericValueType = genericType.TypeArgumentList.Arguments[0];
             var genericTypeType = genericType.TypeArgumentList.Arguments[1];
 
-            if (defaultValueExpresion == null)
-                defaultValueExpresion = SyntaxFactory.DefaultExpression(genericValueType);
+            var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericValueType);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
@@ -423,6 +421,11 @@ namespace NDProperty.Generator
         /// </summary>
         public const string NDP0009 = "NDP0009";
 
+        /// <summary>
+        /// Default value has wrong Type
+        /// </summary>
+        public const string NDP0010 = "NDP0010";
+
 
 
 
@@ -442,6 +445,8 @@ namespace NDProperty.Generator
         /// </summary>
         public abstract DiagnosticDescriptor ClassNotFound { get; }
 
+        public static readonly DiagnosticDescriptor defaultValueWrongType = new DiagnosticDescriptor(NDP0010, "The Default Value could not be cast to correct Type", "The value must be assignable to the Property Type. (implicite or explicite)", "NDP", DiagnosticSeverity.Error, true);
+        public DiagnosticDescriptor DefaultValueWrongType => defaultValueWrongType;
 
 
 
@@ -472,15 +477,7 @@ namespace NDProperty.Generator
             var semanticModel = compilation.GetSemanticModel(method.SyntaxTree, true);
             var diagnostics = GenerateDiagnostics(method, semanticModel);
 
-            var defaultAttribute = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(attribute =>
-            {
-                var attributeType = semanticModel.GetTypeInfo(attribute);
-                return TypeSymbolMatchesType(attributeType.ConvertedType, typeof(System.ComponentModel.DefaultValueAttribute), semanticModel);
-            });
 
-            ExpressionSyntax defaultValueExpresion = null;
-            if (defaultAttribute != null)
-                defaultValueExpresion = defaultAttribute.ArgumentList.Arguments.First().Expression;
 
             bool detectedError = false;
 
@@ -492,10 +489,10 @@ namespace NDProperty.Generator
             if (detectedError)
                 return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
 
-            return Task.FromResult(GenerateProperty(method, defaultValueExpresion, this.isReadOnly));
+            return Task.FromResult(GenerateProperty(method, semanticModel, this.isReadOnly));
         }
 
-        public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
+        public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel semanticModel)
         {
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
 
@@ -509,21 +506,56 @@ namespace NDProperty.Generator
             if (!originalClassDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
                 yield return Diagnostic.Create(ClassNotPartial, originalClassDeclaration.Identifier.GetLocation());
 
-
+            bool problemWithParameter = false;
             if (method.ParameterList.Parameters.Count != 1) // No parameters, or more then one Mark Parameter List (includes parenthise)
+            {
                 yield return Diagnostic.Create(WrongParameter, method.ParameterList.GetLocation());
+                problemWithParameter = true;
+            }
             else // One Parameter, Check type
             {
                 var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
-                var typeInfo = model.GetTypeInfo(changedMethodParameter.Type);
-                if (!TypeSymbolMatchesType(typeInfo.ConvertedType, OnChangedArgs, model, false))
+                var typeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (ExpressionSyntax)changedMethodParameter.Type);
+                if (!TypeSymbolMatchesType(typeInfo.ConvertedType, OnChangedArgs, (SemanticModel)semanticModel, false))
+                {
                     yield return Diagnostic.Create(WrongParameter, changedMethodParameter.Type.GetLocation());
+                    problemWithParameter = true;
+                }
             }
 
             var nameMatch = nameRegex.Match(method.Identifier.Text);
             if (!nameMatch.Success)
                 yield return Diagnostic.Create(MethodNameConvention, method.Identifier.GetLocation());
+
+            ////////////////////////////////////////
+            var defaultAttribute = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(attribute =>
+            {
+                var attributeType = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (AttributeSyntax)attribute);
+                return TypeSymbolMatchesType(attributeType.ConvertedType, typeof(System.ComponentModel.DefaultValueAttribute), semanticModel);
+            });
+
+            if (defaultAttribute != null && !problemWithParameter)
+            {
+
+                var valueType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
+
+                ExpressionSyntax defaultValueExpresion = null;
+                if (defaultAttribute != null && defaultAttribute.ArgumentList.Arguments.Count > 0)
+                {
+                    //if (!System.Diagnostics.Debugger.IsAttached)
+                    //    System.Diagnostics.Debugger.Launch();
+                    defaultValueExpresion = defaultAttribute.ArgumentList.Arguments.First().Expression;
+                    var defaultTypeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (ExpressionSyntax)defaultValueExpresion);
+                    var valueTypeInfo = semanticModel.GetTypeInfo(valueType);
+                    var conversion = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(semanticModel.Compilation, defaultTypeInfo.Type, valueTypeInfo.Type);
+                    if (!conversion.Exists)
+                        yield return Diagnostic.Create(DefaultValueWrongType, defaultValueExpresion.GetLocation());
+
+                }
+
+            }
         }
+
 
         public static bool TypeSymbolMatchesType(ITypeSymbol typeSymbol, Type type, SemanticModel semanticModel, bool expandGeneric = true)
         {
@@ -547,7 +579,7 @@ namespace NDProperty.Generator
             return typeSymbol.Construct(typeArgumentsTypeInfos.ToArray<ITypeSymbol>());
         }
 
-        protected abstract SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly);
+        protected abstract SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly);
 
         protected enum PropertyKind
         {
@@ -766,6 +798,34 @@ namespace NDProperty.Generator
             return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, propertyValue);
         }
 
+        protected static ExpressionSyntax GetDefaultSyntax(MethodDeclarationSyntax method, SemanticModel semanticModel, TypeSyntax valueType)
+        {
+            var defaultAttribute = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(attribute =>
+            {
+                var attributeType = semanticModel.GetTypeInfo(attribute);
+                return TypeSymbolMatchesType(attributeType.ConvertedType, typeof(System.ComponentModel.DefaultValueAttribute), semanticModel);
+            });
+
+
+            ExpressionSyntax defaultValueExpresion = null;
+            if (defaultAttribute != null)
+            {
+                defaultValueExpresion = defaultAttribute.ArgumentList.Arguments.First().Expression;
+                var defaultTypeInfo = semanticModel.GetTypeInfo(defaultValueExpresion);
+                var valueTypeInfo = semanticModel.GetTypeInfo(valueType);
+                var conversion = semanticModel.Compilation.ClassifyConversion(defaultTypeInfo.Type, valueTypeInfo.Type);
+                if (!conversion.Exists)
+                    throw new Exception("Converstion Fail");
+
+                if (conversion.IsExplicit)
+                {
+                    defaultValueExpresion = SyntaxFactory.CastExpression(valueType, defaultValueExpresion);
+                }
+            }
+            else
+                defaultValueExpresion = SyntaxFactory.DefaultExpression(valueType);
+            return defaultValueExpresion;
+        }
 
         protected static string GetPropertyName(MethodDeclarationSyntax method)
         {

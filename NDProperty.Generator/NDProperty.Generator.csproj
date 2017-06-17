@@ -10,7 +10,6 @@
   <PropertyGroup>
     <PackageId>NDProperty.Generator</PackageId>
     <Description>Code generator for NDProperty.</Description>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageTags>NDProperty</PackageTags>
     <IsTool>true</IsTool>
     <NoPackageAnalysis>true</NoPackageAnalysis>

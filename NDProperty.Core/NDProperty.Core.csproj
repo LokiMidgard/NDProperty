@@ -9,7 +9,6 @@
   <PropertyGroup>
     <PackageId>NDProperty.Core</PackageId>
     <Description>These are the core classes that provides functionality for the NDProperty Framework.</Description>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <VersionSuffix>Debug</VersionSuffix>
     <PackageTags>NDProperty</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>

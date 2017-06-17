@@ -8,9 +8,11 @@ namespace NDProperty
 
         public NullTreatment NullTreatment { get; }
 
-        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment)
-        {
+        public TValue DefaultValue { get; }
 
+        internal NDReadOnlyProperty(bool inherited, NullTreatment nullTreatment, TValue defaultValue)
+        {
+            DefaultValue = defaultValue;
             Inherited = inherited;
             NullTreatment = nullTreatment;
         }

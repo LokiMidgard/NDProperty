@@ -30,6 +30,11 @@ namespace NDProperty
 
         public event Action ExecuteAfterChange;
 
+        internal void FireExecuteAfterChange()
+        {
+            ExecuteAfterChange?.Invoke();
+        }
+
     }
 
     public class OnChangedArg<TValue, TType> : OnChangedArg<TValue> where TType : class

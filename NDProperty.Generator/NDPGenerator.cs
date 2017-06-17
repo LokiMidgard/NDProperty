@@ -47,7 +47,7 @@ namespace NDProperty.Generator
         public override Type OnChangedArgs => typeof(OnChangedArg<>);
 
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method,ExpressionSyntax defaultValueExpresion, bool isReadOnly)
         {
 
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
@@ -59,15 +59,19 @@ namespace NDProperty.Generator
             var genericType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
             var genericTypeArgument = genericType.TypeArgumentList.Arguments.First();
 
+            if (defaultValueExpresion == null)
+                defaultValueExpresion = SyntaxFactory.DefaultExpression(genericTypeArgument);
+
+
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
             {
-                list.Add(GeneratePropertyKey(propertyName, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
-                list.Add(GeneratePropertyKey(propertyName, className, Accessibility.Public, genericTypeArgument, PropertyKind.Readonly));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Readonly));
             }
             else
             {
-                list.Add(GeneratePropertyKey(propertyName, className, Accessibility.Public, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Normal));
             }
 
             list.Add(GeneratePropertyProperty(propertyName, genericTypeArgument, isReadOnly ? Accessibility.Private : Accessibility.NotApplicable));
@@ -280,7 +284,7 @@ namespace NDProperty.Generator
 
         public override Type OnChangedArgs => typeof(OnChangedArg<,>);
 
-        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, bool isReadOnly)
+        protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method,ExpressionSyntax defaultValueExpresion, bool isReadOnly)
         {
             var propertyName = GetPropertyName(method);
 
@@ -288,17 +292,18 @@ namespace NDProperty.Generator
             var genericValueType = genericType.TypeArgumentList.Arguments[0];
             var genericTypeType = genericType.TypeArgumentList.Arguments[1];
 
-
+            if (defaultValueExpresion == null)
+                defaultValueExpresion = SyntaxFactory.DefaultExpression(genericValueType);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
             {
-                list.Add(GeneratePropertyKey(propertyName, genericTypeType, Accessibility.Private, genericValueType, PropertyKind.Attached));
-                list.Add(GeneratePropertyKey(propertyName, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Readonly));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Private, genericValueType, PropertyKind.Attached));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Readonly));
             }
             else
             {
-                list.Add(GeneratePropertyKey(propertyName, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
+                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
             }
 
             list.Add(GenerateHelper(propertyName, genericTypeType, genericValueType));
@@ -458,12 +463,22 @@ namespace NDProperty.Generator
             this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
         }
         internal NDPGenerator() { }
-
+        [System.ComponentModel.DefaultValue("")]
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
             var method = applyTo as MethodDeclarationSyntax;
             var semanticModel = compilation.GetSemanticModel(method.SyntaxTree, true);
             var diagnostics = GenerateDiagnostics(method, semanticModel);
+
+            var defaultAttribute = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(attribute =>
+            {
+                var attributeType = semanticModel.GetTypeInfo(attribute);
+                return TypeSymbolMatchesType(attributeType.ConvertedType, typeof(System.ComponentModel.DefaultValueAttribute), semanticModel);
+            });
+
+            ExpressionSyntax defaultValueExpresion = null;
+            if (defaultAttribute != null)
+                defaultValueExpresion = defaultAttribute.ArgumentList.Arguments.First().Expression;
 
             bool detectedError = false;
 
@@ -475,7 +490,7 @@ namespace NDProperty.Generator
             if (detectedError)
                 return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
 
-            return Task.FromResult(GenerateProperty(method, this.isReadOnly));
+            return Task.FromResult(GenerateProperty(method, defaultValueExpresion, this.isReadOnly));
         }
 
         public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel model)
@@ -530,7 +545,7 @@ namespace NDProperty.Generator
             return typeSymbol.Construct(typeArgumentsTypeInfos.ToArray<ITypeSymbol>());
         }
 
-        protected abstract SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, bool isReadOnly);
+        protected abstract SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, ExpressionSyntax defaultValueExpresion, bool isReadOnly);
 
         protected enum PropertyKind
         {
@@ -621,7 +636,7 @@ namespace NDProperty.Generator
 
 
         }
-        protected MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, TypeSyntax className, string propertyChangedMethod, TypeSyntax genericTypeArgument)
+        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, TypeSyntax className, string propertyChangedMethod, TypeSyntax genericTypeArgument)
         {
             var propertyReadOnlyKey = GetReadOnlyPropertyKey(propertyName);
             var propertyKey = GetPropertyKey(propertyName);
@@ -653,10 +668,9 @@ namespace NDProperty.Generator
             return $"On{propertyName}Changed";
         }
 
-        protected MemberDeclarationSyntax GeneratePropertyKey(string propertyName, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax genericTypeArgument, PropertyKind kind)
+        protected MemberDeclarationSyntax GeneratePropertyKey(string propertyName, ExpressionSyntax defalutExpresion, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax propertyValue, PropertyKind kind)
         {
             ArgumentSyntax callback;
-
             var propertyKey = GetPropertyKey(propertyName);
             var propertyChangedMethod = GetChangedHandler(propertyName);
             string registerMethod;
@@ -675,14 +689,14 @@ namespace NDProperty.Generator
                     registerMethod = nameof(PropertyRegistar.Register);
                     break;
                 case PropertyKind.Readonly:
-                    return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangedMethod, genericTypeArgument);
+                    return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangedMethod, propertyValue);
                 case PropertyKind.Attached:
                     callback = SyntaxFactory.Argument(
                         SyntaxFactory.IdentifierName(propertyChangedMethod));
                     registerMethod = nameof(PropertyRegistar.RegisterAttached);
                     break;
                 default:
-                    throw new NotSupportedException($"THe PropertyKind: {kind} is not supported.");
+                    throw new NotSupportedException($"The PropertyKind: {kind} is not supported.");
             }
 
             var register = SyntaxFactory.InvocationExpression(
@@ -701,7 +715,7 @@ namespace NDProperty.Generator
                         SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SeparatedList<TypeSyntax>(
                                 new SyntaxNodeOrToken[]{
-                               genericTypeArgument,
+                               propertyValue,
                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                     className})))))
                                     .WithArgumentList(
@@ -709,6 +723,9 @@ namespace NDProperty.Generator
                     SyntaxFactory.SeparatedList<ArgumentSyntax>(
                         new SyntaxNodeOrToken[]{
                             callback,
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.Argument(
+                            defalutExpresion),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.LiteralExpression(
@@ -731,7 +748,7 @@ namespace NDProperty.Generator
                                     this.isParentReference ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression))
                         })));
 
-            return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, genericTypeArgument);
+            return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, propertyValue);
         }
 
 

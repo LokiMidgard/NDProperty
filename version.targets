@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/LokiMidgard/NDProperty</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LokiMidgard/NDProperty.git</RepositoryUrl>
     <Copyright>Patrick Kranz</Copyright>
+    <PackageReleaseNotes>Added Support for Default Values.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup >

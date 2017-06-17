@@ -9,9 +9,9 @@ namespace NDProperty
 
         private static readonly Dictionary<Type, List<IInternalNDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<IInternalNDReadOnlyProperty>>();
 
-        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
+        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
         {
-            var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment);
+            var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -23,9 +23,9 @@ namespace NDProperty
 
             return p;
         }
-        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
+        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent) where TType : class
         {
-            var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment);
+            var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -128,7 +128,7 @@ namespace NDProperty
                         }
                     }
                 }
-                onChangedArg.ExecuteAfterChange?.Invoke();
+                onChangedArg.FireExecuteAfterChange();
             }
         }
 
@@ -155,7 +155,7 @@ namespace NDProperty
         {
             if (HasLocalValue(property, obj))
                 return Lookup<TValue, TType>.Property[(obj, property)];
-            return default(TValue);
+            return property.DefaultValue;
         }
         public static bool HasLocalValue<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj) where TType : class
         {
@@ -178,7 +178,7 @@ namespace NDProperty
                 }
             }
 
-            return default(TValue);
+            return property.DefaultValue;
         }
 
         public static void AddEventHandler<TValue, TType>(NDReadOnlyProperty<TValue, TType> property, TType obj, EventHandler<ChangedEventArgs<TValue, TType>> handler) where TType : class

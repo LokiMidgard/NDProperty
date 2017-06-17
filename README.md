@@ -28,12 +28,13 @@ This is all that is needed for Propertys with getter setter events and everythin
 + Attached Propertys
 + Source code generator to easely implement this Propertys
 + Analizers and Codefixes to support this Framework
++ Default value (For compile time constants)
 
 ### Planed Features
 
 + Binding
-+ Default value
 + Optimisation using WeakReferences
++ Default value (Using Generator)
 
 ### Things DependencyObjects have that this Framework will not support
 
@@ -52,7 +53,7 @@ of the Property if this value is not valid. The class must be partial
 ```c#
 public partial class TestObject
 {
-    public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue);
+    public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, default(string), false, NullTreatment.RemoveLocalValue);
 
     public string Str
     {
@@ -101,7 +102,7 @@ In this case your change handler should be static and the argument must be of ty
 and ```TType``` the type of the objects where the value can be applied.
 
 ```c#
- private static readonly global::NDProperty.NDAttachedProperty<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnAttChanged, false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
+ private static readonly global::NDProperty.NDAttachedProperty<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnAttChanged, default(string), false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
        
 private static void OnStrChanged(OnChangedArg<string, MyOwnObject> arg)
 {
@@ -171,3 +172,7 @@ This will be used to determin the structure of your tree. This can also be set u
 Normaly setting a value to null removes it from the Object. If this Property is inherited than it will have the value of its parent.
 If this behavior is not desired, you can explicitly allow setting null. In this case setting the value to null in an object graph
 will inherited the null value to the children.
+
+### Default Vaule
+
+You can set the default value of the Property using the ```System.ComponentModel.DefaultValueAttribute```. The values that you can use are limited by what you can use as parameter for attributes.

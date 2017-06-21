@@ -286,7 +286,7 @@ namespace NDProperty.Test
         public string Mutate { get; set; }
 
         [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
-        [System.ComponentModel.DefaultValue("asdf")]
+        //[System.ComponentModel.DefaultValue("asdf")]
         private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<MyStruct> arg)
         {
             var test = TestAttributeProperty.ToString();

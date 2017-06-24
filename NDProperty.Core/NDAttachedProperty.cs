@@ -6,9 +6,9 @@
 
         public NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
 
-        internal NDAttachedProperty(OnChanged<TValue, TType> changedMethod, bool inherited, NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns) : base(inherited, nullTreatment, defaultValue, settigns)
+        internal NDAttachedProperty(OnChanged<TValue, TType> changedMethod,  NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns) : base(nullTreatment, defaultValue, settigns)
         {
-            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>(inherited, nullTreatment, defaultValue, settigns);
+            ReadOnlyProperty = new NDReadOnlyProperty<TValue, TType>( nullTreatment, defaultValue, settigns);
             this.changedMethod = changedMethod;
         }
 

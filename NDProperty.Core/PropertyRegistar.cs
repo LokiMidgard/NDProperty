@@ -9,33 +9,33 @@ namespace NDProperty
 
         private static readonly Dictionary<Type, List<IInternalNDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<IInternalNDReadOnlyProperty>>();
 
-        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent, NDPropertySettings settigns)
+        public static NDProperty<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, NullTreatment nullTreatment, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue, settigns);
+            var p = new NDProperty<TValue, TType>(changedMethod, nullTreatment, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
                     inheritedPropertys.Add(typeof(TType), new List<IInternalNDReadOnlyProperty>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
-            if (isParent)
+            if (settigns.HasFlag(NDPropertySettings.ParentReference))
                 AddParentHandler(p);
 
             return p;
         }
-        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, bool inherited, NullTreatment nullTreatment, bool isParent, NDPropertySettings settigns)
+        public static NDAttachedProperty<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue,  NullTreatment nullTreatment, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDAttachedProperty<TValue, TType>(changedMethod, inherited, nullTreatment, defaultValue, settigns);
+            var p = new NDAttachedProperty<TValue, TType>(changedMethod, nullTreatment, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
                     inheritedPropertys.Add(typeof(TType), new List<IInternalNDReadOnlyProperty>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
-            if (isParent)
-                AddParentHandler(p);
+            if (settigns.HasFlag(NDPropertySettings.ParentReference))
+                    AddParentHandler(p);
 
             return p;
         }

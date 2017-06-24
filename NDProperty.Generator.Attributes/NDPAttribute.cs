@@ -10,9 +10,6 @@ namespace NDProperty
     {
         internal NDPAttributeBase() { }
 
-        public bool Inherited { get; set; } = false;
-        public bool IsReadOnly { get; set; } = false;
-        public bool IsParentReference { get; set; } = false;
         public NullTreatment NullTreatment { get; set; } = NullTreatment.RemoveLocalValue;
         public NDPropertySettings Settigns { get; set; } = NDPropertySettings.None;
     }

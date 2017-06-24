@@ -463,11 +463,11 @@ namespace NDProperty.Generator
 
             var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
-            this.isReadOnly = d.ContainsKey("IsReadOnly") ? (bool)d["IsReadOnly"].Value : false;
-            this.inherited = d.ContainsKey("Inherited") ? (bool)d["Inherited"].Value : false;
-            this.isParentReference = d.ContainsKey("IsParentReference") ? (bool)d["IsParentReference"].Value : false;
-            this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
             this.propertySettings = d.ContainsKey("Settigns") ? (NDPropertySettings)d["Settigns"].Value : NDPropertySettings.None;
+            this.isReadOnly = this.propertySettings.HasFlag(NDPropertySettings.ReadOnly);
+            this.inherited = this.propertySettings.HasFlag(NDPropertySettings.Inherited);
+            this.isParentReference = this.propertySettings.HasFlag(NDPropertySettings.ParentReference);
+            this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
         }
         internal NDPGenerator() { }
         [System.ComponentModel.DefaultValue("")]
@@ -704,35 +704,99 @@ namespace NDProperty.Generator
 
         protected MemberDeclarationSyntax GeneratePropertyKey(string propertyName, ExpressionSyntax defalutExpresion, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax propertyValue, PropertyKind kind)
         {
-            ArgumentSyntax callback;
+
+            //Callback
+            ExpressionSyntax callback;
             var propertyKey = GetPropertyKey(propertyName);
             var propertyChangedMethod = GetChangedHandler(propertyName);
             string registerMethod;
             switch (kind)
             {
                 case PropertyKind.Normal:
-                    callback = SyntaxFactory.Argument(
-                                SyntaxFactory.SimpleLambdaExpression(
-                                    SyntaxFactory.Parameter(
-                                        SyntaxFactory.Identifier("t")),
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.IdentifierName("t"),
-                                        SyntaxFactory.IdentifierName(propertyChangedMethod))));
+                    callback = SyntaxFactory.SimpleLambdaExpression(
+                        SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("t")),
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("t"),
+                            SyntaxFactory.IdentifierName(propertyChangedMethod)));
 
                     registerMethod = nameof(PropertyRegistar.Register);
                     break;
                 case PropertyKind.Readonly:
                     return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangedMethod, propertyValue);
                 case PropertyKind.Attached:
-                    callback = SyntaxFactory.Argument(
-                        SyntaxFactory.IdentifierName(propertyChangedMethod));
+                    callback = SyntaxFactory.IdentifierName(propertyChangedMethod);
                     registerMethod = nameof(PropertyRegistar.RegisterAttached);
                     break;
                 default:
                     throw new NotSupportedException($"The PropertyKind: {kind} is not supported.");
             }
 
+
+            // Build Settings Parameter
+            ExpressionSyntax settingsSyntax = null;
+            foreach (NDPropertySettings item in Enum.GetValues(typeof(NDPropertySettings)))
+            {
+                if (item == NDPropertySettings.None)
+                    continue;
+
+                if (this.propertySettings.HasFlag(item))
+                {
+                    if (settingsSyntax == null)
+                        settingsSyntax = SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.AliasQualifiedName(
+                                                            SyntaxFactory.IdentifierName(
+                                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                        SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
+                                                    SyntaxFactory.IdentifierName(item.ToString()));
+                    else
+                        settingsSyntax = SyntaxFactory.BinaryExpression(
+                            SyntaxKind.BitwiseOrExpression,
+                            settingsSyntax,
+                            SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.AliasQualifiedName(
+                                                            SyntaxFactory.IdentifierName(
+                                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                        SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
+                                                    SyntaxFactory.IdentifierName(item.ToString())));
+                }
+            }
+            if (settingsSyntax == null)
+            {
+                settingsSyntax = SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.AliasQualifiedName(
+                                                            SyntaxFactory.IdentifierName(
+                                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                                        SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
+                                                    SyntaxFactory.IdentifierName(nameof(NDPropertySettings.None)));
+            }
+
+            // NullTreatment
+            var nullTreatmentSyntax = SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.AliasQualifiedName(
+                                            SyntaxFactory.IdentifierName(
+                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                                        SyntaxFactory.IdentifierName(nameof(NullTreatment))),
+                                    SyntaxFactory.IdentifierName(this.nullTreatment.ToString()));
+
+            // Put everything together
             var register = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -756,44 +820,13 @@ namespace NDProperty.Generator
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList<ArgumentSyntax>(
                         new SyntaxNodeOrToken[]{
-                            callback,
+                            SyntaxFactory.Argument(callback),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                            defalutExpresion),
+                            SyntaxFactory.Argument(defalutExpresion),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    this.inherited ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
+                            SyntaxFactory.Argument(nullTreatmentSyntax),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.AliasQualifiedName(
-                                            SyntaxFactory.IdentifierName(
-                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                        SyntaxFactory.IdentifierName(nameof(NullTreatment))),
-                                    SyntaxFactory.IdentifierName(this.nullTreatment.ToString()))),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    this.isParentReference ?SyntaxKind.TrueLiteralExpression :SyntaxKind.FalseLiteralExpression)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                                                SyntaxFactory.MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    SyntaxFactory.MemberAccessExpression(
-                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                        SyntaxFactory.AliasQualifiedName(
-                                                            SyntaxFactory.IdentifierName(
-                                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                                        SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
-                                                    SyntaxFactory.IdentifierName(this.propertySettings.ToString())))
-
-                        })));
+                            SyntaxFactory.Argument(settingsSyntax)})));
 
             return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, propertyValue);
         }

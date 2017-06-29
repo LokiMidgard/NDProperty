@@ -192,28 +192,33 @@ namespace NDP.Analyzer
                 else
                 {
                     var newType = firstParameter.Type;
-                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangingArg<,>), semanticModel, false)
-                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangingArg<>), semanticModel, false))
+                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<,>), semanticModel, false)
+                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<>), semanticModel, false))
                         newType = firstParameter.Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
                     parameterTypeSyntax = SyntaxFactory.QualifiedName(
+                        SyntaxFactory.QualifiedName(
                             SyntaxFactory.AliasQualifiedName(
                                 SyntaxFactory.IdentifierName(
                                     SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                 SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                            GetTypeArgumentList(SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangingArg))), newType));
+                            SyntaxFactory.IdentifierName(nameof(NDProperty.Propertys))),
+                        GetTypeArgumentList(SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier(nameof(NDProperty.Propertys.OnChangingArg))), newType));
                 }
             }
             else
             {
                 parameterTypeSyntax = SyntaxFactory.QualifiedName(
-                            SyntaxFactory.AliasQualifiedName(
-                                SyntaxFactory.IdentifierName(
-                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                            GetTypeArgumentList(SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangingArg))), SyntaxFactory.PredefinedType(
-                                        SyntaxFactory.Token(SyntaxKind.ObjectKeyword))));
+                    SyntaxFactory.QualifiedName(
+                        SyntaxFactory.AliasQualifiedName(
+                            SyntaxFactory.IdentifierName(
+                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
+                        SyntaxFactory.IdentifierName(nameof(NDProperty.Propertys))),
+                    GetTypeArgumentList(SyntaxFactory.GenericName(
+                        SyntaxFactory.Identifier(nameof(NDProperty.Propertys.OnChangingArg))), 
+                        SyntaxFactory.PredefinedType(
+                            SyntaxFactory.Token(SyntaxKind.ObjectKeyword))));
             }
 
             var newParameterList = SyntaxFactory.ParameterList(

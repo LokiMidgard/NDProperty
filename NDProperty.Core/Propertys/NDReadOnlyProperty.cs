@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDProperty
+namespace NDProperty.Propertys
 {
     [Flags]
     public enum NDPropertySettings

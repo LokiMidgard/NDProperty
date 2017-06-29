@@ -1,5 +1,5 @@
 ﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NDProperty.Generator")]
-namespace NDProperty
+namespace NDProperty.Propertys
 {
     internal interface INDProperty<TValue, TType> where TType : class
     {

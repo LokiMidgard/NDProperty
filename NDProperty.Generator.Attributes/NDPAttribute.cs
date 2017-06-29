@@ -10,7 +10,7 @@ namespace NDProperty
     {
         internal NDPAttributeBase() { }
 
-        public NDPropertySettings Settigns { get; set; } = NDPropertySettings.None;
+        public Propertys.NDPropertySettings Settigns { get; set; } = Propertys.NDPropertySettings.None;
     }
 
     [System.AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

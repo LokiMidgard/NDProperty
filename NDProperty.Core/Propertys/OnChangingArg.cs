@@ -1,7 +1,7 @@
 ﻿using System;
 using NDProperty.Utils;
 
-namespace NDProperty
+namespace NDProperty.Propertys
 {
     public static class OnChangingArg
     {

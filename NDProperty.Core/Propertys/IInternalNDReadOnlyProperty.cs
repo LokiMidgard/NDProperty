@@ -1,4 +1,4 @@
-﻿namespace NDProperty
+﻿namespace NDProperty.Propertys
 {
     internal interface IInternalNDReadOnlyProperty
     {

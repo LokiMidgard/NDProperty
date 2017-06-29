@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using NDProperty.Propertys;
+
 namespace NDProperty.Binding
 {
     /// <summary>

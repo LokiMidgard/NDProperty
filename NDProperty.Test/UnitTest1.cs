@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NDProperty.Propertys;
 
 namespace NDProperty.Test
 {
@@ -299,7 +300,7 @@ namespace NDProperty.Test
         }
 
         #region Attach
-        public static readonly global::NDProperty.NDAttachedPropertyKey<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.NDPropertySettings.None);
+        public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
 
         public static global::NDProperty.Utils.AttachedHelper<string, object> Attach { get; } = global::NDProperty.Utils.AttachedHelper.Create(AttachProperty);
 

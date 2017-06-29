@@ -1,4 +1,4 @@
-﻿namespace NDProperty
+﻿namespace NDProperty.Propertys
 {
     /// <summary>
     /// The key to allow read and write access to an attached property.

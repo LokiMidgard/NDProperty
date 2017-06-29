@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDProperty
+namespace NDProperty.Propertys
 {
     /// <summary>
     /// This key alows read and write access to an NDProperty.

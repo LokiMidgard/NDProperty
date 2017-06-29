@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDProperty
+namespace NDProperty.Propertys
 {
     public static class ChangedEventArgs
     {

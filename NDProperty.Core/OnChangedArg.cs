@@ -16,7 +16,13 @@ namespace NDProperty
             MutatedValue = newValue;
         }
 
+        /// <summary>
+        /// The value before the change.
+        /// </summary>
         public TValue OldValue { get; }
+        /// <summary>
+        /// The value after the change.
+        /// </summary>
         public TValue NewValue { get; }
 
         /// <summary>
@@ -24,10 +30,24 @@ namespace NDProperty
         /// </summary>
         public TValue MutatedValue { get; set; }
 
+        /// <summary>
+        /// If set to true the change will not be applied.
+        /// </summary>
         public bool Reject { get; set; }
 
+        /// <summary>
+        /// Set this Property to imply an data error.
+        /// </summary>
         public StringResource Error { get; set; }
 
+        /// <summary>
+        /// Register at this event if you need to perform an action after the value was change on the Proeprty.
+        /// </summary>
+        /// <remarks>
+        /// The eventhandler will be called before the value is changed. Accessing the Property at this time wil result in the old value.<para/>
+        /// If you need to call methods that will access this property and the methods need the new value, call those metheds in an Action that is
+        /// registert at this event.
+        /// </remarks>
         public event Action ExecuteAfterChange;
 
         internal void FireExecuteAfterChange()
@@ -44,6 +64,9 @@ namespace NDProperty
             this.ChangedObject = changedObject;
         }
 
+        /// <summary>
+        /// The Object on which the change happend.
+        /// </summary>
         public TType ChangedObject { get; }
 
     }

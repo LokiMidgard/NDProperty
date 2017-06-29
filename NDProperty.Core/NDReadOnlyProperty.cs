@@ -41,11 +41,26 @@ namespace NDProperty
 
 
     }
+
+    /// <summary>
+    /// This key allows read access to a NDProperty
+    /// </summary>
+    /// <typeparam name="TValue">The type of the Property</typeparam>
+    /// <typeparam name="TType">The type of the Object that defines the Property.</typeparam>
     public class NDReadOnlyPropertyKey<TValue, TType> : IInternalNDReadOnlyProperty where TType : class
     {
+        /// <summary>
+        /// Returns if this Propety is inherited.
+        /// </summary>
         public bool Inherited => Settigns.HasFlag(NDPropertySettings.Inherited);
+        /// <summary>
+        /// The settings of this Property.
+        /// </summary>
         public NDPropertySettings Settigns { get; }
 
+        /// <summary>
+        /// The default value that this property has if no value is set.
+        /// </summary>
         public TValue DefaultValue { get; }
 
         internal NDReadOnlyPropertyKey(TValue defaultValue, NDPropertySettings settigns)

@@ -301,7 +301,7 @@ namespace NDProperty.Test
         #region Attach
         public static readonly global::NDProperty.NDAttachedPropertyKey<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.NDPropertySettings.None);
 
-        public static global::NDProperty.PropertyRegistar.AttachedHelper<string, object> Attach { get; } = global::NDProperty.PropertyRegistar.AttachedHelper.Create(AttachProperty);
+        public static global::NDProperty.Utils.AttachedHelper<string, object> Attach { get; } = global::NDProperty.Utils.AttachedHelper.Create(AttachProperty);
 
         private static void OnAttachChanged(OnChangingArg<string, object> arg)
         {

@@ -330,9 +330,9 @@ namespace NDProperty.Generator
                          SyntaxFactory.IdentifierName(
                              SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                          SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                     SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                     SyntaxFactory.IdentifierName(nameof(NDProperty.Utils))),
                  SyntaxFactory.GenericName(
-                     SyntaxFactory.Identifier(nameof(PropertyRegistar.AttachedHelper<object, object>)))
+                     SyntaxFactory.Identifier(nameof(Utils.AttachedHelper<object, object>)))
                  .WithTypeArgumentList(
                      SyntaxFactory.TypeArgumentList(
                          SyntaxFactory.SeparatedList<TypeSyntax>(
@@ -366,9 +366,9 @@ namespace NDProperty.Generator
                                      SyntaxFactory.IdentifierName(
                                          SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                      SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                 SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                             SyntaxFactory.IdentifierName(nameof(PropertyRegistar.AttachedHelper))),
-                         SyntaxFactory.IdentifierName(nameof(PropertyRegistar.AttachedHelper.Create))))
+                                 SyntaxFactory.IdentifierName(nameof(NDProperty.Utils))),
+                             SyntaxFactory.IdentifierName(nameof(Utils.AttachedHelper))),
+                         SyntaxFactory.IdentifierName(nameof(Utils.AttachedHelper.Create))))
                  .WithArgumentList(
                      SyntaxFactory.ArgumentList(
                          SyntaxFactory.SingletonSeparatedList(

@@ -1,8 +1,9 @@
 ﻿using System;
+using NDProperty.Utils;
 
 namespace NDProperty
 {
-    public static class OnChangedArg
+    public static class OnChangingArg
     {
         public static OnChangingArg<TValue> Create<TValue>(TValue oldValue, TValue newValue) => new OnChangingArg<TValue>(oldValue, newValue);
         public static OnChangingArg<TValue, TType> Create<TValue, TType>(TType changedObject, TValue oldValue, TValue newValue) where TType : class => new OnChangingArg<TValue, TType>(changedObject, oldValue, newValue);

@@ -125,7 +125,7 @@ namespace NDProperty
             var oldValue = GetValue(property, changingObject);
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
                 return true;
-            var onChangedArg = OnChangedArg.Create(oldValue, value);
+            var onChangedArg = OnChangingArg.Create(oldValue, value);
             property.changedMethod(changingObject)(onChangedArg);
             return SetValueInternal(property, changingObject, onChangedArg);
         }
@@ -147,7 +147,7 @@ namespace NDProperty
             var oldValue = GetValue(property, changingObject);
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
                 return true;
-            var onChangedArg = OnChangedArg.Create(changingObject, oldValue, value);
+            var onChangedArg = OnChangingArg.Create(changingObject, oldValue, value);
             property.changedMethod(onChangedArg);
             return SetValueInternal(property, changingObject, onChangedArg);
 

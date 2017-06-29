@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace NDProperty
+namespace NDProperty.Utils
 {
     public abstract class StringResource
     {

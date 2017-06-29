@@ -15,8 +15,17 @@ namespace NDProperty
             this.NewValue = newValue;
         }
 
+        /// <summary>
+        /// The old value.
+        /// </summary>
         public TValue OldValue { get; }
+        /// <summary>
+        /// The new value
+        /// </summary>
         public TValue NewValue { get; }
+        /// <summary>
+        /// The Object on which the value is changed.
+        /// </summary>
         public TType ChangedObject { get; }
     }
 

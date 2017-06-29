@@ -201,7 +201,7 @@ namespace NDP.Analyzer
                                     SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                 SyntaxFactory.IdentifierName(nameof(NDProperty))),
                             GetTypeArgumentList(SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg))), newType));
+                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangingArg))), newType));
                 }
             }
             else
@@ -212,7 +212,7 @@ namespace NDP.Analyzer
                                     SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                 SyntaxFactory.IdentifierName(nameof(NDProperty))),
                             GetTypeArgumentList(SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangedArg))), SyntaxFactory.PredefinedType(
+                            SyntaxFactory.Identifier(nameof(NDProperty.OnChangingArg))), SyntaxFactory.PredefinedType(
                                         SyntaxFactory.Token(SyntaxKind.ObjectKeyword))));
             }
 

@@ -12,6 +12,8 @@
       <![CDATA[
 Added Support for:
 - General Improvements.
+- Refactored classes to different namespaces (breaking change)
+- Added Binding
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

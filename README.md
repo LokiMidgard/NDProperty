@@ -10,7 +10,7 @@ This Framework aims to provide simlar capabilitys as DependencyObjects. But with
 
 ```c#
 [NDP]
-private void OnStrChanged(OnChangedArg<string> arg) { }
+private void OnStrChanging(OnChangingArg<string> arg) { }
 ```
 
 This is all that is needed for Propertys with getter setter events and everything else.
@@ -29,10 +29,12 @@ This is all that is needed for Propertys with getter setter events and everythin
 + Source code generator to easely implement this Propertys
 + Analizers and Codefixes to support this Framework
 + Default value (For compile time constants)
++ Binding (OneWay and TwoWay)
+  + Between NDPropertys
+  + Between NDProperty and POCO
 
 ### Planed Features
 
-+ Binding
 + Optimisation using WeakReferences
 + Default value (Using Generator)
 
@@ -45,15 +47,13 @@ This is all that is needed for Propertys with getter setter events and everythin
 Install the [NDProperty Package](https://www.nuget.org/packages/NDProperty/) from NuGet. This will 
 install the framwork, source code generator, code analyzer and codefix in your project.
 
-To implement a simple property you have to ```Register``` this Property and implement a change handler. 
-In the follwing sample the change handler is called ```OnStrChanged```. In addition a POCO property and 
-eventhandler is implemented for convinience. The change handler validates the newValue and prevents the update 
+To implement a simple property you have to ```Register``` this Property and implement a change handler. In the follwing sample the change handler is called ```OnStrChanging```. In addition a POCO property and eventhandler is implemented for convinience. The change handler validates the newValue and prevents the update 
 of the Property if this value is not valid. The class must be partial
 
 ```c#
 public partial class TestObject
 {
-    public static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, default(string), false, NullTreatment.RemoveLocalValue);
+    public static readonly NDPropertyKey<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanging, default(string), NDPropertySettings.None);
 
     public string Str
     {
@@ -68,7 +68,7 @@ public partial class TestObject
     }
 
 
-    private void OnStrChanged(OnChangedArg<string> arg)
+    private void OnStrChanging(OnChangingArg<string> arg)
     {
         if (IsValid(arg.NewValue))
             arg.Reject = true;
@@ -79,14 +79,14 @@ public partial class TestObject
 
 Using the Source Code Generator the boilerplate code is reduced. All that will need 
 to be implemented is the change handler. The compiled code will be the same as above. 
-**Important!** The Method must begin with ```On``` and end with ```Changed```. The 
+**Important!** The Method must begin with ```On``` and end with ```Changing```. The 
 Property name will be whatever is between this prä- and postfix. If this naming convention 
 is not adhered this Property will not be generated.
 
 ```c#
 
 [NDP]
-private void OnStrChanged(OnChangedArg<string> arg)
+private void OnStrChanging(OnChangingArg<string> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -98,13 +98,13 @@ private void OnStrChanged(OnChangedArg<string> arg)
 
 Like with Dependency Propertys, you can define a Property that will be set on other Objects. 
 In this case your change handler should be static and the argument must be of type 
-```OnChangedArg<TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
+```OnChangingArg<TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
 and ```TType``` the type of the objects where the value can be applied.
 
 ```c#
- private static readonly global::NDProperty.NDAttachedProperty<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnAttChanged, default(string), false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
+ private static readonly NDAttachedPropertyKey<string, MyOwnObject> StrProperty = PropertyRegistar.RegisterAttached(OnAttChanging, default(string), NDPropertySettings.None);
        
-private static void OnStrChanged(OnChangedArg<string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -117,7 +117,7 @@ You can also use a Attribute to automaticly generate the property from the chang
 
 ```c#
 [NDPAttach]       
-private static void OnStrChanged(OnChangedArg<string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -127,8 +127,8 @@ private static void OnStrChanged(OnChangedArg<string, MyOwnObject> arg)
 This will generate follwing code:
 
 ```c#
-public static readonly global::NDProperty.NDAttachedProperty<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnStrChanged, false, global::NDProperty.NullTreatment.RemoveLocalValue, false);
-public static global::NDProperty.PropertyRegistar.AttachedHelper<string, MyOwnObject> Str { get; } = global::NDProperty.PropertyRegistar.AttachedHelper.Create(StrProperty);
+public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnStrChanging, false, global::NDProperty.Propertys.NDPropertySettings.None);
+public static global::NDProperty.Utils.AttachedHelper<string, MyOwnObject> Str { get; } = global::NDProperty.Utils.AttachedHelper.Create(StrProperty);
 ```
 
 The AttachedHelper provides access to the change event and allows to get and set the value on a 
@@ -148,26 +148,26 @@ To Implement a ReadOnlyProperty you can declare it like this:
 
 ```c#
 
-private static readonly NDProperty<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, false, NullTreatment.RemoveLocalValue);
-public static readonly NDReadOnlyProperty<string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
+private static readonly NDPropertyKey<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanging, NDPropertySettings.ReadOnly);
+public static readonly NDReadOnlyPropertyKey<string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
 
 ```
 
 The private field is used to set and get values, while the public field allows only reading the value.
-You can set the property ```IsReadOnly``` on one of the above mentioned attributes to instruct the generator 
-to create readonly NDPropertys.
+
+The use of ```NDPropertySettings.ReadOnly``` does not have any effect on how the propertys can be used. You need to ensure that the access to the ```NDPropertyKey``` is restricted and only the ```NDReadOnlyPropertyKey``` has the public modifier. However the use of ```NDPropertySettings.ReadOnly``` instructs the code generator to generate code after the above pattern.
 
 ### Inherited
 
 If your objects represent a tree you can inherit a value from it't parents. If a property is inherited 
 and ```B``` is a child of ```A```, setting this property on ```A``` will alos set it on ```B```.
 
-You can activate this behavior using the ```Register``` methods on the ```PropertyRegistar``` or using the Attributes.
+You can activate this behavior using the ```NDPropertySettings.Inherited``` setting on the ```PropertyRegistar.Register(...)``` method or on the Attributes.
 
-In order to define the relation ship between objects, you should also define one Proeprty as the parent reference.
-This will be used to determin the structure of your tree. This can also be set using the Attributes or the ```Register``` methods.
+In order to define the relation ship between objects, you should also define one Property as the parent reference.
+This will be used to determin the structure of your tree. This can also be set using the Attributes or the ```Register``` methods and appling the setting ```NDPropertySettings.ParentReference```.
 
-**Important!** If a property inhirets a value from its parent and this value is change, the EventHandler (```PropertyRegistar.AddEventHandler(...)```) of the Property is fired, but not the ```OnPropertyChanged``` method.
+**Important!** If a property inhirets a value from its parent and this value is change, the EventHandler (```PropertyRegistar.AddEventHandler(...)```) of the Property is fired, but not the ```OnPropertyChanging``` method.
 
 #### Null treatment
 
@@ -175,6 +175,10 @@ Normaly setting a value to null removes it from the Object. If this Property is 
 If this behavior is not desired, you can explicitly allow setting null. In this case setting the value to null in an object graph
 will inherited the null value to the children.
 
+Use ```NDPropertySettings.SetLocalExplicityNull``` to enable this.
+
 ### Default Vaule
 
-You can set the default value of the Property using the ```System.ComponentModel.DefaultValueAttribute```. The values that you can use are limited by what you can use as parameter for attributes.
+You can set the default value of the Property using the ```System.ComponentModel.DefaultValueAttribute``` in code generation. The values that you can use are limited by what you can use as parameter for attributes.
+
+If you manually register the Property there are no restrictions.

@@ -451,7 +451,6 @@ namespace NDProperty.Generator
 
 
         protected readonly bool inherited;
-        protected readonly NullTreatment nullTreatment;
         protected readonly bool isReadOnly;
         protected readonly bool isParentReference;
         private readonly NDPropertySettings propertySettings;
@@ -467,7 +466,6 @@ namespace NDProperty.Generator
             this.isReadOnly = this.propertySettings.HasFlag(NDPropertySettings.ReadOnly);
             this.inherited = this.propertySettings.HasFlag(NDPropertySettings.Inherited);
             this.isParentReference = this.propertySettings.HasFlag(NDPropertySettings.ParentReference);
-            this.nullTreatment = d.ContainsKey("NullTreatment") ? (NullTreatment)d["NullTreatment"].Value : NullTreatment.RemoveLocalValue;
         }
         internal NDPGenerator() { }
         [System.ComponentModel.DefaultValue("")]
@@ -783,19 +781,7 @@ namespace NDProperty.Generator
                                                         SyntaxFactory.IdentifierName(nameof(NDPropertySettings))),
                                                     SyntaxFactory.IdentifierName(nameof(NDPropertySettings.None)));
             }
-
-            // NullTreatment
-            var nullTreatmentSyntax = SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.AliasQualifiedName(
-                                            SyntaxFactory.IdentifierName(
-                                                SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                            SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                        SyntaxFactory.IdentifierName(nameof(NullTreatment))),
-                                    SyntaxFactory.IdentifierName(this.nullTreatment.ToString()));
-
+            
             // Put everything together
             var register = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -823,8 +809,6 @@ namespace NDProperty.Generator
                             SyntaxFactory.Argument(callback),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(defalutExpresion),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(nullTreatmentSyntax),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(settingsSyntax)})));
 

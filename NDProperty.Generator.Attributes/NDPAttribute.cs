@@ -10,7 +10,6 @@ namespace NDProperty
     {
         internal NDPAttributeBase() { }
 
-        public NullTreatment NullTreatment { get; set; } = NullTreatment.RemoveLocalValue;
         public NDPropertySettings Settigns { get; set; } = NDPropertySettings.None;
     }
 

@@ -19,10 +19,10 @@ namespace NDProperty
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDPropertyKey<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, NullTreatment nullTreatment, NDPropertySettings settigns)
+        public static NDPropertyKey<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDPropertyKey<TValue, TType>(changedMethod, nullTreatment, defaultValue, settigns);
+            var p = new NDPropertyKey<TValue, TType>(changedMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -45,10 +45,10 @@ namespace NDProperty
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDAttachedPropertyKey<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, NullTreatment nullTreatment, NDPropertySettings settigns)
+        public static NDAttachedPropertyKey<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDAttachedPropertyKey<TValue, TType>(changedMethod, nullTreatment, defaultValue, settigns);
+            var p = new NDAttachedPropertyKey<TValue, TType>(changedMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -158,7 +158,7 @@ namespace NDProperty
             var value = onChangedArg.MutatedValue;
             if (!onChangedArg.Reject)
             {
-                if (value == null && property.NullTreatment == NullTreatment.RemoveLocalValue)
+                if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
                     Lookup<TValue, TType>.Property.Remove((obj, property));
                 else
                     Lookup<TValue, TType>.Property[(obj, property)] = value;

@@ -187,13 +187,13 @@ namespace NDP.Analyzer
                 var typeInfo = semanticModel.GetTypeInfo(firstParameter.Type);
 
 
-                if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, Generator.OnChangedArgs, semanticModel, false))
+                if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, Generator.OnChangingArgs, semanticModel, false))
                     parameterTypeSyntax = firstParameter.Type; // if we had the correct type then its ok.
                 else
                 {
                     var newType = firstParameter.Type;
-                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangedArg<,>), semanticModel, false)
-                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangedArg<>), semanticModel, false))
+                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangingArg<,>), semanticModel, false)
+                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.OnChangingArg<>), semanticModel, false))
                         newType = firstParameter.Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
                     parameterTypeSyntax = SyntaxFactory.QualifiedName(
                             SyntaxFactory.AliasQualifiedName(

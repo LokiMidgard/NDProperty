@@ -287,13 +287,13 @@ namespace NDProperty.Test
 
         [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
         //[System.ComponentModel.DefaultValue("asdf")]
-        private void OnTestAttributeChanged(global::NDProperty.OnChangedArg<MyStruct> arg)
+        private void OnTestAttributeChanging(OnChangingArg<MyStruct> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
 
         [NDP(Settigns = NDPropertySettings.ReadOnly)]
-        private void OnMyBlaChanged(OnChangedArg<string> arg)
+        private void OnMyBlaChanging(OnChangingArg<string> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
@@ -303,7 +303,7 @@ namespace NDProperty.Test
 
         public static global::NDProperty.PropertyRegistar.AttachedHelper<string, object> Attach { get; } = global::NDProperty.PropertyRegistar.AttachedHelper.Create(AttachProperty);
 
-        private static void OnAttachChanged(OnChangedArg<string, object> arg)
+        private static void OnAttachChanged(OnChangingArg<string, object> arg)
         {
 
         }
@@ -325,7 +325,7 @@ namespace NDProperty.Test
         }
 
 
-        private void OnStrChanged(OnChangedArg<string> arg)
+        private void OnStrChanged(OnChangingArg<string> arg)
         {
             arg.Reject = Reject;
             if (Mutate != null)
@@ -348,7 +348,7 @@ namespace NDProperty.Test
             remove => PropertyRegistar.RemoveEventHandler(InheritedStrProperty, this, value);
         }
 
-        private void OnInheritedStrChanged(OnChangedArg<string> arg)
+        private void OnInheritedStrChanged(OnChangingArg<string> arg)
         {
 
         }
@@ -369,7 +369,7 @@ namespace NDProperty.Test
             remove => PropertyRegistar.RemoveEventHandler(ParentProperty, this, value);
         }
 
-        private void OnParentChanged(OnChangedArg<TestObject> arg)
+        private void OnParentChanged(OnChangingArg<TestObject> arg)
         {
 
         }
@@ -383,9 +383,9 @@ namespace NDProperty.Test
             return base.ToString();
         }
 
-        public OnChangedArg<string> testArguments;
+        public OnChangingArg<string> testArguments;
 
-        internal void TestChangeMethod(OnChangedArg<string> arg)
+        internal void TestChangeMethod(OnChangingArg<string> arg)
         {
             testArguments = arg;
         }

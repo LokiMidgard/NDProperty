@@ -4,12 +4,12 @@ namespace NDProperty
 {
     public static class OnChangedArg
     {
-        public static OnChangedArg<TValue> Create<TValue>(TValue oldValue, TValue newValue) => new OnChangedArg<TValue>(oldValue, newValue);
-        public static OnChangedArg<TValue, TType> Create<TValue, TType>(TType changedObject, TValue oldValue, TValue newValue) where TType : class => new OnChangedArg<TValue, TType>(changedObject, oldValue, newValue);
+        public static OnChangingArg<TValue> Create<TValue>(TValue oldValue, TValue newValue) => new OnChangingArg<TValue>(oldValue, newValue);
+        public static OnChangingArg<TValue, TType> Create<TValue, TType>(TType changedObject, TValue oldValue, TValue newValue) where TType : class => new OnChangingArg<TValue, TType>(changedObject, oldValue, newValue);
     }
-    public class OnChangedArg<TValue>
+    public class OnChangingArg<TValue>
     {
-        public OnChangedArg(TValue oldValue, TValue newValue)
+        public OnChangingArg(TValue oldValue, TValue newValue)
         {
             OldValue = oldValue;
             NewValue = newValue;
@@ -57,9 +57,9 @@ namespace NDProperty
 
     }
 
-    public class OnChangedArg<TValue, TType> : OnChangedArg<TValue> where TType : class
+    public class OnChangingArg<TValue, TType> : OnChangingArg<TValue> where TType : class
     {
-        public OnChangedArg(TType changedObject, TValue oldValue, TValue newValue) : base(oldValue, newValue)
+        public OnChangingArg(TType changedObject, TValue oldValue, TValue newValue) : base(oldValue, newValue)
         {
             this.ChangedObject = changedObject;
         }

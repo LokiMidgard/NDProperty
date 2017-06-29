@@ -14,15 +14,15 @@ namespace NDProperty
         /// </summary>
         /// <typeparam name="TValue">The type of the Property</typeparam>
         /// <typeparam name="TType">The Type of the Object that defines the Property</typeparam>
-        /// <param name="changedMethod">The Method that will be called if the property will be set.</param>
+        /// <param name="changingMethod">The Method that will be called if the property will be set.</param>
         /// <param name="defaultValue">The default Value that the Proeprty will have if no value is set.</param>
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDPropertyKey<TValue, TType> Register<TValue, TType>(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns)
+        public static NDPropertyKey<TValue, TType> Register<TValue, TType>(Func<TType, OnChanging<TValue>> changingMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDPropertyKey<TValue, TType>(changedMethod, defaultValue, settigns);
+            var p = new NDPropertyKey<TValue, TType>(changingMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -40,15 +40,15 @@ namespace NDProperty
         /// </summary>
         /// <typeparam name="TValue">The type of the Property</typeparam>
         /// <typeparam name="TType">The Type of the Object that defines the Property</typeparam>
-        /// <param name="changedMethod">The Method that will be called if the property will be set.</param>
+        /// <param name="changingMethod">The Method that will be called if the property will be set.</param>
         /// <param name="defaultValue">The default Value that the Proeprty will have if no value is set.</param>
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDAttachedPropertyKey<TValue, TType> RegisterAttached<TValue, TType>(OnChanged<TValue, TType> changedMethod, TValue defaultValue, NDPropertySettings settigns)
+        public static NDAttachedPropertyKey<TValue, TType> RegisterAttached<TValue, TType>(OnChanging<TValue, TType> changingMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDAttachedPropertyKey<TValue, TType>(changedMethod, defaultValue, settigns);
+            var p = new NDAttachedPropertyKey<TValue, TType>(changingMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -114,20 +114,20 @@ namespace NDProperty
         /// <typeparam name="TValue">The Type of the Property</typeparam>
         /// <typeparam name="TType">The Type on which the Property is defined</typeparam>
         /// <param name="property">The Property that will be changed</param>
-        /// <param name="changedObject">The Object on which the property will be changed</param>
+        /// <param name="changingObject">The Object on which the property will be changed</param>
         /// <param name="value">The new Value of the Property.</param>
         /// <returns><c>false</c> if the operation was rejected</returns>
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TValue, TType>(NDPropertyKey<TValue, TType> property, TType changedObject, TValue value) where TType : class
+        public static bool SetValue<TValue, TType>(NDPropertyKey<TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
-            var oldValue = GetValue(property, changedObject);
+            var oldValue = GetValue(property, changingObject);
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
                 return true;
             var onChangedArg = OnChangedArg.Create(oldValue, value);
-            property.changedMethod(changedObject)(onChangedArg);
-            return SetValueInternal(property, changedObject, onChangedArg);
+            property.changedMethod(changingObject)(onChangedArg);
+            return SetValueInternal(property, changingObject, onChangedArg);
         }
 
         /// <summary>
@@ -136,24 +136,24 @@ namespace NDProperty
         /// <typeparam name="TValue">The Type of the Property</typeparam>
         /// <typeparam name="TType">The Type on which the Property is defined</typeparam>
         /// <param name="property">The Property that will be changed</param>
-        /// <param name="changedObject">The Object on which the property will be changed</param>
+        /// <param name="changingObject">The Object on which the property will be changed</param>
         /// <param name="value">The new Value of the Property.</param>
         /// <returns><c>false</c> if the operation was rejected</returns>
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TValue, TType>(NDAttachedPropertyKey<TValue, TType> property, TType changedObject, TValue value) where TType : class
+        public static bool SetValue<TValue, TType>(NDAttachedPropertyKey<TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
-            var oldValue = GetValue(property, changedObject);
+            var oldValue = GetValue(property, changingObject);
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, value))
                 return true;
-            var onChangedArg = OnChangedArg.Create(changedObject, oldValue, value);
+            var onChangedArg = OnChangedArg.Create(changingObject, oldValue, value);
             property.changedMethod(onChangedArg);
-            return SetValueInternal(property, changedObject, onChangedArg);
+            return SetValueInternal(property, changingObject, onChangedArg);
 
         }
 
-        private static bool SetValueInternal<TValue, TType>(NDReadOnlyPropertyKey<TValue, TType> property, TType obj, OnChangedArg<TValue> onChangedArg) where TType : class
+        private static bool SetValueInternal<TValue, TType>(NDReadOnlyPropertyKey<TValue, TType> property, TType obj, OnChangingArg<TValue> onChangedArg) where TType : class
         {
             var value = onChangedArg.MutatedValue;
             if (!onChangedArg.Reject)
@@ -379,8 +379,8 @@ namespace NDProperty
         }
     }
 
-    public delegate void OnChanged<TValue>(OnChangedArg<TValue> arg);
-    public delegate void OnChanged<TValue, TType>(OnChangedArg<TValue, TType> arg) where TType : class;
+    public delegate void OnChanging<TValue>(OnChangingArg<TValue> arg);
+    public delegate void OnChanging<TValue, TType>(OnChangingArg<TValue, TType> arg) where TType : class;
 
 
 }

@@ -9,7 +9,7 @@ namespace NDProperty
     /// <typeparam name="TType">The type of the Object that defines the Property.</typeparam>
     public class NDPropertyKey<TValue, TType> : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType> where TType : class
     {
-        internal readonly Func<TType, OnChanged<TValue>> changedMethod;
+        internal readonly Func<TType, OnChanging<TValue>> changedMethod;
 
         /// <summary>
         /// Access the readonly property of this Property.
@@ -19,7 +19,7 @@ namespace NDProperty
         /// </remarks>
         public NDReadOnlyPropertyKey<TValue, TType> ReadOnlyProperty { get; }
 
-        internal NDPropertyKey(Func<TType, OnChanged<TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns) : base(defaultValue, settigns)
+        internal NDPropertyKey(Func<TType, OnChanging<TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns) : base(defaultValue, settigns)
         {
             ReadOnlyProperty = new NDReadOnlyPropertyKey<TValue, TType>(defaultValue, settigns);
             this.changedMethod = changedMethod;

@@ -22,11 +22,11 @@ namespace NDProperty.Generator
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangedArg<>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangingArg<>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
@@ -44,7 +44,7 @@ namespace NDProperty.Generator
 
         public override DiagnosticDescriptor ClassNotFound => classNotFound;
 
-        public override Type OnChangedArgs => typeof(OnChangedArg<>);
+        public override Type OnChangingArgs => typeof(OnChangingArg<>);
 
 
         protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
@@ -255,11 +255,11 @@ namespace NDProperty.Generator
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0005, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changed.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0005, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangedArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(OnChangingArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
@@ -281,7 +281,7 @@ namespace NDProperty.Generator
 
         public DiagnosticDescriptor NotStatic => notStatic;
 
-        public override Type OnChangedArgs => typeof(OnChangedArg<,>);
+        public override Type OnChangingArgs => typeof(OnChangingArg<,>);
 
         protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
         {
@@ -429,7 +429,7 @@ namespace NDProperty.Generator
 
 
 
-        public abstract Type OnChangedArgs { get; }
+        public abstract Type OnChangingArgs { get; }
 
         public abstract DiagnosticDescriptor MethodNameConvention { get; }
         /// <summary>
@@ -454,7 +454,7 @@ namespace NDProperty.Generator
         protected readonly bool isReadOnly;
         protected readonly bool isParentReference;
         private readonly NDPropertySettings propertySettings;
-        protected static readonly Regex nameRegex = new Regex(@"On(?<name>\S+)Changed", RegexOptions.Compiled);
+        protected static readonly Regex nameRegex = new Regex(@"On(?<name>\S+)Changing", RegexOptions.Compiled);
 
         internal NDPGenerator(AttributeData attributeData)
         {
@@ -512,11 +512,11 @@ namespace NDProperty.Generator
             }
             else // One Parameter, Check type
             {
-                var changedMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
-                var typeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (ExpressionSyntax)changedMethodParameter.Type);
-                if (!TypeSymbolMatchesType(typeInfo.ConvertedType, OnChangedArgs, (SemanticModel)semanticModel, false))
+                var changingMethodParameter = method.ParameterList.Parameters.FirstOrDefault();
+                var typeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, changingMethodParameter.Type);
+                if (!TypeSymbolMatchesType(typeInfo.ConvertedType, OnChangingArgs, semanticModel, false))
                 {
-                    yield return Diagnostic.Create(WrongParameter, changedMethodParameter.Type.GetLocation());
+                    yield return Diagnostic.Create(WrongParameter, changingMethodParameter.Type.GetLocation());
                     problemWithParameter = true;
                 }
             }
@@ -528,7 +528,7 @@ namespace NDProperty.Generator
             ////////////////////////////////////////
             var defaultAttribute = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(attribute =>
             {
-                var attributeType = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (AttributeSyntax)attribute);
+                var attributeType = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, attribute);
                 return TypeSymbolMatchesType(attributeType.ConvertedType, typeof(System.ComponentModel.DefaultValueAttribute), semanticModel);
             });
 
@@ -668,7 +668,7 @@ namespace NDProperty.Generator
 
 
         }
-        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, TypeSyntax className, string propertyChangedMethod, TypeSyntax genericTypeArgument)
+        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, TypeSyntax className, string propertyChangingMethod, TypeSyntax genericTypeArgument)
         {
             var propertyReadOnlyKey = GetReadOnlyPropertyKey(propertyName);
             var propertyKey = GetPropertyKey(propertyName);
@@ -695,9 +695,9 @@ namespace NDProperty.Generator
             return propertyName + "Changed";
         }
 
-        protected static string GetChangedHandler(string propertyName)
+        protected static string GetChangingHandler(string propertyName)
         {
-            return $"On{propertyName}Changed";
+            return $"On{propertyName}Changing";
         }
 
         protected MemberDeclarationSyntax GeneratePropertyKey(string propertyName, ExpressionSyntax defalutExpresion, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax propertyValue, PropertyKind kind)
@@ -706,7 +706,7 @@ namespace NDProperty.Generator
             //Callback
             ExpressionSyntax callback;
             var propertyKey = GetPropertyKey(propertyName);
-            var propertyChangedMethod = GetChangedHandler(propertyName);
+            var propertyChangingMethod = GetChangingHandler(propertyName);
             string registerMethod;
             switch (kind)
             {
@@ -717,14 +717,14 @@ namespace NDProperty.Generator
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.IdentifierName("t"),
-                            SyntaxFactory.IdentifierName(propertyChangedMethod)));
+                            SyntaxFactory.IdentifierName(propertyChangingMethod)));
 
                     registerMethod = nameof(PropertyRegistar.Register);
                     break;
                 case PropertyKind.Readonly:
-                    return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangedMethod, propertyValue);
+                    return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangingMethod, propertyValue);
                 case PropertyKind.Attached:
-                    callback = SyntaxFactory.IdentifierName(propertyChangedMethod);
+                    callback = SyntaxFactory.IdentifierName(propertyChangingMethod);
                     registerMethod = nameof(PropertyRegistar.RegisterAttached);
                     break;
                 default:
@@ -849,8 +849,8 @@ namespace NDProperty.Generator
             var nameMatch = nameRegex.Match(method.Identifier.Text);
             var propertyName = nameMatch.Groups["name"].Value;
 #if DEBUG
-            var calculatedChangeHandler = GetChangedHandler(propertyName);
-            System.Diagnostics.Debug.Assert(method.Identifier.Text == calculatedChangeHandler, $"Problem Getting Property name. (PropertyName:{propertyName}, ChangedHandler:{method.Identifier.Text}, CalculatedChangeHandler:{calculatedChangeHandler})");
+            var calculatedChangeHandler = GetChangingHandler(propertyName);
+            System.Diagnostics.Debug.Assert(method.Identifier.Text == calculatedChangeHandler, $"Problem Getting Property name. (PropertyName:{propertyName}, ChangingHandler:{method.Identifier.Text}, CalculatedChangeHandler:{calculatedChangeHandler})");
 #endif
             return propertyName;
         }

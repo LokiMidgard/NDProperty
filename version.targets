@@ -13,6 +13,7 @@
 Added Support for:
 - General Improvements.
 - Refactored classes to different namespaces (breaking change)
+- Changed naming convention form OnXXXChanged to OnXXXChanging (breaking change)
 - Added Binding
 ]]>
     </PackageReleaseNotes>

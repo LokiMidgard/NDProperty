@@ -457,6 +457,7 @@ namespace NDProperty.Generator
         protected readonly bool isParentReference;
         private readonly Propertys.NDPropertySettings propertySettings;
         protected static readonly Regex nameRegex = new Regex(@"On(?<name>\S+)Changing", RegexOptions.Compiled);
+        private readonly bool errorParsingAttribute;
 
         internal NDPGenerator(AttributeData attributeData)
         {
@@ -464,7 +465,15 @@ namespace NDProperty.Generator
 
             var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
-            this.propertySettings = d.ContainsKey("Settigns") ? (Propertys.NDPropertySettings)d["Settigns"].Value : Propertys.NDPropertySettings.None;
+            if (d.ContainsKey("Settings") && d["Settigns"].Value != null)
+                this.propertySettings = (Propertys.NDPropertySettings)d["Settigns"].Value;
+            else
+            {
+                if (d.ContainsKey("Settings"))
+                    this.errorParsingAttribute = true;
+                    this.propertySettings = Propertys.NDPropertySettings.None;
+            }
+
             this.isReadOnly = this.propertySettings.HasFlag(Propertys.NDPropertySettings.ReadOnly);
             this.inherited = this.propertySettings.HasFlag(Propertys.NDPropertySettings.Inherited);
             this.isParentReference = this.propertySettings.HasFlag(Propertys.NDPropertySettings.ParentReference);
@@ -473,11 +482,12 @@ namespace NDProperty.Generator
         [System.ComponentModel.DefaultValue("")]
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
+            if (this.errorParsingAttribute)
+                return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
+
             var method = applyTo as MethodDeclarationSyntax;
             var semanticModel = compilation.GetSemanticModel(method.SyntaxTree, true);
             var diagnostics = GenerateDiagnostics(method, semanticModel);
-
-
 
             bool detectedError = false;
 

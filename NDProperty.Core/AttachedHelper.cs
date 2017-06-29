@@ -10,13 +10,13 @@ namespace NDProperty
 
         public static class AttachedHelper
         {
-            public static AttachedHelper<TValue, TType> Create<TValue, TType>(NDAttachedProperty<TValue, TType> property) where TType : class => new AttachedHelper<TValue, TType>(property);
+            public static AttachedHelper<TValue, TType> Create<TValue, TType>(NDAttachedPropertyKey<TValue, TType> property) where TType : class => new AttachedHelper<TValue, TType>(property);
         }
         public class AttachedHelper<TValue, TType> where TType : class
         {
-            private readonly NDAttachedProperty<TValue, TType> property;
+            private readonly NDAttachedPropertyKey<TValue, TType> property;
 
-            public AttachedHelper(NDAttachedProperty<TValue, TType> property)
+            public AttachedHelper(NDAttachedPropertyKey<TValue, TType> property)
             {
                 this.property = property;
             }
@@ -28,10 +28,10 @@ namespace NDProperty
 
             public class Delegater
             {
-                private NDAttachedProperty<TValue, TType> property;
+                private NDAttachedPropertyKey<TValue, TType> property;
                 private TType index;
 
-                public Delegater(NDAttachedProperty<TValue, TType> property, TType index)
+                public Delegater(NDAttachedPropertyKey<TValue, TType> property, TType index)
                 {
                     this.property = property;
                     this.index = index;

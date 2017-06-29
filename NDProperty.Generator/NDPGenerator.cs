@@ -627,13 +627,13 @@ namespace NDProperty.Generator
             switch (kind)
             {
                 case PropertyKind.Normal:
-                    propertyClass = nameof(NDProperty<object, object>);
+                    propertyClass = nameof(NDPropertyKey<object, object>);
                     break;
                 case PropertyKind.Readonly:
-                    propertyClass = nameof(NDReadOnlyProperty<object, object>);
+                    propertyClass = nameof(NDReadOnlyPropertyKey<object, object>);
                     break;
                 case PropertyKind.Attached:
-                    propertyClass = nameof(NDAttachedProperty<object, object>);
+                    propertyClass = nameof(NDAttachedPropertyKey<object, object>);
                     break;
                 default:
                     throw new NotSupportedException();

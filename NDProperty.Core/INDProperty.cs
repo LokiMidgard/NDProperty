@@ -2,6 +2,6 @@
 {
     public interface INDProperty<TValue, TType> where TType : class
     {
-        NDReadOnlyProperty<TValue, TType> ReadOnlyProperty { get; }
+        NDReadOnlyPropertyKey<TValue, TType> ReadOnlyProperty { get; }
     }
 }

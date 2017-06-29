@@ -15,7 +15,7 @@ namespace NDProperty
         Inherited = 1 << 4
 
     }
-    public class NDReadOnlyProperty<TValue, TType> : IInternalNDReadOnlyProperty where TType : class
+    public class NDReadOnlyPropertyKey<TValue, TType> : IInternalNDReadOnlyProperty where TType : class
     {
         public bool Inherited => Settigns.HasFlag(NDPropertySettings.Inherited);
         public NDPropertySettings Settigns { get; }
@@ -23,14 +23,14 @@ namespace NDProperty
 
         public TValue DefaultValue { get; }
 
-        internal NDReadOnlyProperty(NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns)
+        internal NDReadOnlyPropertyKey(NullTreatment nullTreatment, TValue defaultValue, NDPropertySettings settigns)
         {
             Settigns = settigns;
             DefaultValue = defaultValue;
             NullTreatment = nullTreatment;
         }
 
-        public bool Equals(NDReadOnlyProperty<TValue, TType> obj)
+        public bool Equals(NDReadOnlyPropertyKey<TValue, TType> obj)
         {
             var other = GetReadonly(obj);
             var me = GetReadonly(this);
@@ -40,7 +40,7 @@ namespace NDProperty
         }
         public override bool Equals(object obj)
         {
-            if (obj is NDReadOnlyProperty<TValue, TType> p)
+            if (obj is NDReadOnlyPropertyKey<TValue, TType> p)
                 return Equals(p);
             return false;
         }
@@ -53,7 +53,7 @@ namespace NDProperty
             return me.GetHashCode();
         }
 
-        private static NDReadOnlyProperty<TValue, TType> GetReadonly(NDReadOnlyProperty<TValue, TType> r)
+        private static NDReadOnlyPropertyKey<TValue, TType> GetReadonly(NDReadOnlyPropertyKey<TValue, TType> r)
         {
             if (r is INDProperty<TValue, TType> p)
                 return p.ReadOnlyProperty;

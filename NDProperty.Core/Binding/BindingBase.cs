@@ -5,16 +5,50 @@ using System.Reflection;
 
 namespace NDProperty.Binding
 {
-
+    /// <summary>
+    /// This static class provides Methods to implement Binding.
+    /// </summary>
+    /// <remarks>
+    /// Every Method in this class returns an object that implements <see cref="IDisposable"/>.
+    /// To revoke the binding call the Dispose Method on the Object. The <see cref="IDisposable.Dispose"/>
+    /// method will not be called when the object is garbage collected. If you don't want to untie the binding
+    /// you need not to hold an reference to the Binding object. <para/>
+    /// When binding two way to POCO, this implementation assumes that the <see cref="INotifyPropertyChanged.PropertyChanged"/> 
+    /// event is fired only when the value actually changes. If this is not the case this can result in unwanted round trips.
+    /// </remarks>
     public static class Bind
     {
 
+        /// <summary>
+        /// Creaates a One Way Binding using NDPropertys.
+        /// </summary>
+        /// <typeparam name="TValueSource">The type of the source Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TValueDestination">The type of the destination Property</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
+        /// <returns>The binding object</returns>
         public static OneWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : class
         {
             return new OneWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
+        /// <summary>
+        /// Creaates a One Way Binding using NDPropertys.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <returns>The binding object</returns>
         public static OneWayBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
             where TTypeSource : class
             where TTypeDestination : class
@@ -22,25 +56,72 @@ namespace NDProperty.Binding
             return new OneWayBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
+        /// <summary>
+        /// Creates one way binding from POCO to NDProperty
+        /// </summary>
+        /// <typeparam name="TValueSource">The type of the source Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TValueDestination">The type of the destination Property</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The name of the source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
+        /// <returns>The binding object</returns>
         public static NotifyToNDPBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : INotifyPropertyChanged
             where TTypeDestination : class
         {
             return new NotifyToNDPBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
+        /// <summary>
+        /// Creates one way binding from POCO to NDProperty
+        /// </summary>
+        /// <typeparam name="TValue">The type of the Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The name of the source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <returns>The binding object</returns>
         public static NotifyToNDPBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
             where TTypeSource : INotifyPropertyChanged
             where TTypeDestination : class
         {
             return new NotifyToNDPBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
-
+        /// <summary>
+        /// Creates one way binding from NDProperty to POCO
+        /// </summary>
+        /// <typeparam name="TValueSource">The type of the source Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TValueDestination">The type of the destination Property</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The name of the destination Property</param>
+        /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
+        /// <returns>The binding object</returns>
         public static NDPToNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
             return new NDPToNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
+        /// <summary>
+        /// Creates one way binding from NDProperty to POCO
+        /// </summary>
+        /// <typeparam name="TValue">The type of the Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The name of the destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <returns>The binding object</returns>
         public static NDPToNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
@@ -48,12 +129,36 @@ namespace NDProperty.Binding
             return new NDPToNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
+        /// <summary>
+        /// Creates two way Binding between two NDPropertys
+        /// </summary>
+        /// <typeparam name="TValueSource">The type of the source Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TValueDestination">The type of the destination Property</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
+        /// <returns>The binding object</returns>
         public static TwoWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : class
         {
             return new TwoWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
+        /// <summary>
+        /// Creates two way Binding between two NDPropertys
+        /// </summary>
+        /// <typeparam name="TValue">The type of the Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The destination Property</param>
+        /// <returns>The binding object</returns>
         public static TwoWayBinding<TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
             where TTypeSource : class
             where TTypeDestination : class
@@ -61,12 +166,36 @@ namespace NDProperty.Binding
             return new TwoWayBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
+        /// <summary>
+        /// Creates two way Binding between a NDProperty and a POCO
+        /// </summary>
+        /// <typeparam name="TValueSource">The type of the source Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TValueDestination">The type of the destination Property</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The name of the destination Property</param>
+        /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
+        /// <returns>The binding object</returns>
         public static TwoWayNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
             return new TwoWayNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
+        /// <summary>
+        /// Creates two way Binding between a NDProperty and a POCO
+        /// </summary>
+        /// <typeparam name="TValue">The type of the Property</typeparam>
+        /// <typeparam name="TTypeSource">The type of the source object</typeparam>
+        /// <typeparam name="TTypeDestination">The type of the destination object</typeparam>
+        /// <param name="source">The source Object</param>
+        /// <param name="sourceProperty">The source Property</param>
+        /// <param name="destination">The destination Object</param>
+        /// <param name="destinationProperty">The name of the destination Property</param>
+        /// <returns>The binding object</returns>
         public static TwoWayNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged

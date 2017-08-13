@@ -1,7 +1,7 @@
 ﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NDProperty.Generator")]
 namespace NDProperty.Propertys
 {
-    internal interface INDProperty<TValue, TType> where TType : class
+    public interface INDProperty<TValue, TType> where TType : class
     {
         /// <summary>
         /// Access the readonly property of this Property.

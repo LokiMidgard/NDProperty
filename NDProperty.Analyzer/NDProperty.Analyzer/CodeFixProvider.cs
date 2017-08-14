@@ -192,8 +192,8 @@ namespace NDP.Analyzer
                 else
                 {
                     var newType = firstParameter.Type;
-                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<,>), semanticModel, false)
-                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<>), semanticModel, false))
+                    if (NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<,,>), semanticModel, false)
+                        || NDPGenerator.TypeSymbolMatchesType(typeInfo.ConvertedType, typeof(NDProperty.Propertys.OnChangingArg<,>), semanticModel, false))
                         newType = firstParameter.Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
                     parameterTypeSyntax = SyntaxFactory.QualifiedName(
                         SyntaxFactory.QualifiedName(

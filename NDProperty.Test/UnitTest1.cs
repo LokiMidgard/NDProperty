@@ -11,7 +11,7 @@ namespace NDProperty.Test
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
-            PropertyRegistar.Initilize(Providers.LocalValueManager.Instance, Providers.InheritenceValueManager.Instance, Providers.DefaultValueManager.Instance);
+           // PropertyRegistar<Configuration>.Initilize(Providers.LocalValueManager.Instance, Providers.InheritenceValueManager.Instance, Providers.DefaultValueManager.Instance);
         }
         [TestMethod]
         public void TestSetAndGet()
@@ -76,14 +76,14 @@ namespace NDProperty.Test
             var t = new TestObject();
             const string str1 = "Hallo Welt!";
 
-            var p1 = PropertyRegistar.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.None);
-            var p2 = PropertyRegistar.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.CallOnChangedHandlerOnEquals);
+            var p1 = PropertyRegistar<Configuration>.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.None);
+            var p2 = PropertyRegistar<Configuration>.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.CallOnChangedHandlerOnEquals);
 
 
-            PropertyRegistar.SetValue(p1, t, str1);
+            PropertyRegistar<Configuration>.SetValue(p1, t, str1);
             Assert.IsNull(t.testArguments);
 
-            PropertyRegistar.SetValue(p2, t, str1);
+            PropertyRegistar<Configuration>.SetValue(p2, t, str1);
             Assert.IsNotNull(t.testArguments);
             Assert.AreEqual(str1, t.testArguments.NewValue);
             //Assert.AreEqual(str1, t.testArguments.OldValue);
@@ -277,6 +277,12 @@ namespace NDProperty.Test
 
     }
 
+
+    public class Configuration
+    {
+
+    }
+
     public struct MyStruct
     {
         public static explicit operator MyStruct(int i)
@@ -293,45 +299,45 @@ namespace NDProperty.Test
 
         [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
         //[System.ComponentModel.DefaultValue("asdf")]
-        private void OnTestAttributeChanging(OnChangingArg<MyStruct> arg)
+        private void OnTestAttributeChanging(OnChangingArg<Configuration,MyStruct> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
 
         [NDP(Settigns = NDPropertySettings.ReadOnly)]
-        private void OnMyBlaChanging(OnChangingArg<string> arg)
+        private void OnMyBlaChanging(OnChangingArg<Configuration, string> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
 
         #region Attach
-        public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<string, object> AttachProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
+        public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<Configuration, string, object> AttachProperty = global::NDProperty.PropertyRegistar< Configuration>.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
 
-        public static global::NDProperty.Utils.AttachedHelper<string, object> Attach { get; } = global::NDProperty.Utils.AttachedHelper.Create(AttachProperty);
+        public static global::NDProperty.Utils.AttachedHelper<Configuration, string, object> Attach { get; } = global::NDProperty.Utils.AttachedHelper.Create(AttachProperty);
 
-        private static void OnAttachChanged(OnChangingArg<string, object> arg)
+        private static void OnAttachChanged(OnChangingArg<Configuration, string, object> arg)
         {
 
         }
         #endregion
 
         #region Str
-        public static readonly NDPropertyKey<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanged, default(string), NDPropertySettings.None);
+        public static readonly NDPropertyKey<Configuration, string, TestObject> StrProperty = PropertyRegistar<Configuration>.Register<string, TestObject>(t => t.OnStrChanged, default(string), NDPropertySettings.None);
 
         public string Str
         {
-            get { return PropertyRegistar.GetValue(StrProperty, this); }
-            set { PropertyRegistar.SetValue(StrProperty, this, value); }
+            get { return PropertyRegistar< Configuration>.GetValue(StrProperty, this); }
+            set { PropertyRegistar<Configuration>.SetValue(StrProperty, this, value); }
         }
 
         public event EventHandler<ChangedEventArgs<string, TestObject>> StrChanged
         {
-            add { PropertyRegistar.AddEventHandler(StrProperty, this, value); }
-            remove { PropertyRegistar.RemoveEventHandler(StrProperty, this, value); }
+            add { PropertyRegistar<Configuration>.AddEventHandler(StrProperty, this, value); }
+            remove { PropertyRegistar<Configuration>.RemoveEventHandler(StrProperty, this, value); }
         }
 
 
-        private void OnStrChanged(OnChangingArg<string> arg)
+        private void OnStrChanged(OnChangingArg<Configuration, string> arg)
         {
             arg.Reject = Reject;
             if (Mutate != null)
@@ -340,21 +346,21 @@ namespace NDProperty.Test
         #endregion
 
         #region InheritedStr
-        public static readonly NDPropertyKey<string, TestObject> InheritedStrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnInheritedStrChanged, default(string), NDPropertySettings.Inherited);
+        public static readonly NDPropertyKey<Configuration, string, TestObject> InheritedStrProperty = PropertyRegistar<Configuration>.Register<string, TestObject>(t => t.OnInheritedStrChanged, default(string), NDPropertySettings.Inherited);
 
         public string InheritedStr
         {
-            get => PropertyRegistar.GetValue(InheritedStrProperty, this);
-            set => PropertyRegistar.SetValue(InheritedStrProperty, this, value);
+            get => PropertyRegistar<Configuration>.GetValue(InheritedStrProperty, this);
+            set => PropertyRegistar<Configuration>.SetValue(InheritedStrProperty, this, value);
         }
 
         public event EventHandler<ChangedEventArgs<string, TestObject>> InheritedStrChanged
         {
-            add => PropertyRegistar.AddEventHandler(InheritedStrProperty, this, value);
-            remove => PropertyRegistar.RemoveEventHandler(InheritedStrProperty, this, value);
+            add => PropertyRegistar<Configuration>.AddEventHandler(InheritedStrProperty, this, value);
+            remove => PropertyRegistar<Configuration>.RemoveEventHandler(InheritedStrProperty, this, value);
         }
 
-        private void OnInheritedStrChanged(OnChangingArg<string> arg)
+        private void OnInheritedStrChanged(OnChangingArg<Configuration, string> arg)
         {
 
         }
@@ -362,20 +368,20 @@ namespace NDProperty.Test
 
 
         #region Parent
-        public static readonly NDPropertyKey<TestObject, TestObject> ParentProperty = PropertyRegistar.Register<TestObject, TestObject>(t => t.OnParentChanged, default(TestObject), NDPropertySettings.ParentReference);
+        public static readonly NDPropertyKey<Configuration, TestObject, TestObject> ParentProperty = PropertyRegistar<Configuration>.Register<TestObject, TestObject>(t => t.OnParentChanged, default(TestObject), NDPropertySettings.ParentReference);
         public TestObject Parent
         {
-            get => PropertyRegistar.GetValue(ParentProperty, this);
-            set => PropertyRegistar.SetValue(ParentProperty, this, value);
+            get => PropertyRegistar<Configuration>.GetValue(ParentProperty, this);
+            set => PropertyRegistar<Configuration>.SetValue(ParentProperty, this, value);
         }
 
         public event EventHandler<ChangedEventArgs<TestObject, TestObject>> ParentChanged
         {
-            add => PropertyRegistar.AddEventHandler(ParentProperty, this, value);
-            remove => PropertyRegistar.RemoveEventHandler(ParentProperty, this, value);
+            add => PropertyRegistar<Configuration>.AddEventHandler(ParentProperty, this, value);
+            remove => PropertyRegistar<Configuration>.RemoveEventHandler(ParentProperty, this, value);
         }
 
-        private void OnParentChanged(OnChangingArg<TestObject> arg)
+        private void OnParentChanged(OnChangingArg<Configuration, TestObject> arg)
         {
 
         }
@@ -389,9 +395,9 @@ namespace NDProperty.Test
             return base.ToString();
         }
 
-        public OnChangingArg<string> testArguments;
+        public OnChangingArg<Configuration, string> testArguments;
 
-        internal void TestChangeMethod(OnChangingArg<string> arg)
+        internal void TestChangeMethod(OnChangingArg<Configuration, string> arg)
         {
             testArguments = arg;
         }

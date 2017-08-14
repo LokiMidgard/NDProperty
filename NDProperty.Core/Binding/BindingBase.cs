@@ -34,11 +34,11 @@ namespace NDProperty.Binding
         /// <param name="destinationProperty">The destination Property</param>
         /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
         /// <returns>The binding object</returns>
-        public static OneWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        public static OneWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : class
         {
-            return new OneWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
+            return new OneWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
         /// <summary>
         /// Creaates a One Way Binding using NDPropertys.
@@ -51,11 +51,11 @@ namespace NDProperty.Binding
         /// <param name="destination">The destination Object</param>
         /// <param name="destinationProperty">The destination Property</param>
         /// <returns>The binding object</returns>
-        public static OneWayBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
+        public static OneWayBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination> OneWay<TKey, TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValue, TTypeDestination> destinationProperty)
             where TTypeSource : class
             where TTypeDestination : class
         {
-            return new OneWayBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
+            return new OneWayBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
         /// <summary>
@@ -71,11 +71,11 @@ namespace NDProperty.Binding
         /// <param name="destinationProperty">The destination Property</param>
         /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
         /// <returns>The binding object</returns>
-        public static NotifyToNDPBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        public static NotifyToNDPBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : INotifyPropertyChanged
             where TTypeDestination : class
         {
-            return new NotifyToNDPBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
+            return new NotifyToNDPBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
         /// <summary>
         /// Creates one way binding from POCO to NDProperty
@@ -88,11 +88,11 @@ namespace NDProperty.Binding
         /// <param name="destination">The destination Object</param>
         /// <param name="destinationProperty">The destination Property</param>
         /// <returns>The binding object</returns>
-        public static NotifyToNDPBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
+        public static NotifyToNDPBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination> OneWay<TKey, TValue, TTypeSource, TTypeDestination>(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValue, TTypeDestination> destinationProperty)
             where TTypeSource : INotifyPropertyChanged
             where TTypeDestination : class
         {
-            return new NotifyToNDPBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
+            return new NotifyToNDPBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
         /// <summary>
         /// Creates one way binding from NDProperty to POCO
@@ -107,11 +107,11 @@ namespace NDProperty.Binding
         /// <param name="destinationProperty">The name of the destination Property</param>
         /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
         /// <returns>The binding object</returns>
-        public static NDPToNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        public static NDPToNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> OneWay<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, IConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
-            return new NDPToNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
+            return new NDPToNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
         /// <summary>
         /// Creates one way binding from NDProperty to POCO
@@ -124,11 +124,11 @@ namespace NDProperty.Binding
         /// <param name="destination">The name of the destination Object</param>
         /// <param name="destinationProperty">The destination Property</param>
         /// <returns>The binding object</returns>
-        public static NDPToNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination> OneWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
+        public static NDPToNotifyBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination> OneWay<TKey, TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
-            return new NDPToNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
+            return new NDPToNotifyBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
         /// <summary>
@@ -144,11 +144,11 @@ namespace NDProperty.Binding
         /// <param name="destinationProperty">The destination Property</param>
         /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
         /// <returns>The binding object</returns>
-        public static TwoWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
+        public static TwoWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : class
         {
-            return new TwoWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
+            return new TwoWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
         /// <summary>
         /// Creates two way Binding between two NDPropertys
@@ -161,11 +161,11 @@ namespace NDProperty.Binding
         /// <param name="destination">The destination Object</param>
         /// <param name="destinationProperty">The destination Property</param>
         /// <returns>The binding object</returns>
-        public static TwoWayBinding<TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValue, TTypeDestination> destinationProperty)
+        public static TwoWayBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TKey, TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TKey, TValue, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValue, TTypeDestination> destinationProperty)
             where TTypeSource : class
             where TTypeDestination : class
         {
-            return new TwoWayBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
+            return new TwoWayBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
         /// <summary>
@@ -181,11 +181,11 @@ namespace NDProperty.Binding
         /// <param name="destinationProperty">The name of the destination Property</param>
         /// <param name="converter">A converter that is used to translate from source property type to destination proeprty type.</param>
         /// <returns>The binding object</returns>
-        public static TwoWayNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
+        public static TwoWayNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> TwoWay<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(TTypeSource source, NDPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
-            return new TwoWayNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
+            return new TwoWayNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination>(source, sourceProperty, destination, destinationProperty, converter);
         }
         /// <summary>
         /// Creates two way Binding between a NDProperty and a POCO
@@ -198,22 +198,22 @@ namespace NDProperty.Binding
         /// <param name="destination">The destination Object</param>
         /// <param name="destinationProperty">The name of the destination Property</param>
         /// <returns>The binding object</returns>
-        public static TwoWayNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
+        public static TwoWayNotifyBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination> TwoWay<TKey, TValue, TTypeSource, TTypeDestination>(TTypeSource source, NDPropertyKey<TKey, TValue, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty)
             where TTypeSource : class
             where TTypeDestination : INotifyPropertyChanged
         {
-            return new TwoWayNotifyBinding<TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
+            return new TwoWayNotifyBinding<TKey, TValue, TTypeSource, TValue, TTypeDestination>(source, sourceProperty, destination, destinationProperty, new IdentetyConverter<TValue>());
         }
 
     }
 
-    public class OneWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
+    public class OneWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
         where TTypeSource : class
         where TTypeDestination : class
     {
 
-        public NDReadOnlyPropertyKey<TValueSource, TTypeSource> SourceProperty { get; }
-        public NDPropertyKey<TValueDestination, TTypeDestination> DestinationProperty { get; }
+        public NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> SourceProperty { get; }
+        public NDPropertyKey<TKey, TValueDestination, TTypeDestination> DestinationProperty { get; }
         public TTypeSource Source { get; }
         public TTypeDestination Destination { get; }
         public IConverter<TValueSource, TValueDestination> Converter { get; }
@@ -223,32 +223,32 @@ namespace NDProperty.Binding
         /// <param name="destination"><see cref="Destination"/></param>
         /// <param name="destinationProperty"><see cref="DestinationProperty"/></param>
         /// <param name="converter"><see cref="Converter"/></param>
-        internal OneWayBinding(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        internal OneWayBinding(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
         {
             SourceProperty = sourceProperty;
             DestinationProperty = destinationProperty;
             Source = source;
             Destination = destination;
             Converter = converter;
-            PropertyRegistar.AddEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.AddEventHandler(SourceProperty, Source, SourceChanged);
         }
         private void SourceChanged(object sender, ChangedEventArgs<TValueSource, TTypeSource> e)
         {
-            PropertyRegistar.SetValue(DestinationProperty, Destination, Converter.ConvertTo(e.NewValue));
+            PropertyRegistar<TKey>.SetValue(DestinationProperty, Destination, Converter.ConvertTo(e.NewValue));
         }
         public void Dispose()
         {
-            PropertyRegistar.RemoveEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.RemoveEventHandler(SourceProperty, Source, SourceChanged);
         }
     }
 
-    public class TwoWayBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
+    public class TwoWayBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
         where TTypeSource : class
         where TTypeDestination : class
     {
 
-        public NDPropertyKey<TValueSource, TTypeSource> SourceProperty { get; }
-        public NDPropertyKey<TValueDestination, TTypeDestination> DestinationProperty { get; }
+        public NDPropertyKey<TKey, TValueSource, TTypeSource> SourceProperty { get; }
+        public NDPropertyKey<TKey, TValueDestination, TTypeDestination> DestinationProperty { get; }
         public TTypeSource Source { get; }
         public TTypeDestination Destination { get; }
         public ITwoWayConverter<TValueSource, TValueDestination> Converter { get; }
@@ -258,7 +258,7 @@ namespace NDProperty.Binding
         /// <param name="destination"><see cref="Destination"/></param>
         /// <param name="destinationProperty"><see cref="DestinationProperty"/></param>
         /// <param name="converter"><see cref="Converter"/></param>
-        internal TwoWayBinding(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
+        internal TwoWayBinding(TTypeSource source, NDPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
         {
             SourceProperty = sourceProperty;
             DestinationProperty = destinationProperty;
@@ -266,34 +266,34 @@ namespace NDProperty.Binding
             Destination = destination;
             Converter = converter;
 
-            PropertyRegistar.AddEventHandler(SourceProperty, Source, SourceChanged);
-            PropertyRegistar.AddEventHandler(DestinationProperty, Destination, DestinationChanged);
+            PropertyRegistar<TKey>.AddEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.AddEventHandler(DestinationProperty, Destination, DestinationChanged);
 
         }
 
         private void DestinationChanged(object sender, ChangedEventArgs<TValueDestination, TTypeDestination> e)
         {
-            PropertyRegistar.SetValue(SourceProperty, Source, Converter.ConvertTo(e.NewValue));
+            PropertyRegistar<TKey>.SetValue(SourceProperty, Source, Converter.ConvertTo(e.NewValue));
         }
 
         private void SourceChanged(object sender, ChangedEventArgs<TValueSource, TTypeSource> e)
         {
-            PropertyRegistar.SetValue(DestinationProperty, Destination, Converter.ConvertTo(e.NewValue));
+            PropertyRegistar<TKey>.SetValue(DestinationProperty, Destination, Converter.ConvertTo(e.NewValue));
         }
 
         public void Dispose()
         {
-            PropertyRegistar.RemoveEventHandler(SourceProperty, Source, SourceChanged);
-            PropertyRegistar.RemoveEventHandler(DestinationProperty, Destination, DestinationChanged);
+            PropertyRegistar<TKey>.RemoveEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.RemoveEventHandler(DestinationProperty, Destination, DestinationChanged);
         }
     }
 
-    public class TwoWayNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
+    public class TwoWayNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
         where TTypeSource : class
         where TTypeDestination : INotifyPropertyChanged
     {
 
-        public NDPropertyKey<TValueSource, TTypeSource> SourceProperty { get; }
+        public NDPropertyKey<TKey, TValueSource, TTypeSource> SourceProperty { get; }
         public string DestinationProperty { get; }
         public TTypeSource Source { get; }
         public TTypeDestination Destination { get; }
@@ -323,7 +323,7 @@ namespace NDProperty.Binding
         /// <param name="destination"><see cref="Destination"/></param>
         /// <param name="destinationProperty"><see cref="DestinationProperty"/></param>
         /// <param name="converter"><see cref="Converter"/></param>
-        internal TwoWayNotifyBinding(TTypeSource source, NDPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
+        internal TwoWayNotifyBinding(TTypeSource source, NDPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, ITwoWayConverter<TValueSource, TValueDestination> converter)
         {
             SourceProperty = sourceProperty;
             DestinationProperty = destinationProperty;
@@ -334,14 +334,14 @@ namespace NDProperty.Binding
             this.getDestinationProperty = GenerateGetter();
             this.setDestinationProperty = GenerateSetter();
 
-            PropertyRegistar.AddEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.AddEventHandler(SourceProperty, Source, SourceChanged);
             Destination.PropertyChanged += Destination_PropertyChanged;
         }
 
         private void Destination_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == DestinationProperty)
-                PropertyRegistar.SetValue(SourceProperty, Source, Converter.ConvertTo(this.getDestinationProperty(Destination)));
+                PropertyRegistar<TKey>.SetValue(SourceProperty, Source, Converter.ConvertTo(this.getDestinationProperty(Destination)));
         }
 
         private void SourceChanged(object sender, ChangedEventArgs<TValueSource, TTypeSource> e)
@@ -351,11 +351,11 @@ namespace NDProperty.Binding
 
         public void Dispose()
         {
-            PropertyRegistar.RemoveEventHandler(SourceProperty, Source, SourceChanged);
+            PropertyRegistar<TKey>.RemoveEventHandler(SourceProperty, Source, SourceChanged);
             Destination.PropertyChanged -= Destination_PropertyChanged;
         }
     }
-    public class NotifyToNDPBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
+    public class NotifyToNDPBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
         where TTypeDestination : class
         where TTypeSource : INotifyPropertyChanged
     {
@@ -363,10 +363,10 @@ namespace NDProperty.Binding
         private void Source_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == SourceProperty)
-                PropertyRegistar.SetValue(DestinationProperty, Destination, Converter.ConvertTo(this.getSourceProperty(Source)));
+                PropertyRegistar<TKey>.SetValue(DestinationProperty, Destination, Converter.ConvertTo(this.getSourceProperty(Source)));
         }
 
-        public NDPropertyKey<TValueDestination, TTypeDestination> DestinationProperty { get; }
+        public NDPropertyKey<TKey, TValueDestination, TTypeDestination> DestinationProperty { get; }
         public string SourceProperty { get; }
         public TTypeSource Source { get; }
         public TTypeDestination Destination { get; }
@@ -391,7 +391,7 @@ namespace NDProperty.Binding
         /// <param name="source"><see cref="Source"/></param>
         /// <param name="destination"><see cref="Destination"/></param>
         /// <param name="converter"><see cref="Converter"/></param>
-        internal NotifyToNDPBinding(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        internal NotifyToNDPBinding(TTypeSource source, string sourceProperty, TTypeDestination destination, NDPropertyKey<TKey, TValueDestination, TTypeDestination> destinationProperty, IConverter<TValueSource, TValueDestination> converter)
         {
             DestinationProperty = destinationProperty;
             SourceProperty = sourceProperty;
@@ -403,12 +403,12 @@ namespace NDProperty.Binding
         }
     }
 
-    public class NDPToNotifyBinding<TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
+    public class NDPToNotifyBinding<TKey, TValueSource, TTypeSource, TValueDestination, TTypeDestination> : IDisposable
         where TTypeSource : class
         where TTypeDestination : INotifyPropertyChanged
     {
 
-        public NDReadOnlyPropertyKey<TValueSource, TTypeSource> SourceProperty { get; }
+        public NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> SourceProperty { get; }
         public string DestinationProperty { get; }
         public TTypeSource Source { get; }
         public TTypeDestination Destination { get; }
@@ -428,7 +428,7 @@ namespace NDProperty.Binding
 
         public void Dispose()
         {
-            PropertyRegistar.RemoveEventHandler(SourceProperty, Source, PropertyChanged);
+            PropertyRegistar<TKey>.RemoveEventHandler(SourceProperty, Source, PropertyChanged);
         }
 
         /// <summary>Record Constructor</summary>
@@ -437,7 +437,7 @@ namespace NDProperty.Binding
         /// <param name="destination"><see cref="Destination"/></param>
         /// <param name="destinationProperty"><see cref="DestinationProperty"/></param>
         /// <param name="converter"><see cref="Converter"/></param>
-        internal NDPToNotifyBinding(TTypeSource source, NDReadOnlyPropertyKey<TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, IConverter<TValueSource, TValueDestination> converter)
+        internal NDPToNotifyBinding(TTypeSource source, NDReadOnlyPropertyKey<TKey, TValueSource, TTypeSource> sourceProperty, TTypeDestination destination, string destinationProperty, IConverter<TValueSource, TValueDestination> converter)
         {
             SourceProperty = sourceProperty;
             DestinationProperty = destinationProperty;
@@ -447,7 +447,7 @@ namespace NDProperty.Binding
 
             this.setDestinationProperty = GenerateSetter();
 
-            PropertyRegistar.AddEventHandler(SourceProperty, Source, PropertyChanged);
+            PropertyRegistar<TKey>.AddEventHandler(SourceProperty, Source, PropertyChanged);
 
 
         }

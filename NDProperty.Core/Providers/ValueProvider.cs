@@ -8,83 +8,83 @@ using NDProperty.Propertys;
 namespace NDProperty.Providers
 {
 
-    public abstract class ValueManager
+    public abstract class ValueManager<TKey>
     {
         protected bool Update<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            var (oldValue, otherProvider) = PropertyRegistar.GetValueAndProvider(property, targetObject);
+            var (oldValue, otherProvider) = PropertyRegistar<TKey>.GetValueAndProvider(property, targetObject);
 
             return Update(targetObject, targetObject, property, value, updateCode, oldValue, otherProvider);
         }
 
-        internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueManager otherProvider)
+        internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueManager<TKey> otherProvider)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey,TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            var otherProviderIndex = PropertyRegistar.managerOrder[otherProvider];
-            var thisIndex = PropertyRegistar.managerOrder[this];
+            var otherProviderIndex = PropertyRegistar<TKey>.ManagerOrder[otherProvider];
+            var thisIndex = PropertyRegistar<TKey>.ManagerOrder[this];
 
             // We need to call the actial update after we recived the current old value. Otherwise we could already read the 
-            OnChangingArg<TValue> onChangingArg;
-            if (property as object is NDAttachedPropertyKey<TValue, TType> attach)
+            OnChangingArg<TKey, TValue> onChangingArg;
+            if (property as object is NDAttachedPropertyKey<TKey, TValue, TType> attach)
             {
                 var attachArg = OnChangingArg.Create(targetObject, oldValue, value, this, otherProviderIndex >= thisIndex); ;
                 onChangingArg = attachArg;
                 attach.changedMethod(attachArg);
             }
-            else if (property as object is NDPropertyKey<TValue, TType> p)
+            else if (property as object is NDPropertyKey<TKey, TValue, TType> p)
             {
                 onChangingArg = OnChangingArg.Create(oldValue, value, this, otherProviderIndex >= thisIndex);
                 p.changedMethod(targetObject)(onChangingArg);
             }
             else
                 throw new NotSupportedException();
-            return PropertyRegistar.ChangeValue(sender, property, targetObject, onChangingArg, updateCode);
+            return PropertyRegistar<TKey>.ChangeValue(sender, property, targetObject, onChangingArg, updateCode);
         }
 
-        public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TValue, TType> property) where TType : class;
+        public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TKey, TValue, TType> property) where TType : class;
         //public abstract bool HasValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TValue, TType> property) where TType : class;
     }
 
-    public sealed class DefaultValueManager : ValueManager
+    public sealed class DefaultValueManager<TKey> : ValueManager<TKey>
     {
         private DefaultValueManager()
         {
 
         }
-        public static DefaultValueManager Instance { get; } = new DefaultValueManager();
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TValue, TType> property) => (property.DefaultValue, true);
+        public static DefaultValueManager<TKey> Instance { get; } = new DefaultValueManager<TKey>();
+        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property) => (property.DefaultValue, true);
     }
 
-    public sealed class InheritenceValueManager : ValueManager
+    public sealed class InheritenceValueManager<TKey> : ValueManager<TKey>
     {
         private InheritenceValueManager()
         {
 
         }
-        public static InheritenceValueManager Instance { get; } = new InheritenceValueManager();
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TValue, TType> property)
+        public static InheritenceValueManager<TKey> Instance { get; } = new InheritenceValueManager<TKey>();
+        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey,TValue, TType> property)
         {
             if (property.Inherited)
             {
                 // go up the tree
-                var tree = PropertyRegistar.Tree.GetTree(targetObject);
+                var tree = PropertyRegistar<TKey>.Tree.GetTree(targetObject);
                 while (tree.Parent != null)
                 {
                     tree = tree.Parent;
                     if (tree.Current is TType instance)
-                        return (PropertyRegistar.GetValue(property, instance), true);
+                        return (PropertyRegistar<TKey>.GetValue(property, instance), true);
                 }
             }
             return (default(TValue), false);
 
         }
 
-        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueManager oldProvider, object sender = null)
+        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueManager<TKey> oldProvider, object sender = null)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
             if (sender == null)
                 sender = targetObject;
@@ -92,9 +92,9 @@ namespace NDProperty.Providers
         }
     }
 
-    public sealed class LocalValueManager : ValueManager
+    public sealed class LocalValueManager<TKey> : ValueManager<TKey>
     {
-        public static LocalValueManager Instance { get; } = new LocalValueManager();
+        public static LocalValueManager<TKey> Instance { get; } = new LocalValueManager<TKey>();
 
         private LocalValueManager()
         {
@@ -102,58 +102,58 @@ namespace NDProperty.Providers
         }
 
 
-        public bool SetValue<TValue, TType>(NDPropertyKey<TValue, TType> property, TType changingObject, TValue value) where TType : class
+        public bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
             {
-                var oldValue = PropertyRegistar.GetValue(property, changingObject);
+                var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
                 if (Object.Equals(oldValue, value))
                     return true;
             }
             return this.Update(changingObject, property, value, () =>
             {
                 if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
-                    PropertyRegistar.Lookup<TValue, TType>.Property.Remove((changingObject, property));
+                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
                 else
-                    PropertyRegistar.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
+                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
 
                 return true;
             });
 
         }
-        public bool SetValue<TValue, TType>(NDAttachedPropertyKey<TValue, TType> property, TType changingObject, TValue value) where TType : class
+        public bool SetValue<TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
             {
-                var oldValue = PropertyRegistar.GetValue(property, changingObject);
+                var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
                 if (Object.Equals(oldValue, value))
                     return true;
             }
             return this.Update(changingObject, property, value, () =>
             {
                 if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
-                    PropertyRegistar.Lookup<TValue, TType>.Property.Remove((changingObject, property));
+                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
                 else
-                    PropertyRegistar.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
+                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
 
                 return true;
             });
         }
 
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TValue, TType> property)
+        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property)
         {
-            var hasValue = PropertyRegistar.Lookup<TValue, TType>.Property.ContainsKey((targetObject, property));
+            var hasValue = PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.ContainsKey((targetObject, property));
 
             if (hasValue)
-                return (PropertyRegistar.Lookup<TValue, TType>.Property[(targetObject, property)], hasValue);
+                return (PropertyRegistar<TKey>.Lookup<TValue, TType>.Property[(targetObject, property)], hasValue);
             return (default(TValue), hasValue);
         }
 
 
 
-        public bool RemoveValue<TValue, TType>(NDReadOnlyPropertyKey<TValue, TType> property, TType obj) where TType : class
+        public bool RemoveValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
-            return PropertyRegistar.Lookup<TValue, TType>.Property.Remove((obj, property));
+            return PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((obj, property));
         }
     }
 

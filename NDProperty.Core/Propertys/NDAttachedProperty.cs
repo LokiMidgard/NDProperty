@@ -5,9 +5,9 @@
     /// </summary>
     /// <typeparam name="TValue">The type of the Property</typeparam>
     /// <typeparam name="TType">The type of the Object that this property can attached to.</typeparam>
-    public class NDAttachedPropertyKey<TValue, TType> : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType> where TType : class
+    public class NDAttachedPropertyKey<TKey, TValue, TType> : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType> where TType : class
     {
-        internal readonly OnChanging<TValue, TType> changedMethod;
+        internal readonly OnChanging<TKey, TValue, TType> changedMethod;
 
         /// <summary>
         /// Access the readonly property of this Property.
@@ -15,11 +15,11 @@
         /// <remarks>
         /// This Proeprty can be used to allow read but not write to an Property.
         /// </remarks>
-        public NDReadOnlyPropertyKey<TValue, TType> ReadOnlyProperty { get; }
+        public NDReadOnlyPropertyKey<TKey, TValue, TType> ReadOnlyProperty { get; }
 
-        internal NDAttachedPropertyKey(OnChanging<TValue, TType> changedMethod,  TValue defaultValue, NDPropertySettings settigns) : base(defaultValue, settigns)
+        internal NDAttachedPropertyKey(OnChanging<TKey, TValue, TType> changedMethod,  TValue defaultValue, NDPropertySettings settigns) : base(defaultValue, settigns)
         {
-            ReadOnlyProperty = new NDReadOnlyPropertyKey<TValue, TType>( defaultValue, settigns);
+            ReadOnlyProperty = new NDReadOnlyPropertyKey<TKey, TValue, TType>( defaultValue, settigns);
             this.changedMethod = changedMethod;
         }
 

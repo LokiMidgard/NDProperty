@@ -26,7 +26,7 @@ namespace NDProperty.Generator
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
@@ -44,7 +44,7 @@ namespace NDProperty.Generator
 
         public override DiagnosticDescriptor ClassNotFound => classNotFound;
 
-        public override Type OnChangingArgs => typeof(Propertys.OnChangingArg<>);
+        public override Type OnChangingArgs => typeof(Propertys.OnChangingArg<,>);
 
 
         protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
@@ -57,28 +57,29 @@ namespace NDProperty.Generator
             var propertyName = nameMatch.Groups["name"].Value;
 
             var genericType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
-            var genericTypeArgument = genericType.TypeArgumentList.Arguments.First();
+            var keyTypeArgument = genericType.TypeArgumentList.Arguments[0];
+            var genericTypeArgument = genericType.TypeArgumentList.Arguments[1];
             var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericTypeArgument);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
             {
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Readonly));
+                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Readonly));
             }
             else
             {
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Normal));
             }
 
-            list.Add(GeneratePropertyProperty(propertyName, genericTypeArgument, isReadOnly ? Accessibility.Private : Accessibility.NotApplicable));
-            list.Add(GenerateEvent(propertyName, className, genericTypeArgument));
+            list.Add(GeneratePropertyProperty(keyTypeArgument, propertyName, genericTypeArgument, isReadOnly ? Accessibility.Private : Accessibility.NotApplicable));
+            list.Add(GenerateEvent(keyTypeArgument, propertyName, className, genericTypeArgument));
             return SyntaxFactory.List(list);
         }
 
 
 
-        private MemberDeclarationSyntax GenerateEvent(string propertyName, TypeSyntax className, TypeSyntax genericTypeArgument)
+        private MemberDeclarationSyntax GenerateEvent(TypeSyntax keyName, string propertyName, TypeSyntax className, TypeSyntax genericTypeArgument)
         {
             var propertyKey = GetPropertyKey(propertyName);
             var propertyEvent = GetPropertyEvent(propertyName);
@@ -127,8 +128,12 @@ namespace NDProperty.Generator
                                                             SyntaxFactory.IdentifierName(
                                                                 SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                             SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                                        SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                    SyntaxFactory.IdentifierName(nameof(PropertyRegistar.AddEventHandler))))
+                                                        SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier(nameof(PropertyRegistar<object>))                                                        )
+                                                            .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(keyName)))),
+                                                    SyntaxFactory.IdentifierName(nameof(PropertyRegistar<object>.AddEventHandler))))
                                                     .WithArgumentList(
                                                 SyntaxFactory.ArgumentList(
                                                     SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -141,6 +146,22 @@ namespace NDProperty.Generator
                                                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                             SyntaxFactory.Argument(
                                                                 SyntaxFactory.IdentifierName("value"))}))))))),
+
+
+                            //SyntaxFactory.GenericName(
+                            //SyntaxFactory.Identifier(propertyClass))
+                            //.WithTypeArgumentList(
+                            //SyntaxFactory.TypeArgumentList(
+                            //    SyntaxFactory.SeparatedList<TypeSyntax>(
+                            //        new SyntaxNodeOrToken[]{
+                            //            keyName,
+                            //            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            //            genericTypeArgument,
+                            //            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            //            className })))
+
+
+
                             SyntaxFactory.AccessorDeclaration(
                                 SyntaxKind.RemoveAccessorDeclaration)
                                 .WithBody(
@@ -156,8 +177,12 @@ namespace NDProperty.Generator
                                                             SyntaxFactory.IdentifierName(
                                                                 SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                             SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                                        SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                    SyntaxFactory.IdentifierName(nameof(PropertyRegistar.RemoveEventHandler))))
+                                                                                                                SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier(nameof(PropertyRegistar<object>))                                                        )
+                                                            .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(keyName)))),
+                                                    SyntaxFactory.IdentifierName(nameof(PropertyRegistar<object>.RemoveEventHandler))))
                                                     .WithArgumentList(
                                                 SyntaxFactory.ArgumentList(
                                                     SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -172,7 +197,7 @@ namespace NDProperty.Generator
                                                                 SyntaxFactory.IdentifierName("value"))})))))))})));
         }
 
-        private MemberDeclarationSyntax GeneratePropertyProperty(string propertyName, TypeSyntax genericTypeArgument, Accessibility setterAccessibility = Accessibility.NotApplicable)
+        private MemberDeclarationSyntax GeneratePropertyProperty(TypeSyntax keyName, string propertyName, TypeSyntax genericTypeArgument, Accessibility setterAccessibility = Accessibility.NotApplicable)
         {
             var propertyKey = GetPropertyKey(propertyName);
             var setterModifier = SyntaxFactory.TokenList();
@@ -203,8 +228,12 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.GetValue))))
+                                                                                                                       SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier(nameof(PropertyRegistar<object>))                                                        )
+                                                            .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(keyName)))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar<object>.GetValue))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -230,8 +259,12 @@ namespace NDProperty.Generator
                                                                     SyntaxFactory.IdentifierName(
                                                                         SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                                                                     SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                                                                SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
-                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar.SetValue))))
+                                                                                                                       SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier(nameof(PropertyRegistar<object>))                                                        )
+                                                            .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(keyName)))),
+                                                            SyntaxFactory.IdentifierName(nameof(PropertyRegistar<object>.SetValue))))
                                                     .WithArgumentList(
                                                         SyntaxFactory.ArgumentList(
                                                             SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -261,7 +294,7 @@ namespace NDProperty.Generator
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
@@ -283,27 +316,28 @@ namespace NDProperty.Generator
 
         public DiagnosticDescriptor NotStatic => notStatic;
 
-        public override Type OnChangingArgs => typeof(Propertys.OnChangingArg<,>);
+        public override Type OnChangingArgs => typeof(Propertys.OnChangingArg<,,>);
 
         protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
         {
             var propertyName = GetPropertyName(method);
 
             var genericType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
-            var genericValueType = genericType.TypeArgumentList.Arguments[0];
-            var genericTypeType = genericType.TypeArgumentList.Arguments[1];
+            var keyTypeType = genericType.TypeArgumentList.Arguments[0];
+            var genericValueType = genericType.TypeArgumentList.Arguments[1];
+            var genericTypeType = genericType.TypeArgumentList.Arguments[2];
 
             var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericValueType);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
             if (isReadOnly)
             {
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Private, genericValueType, PropertyKind.Attached));
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Readonly));
+                list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Private, genericValueType, PropertyKind.Attached));
+                list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Readonly));
             }
             else
             {
-                list.Add(GeneratePropertyKey(propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
+                list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
             }
 
             list.Add(GenerateHelper(propertyName, genericTypeType, genericValueType));
@@ -334,7 +368,7 @@ namespace NDProperty.Generator
                          SyntaxFactory.IdentifierName(nameof(NDProperty))),
                      SyntaxFactory.IdentifierName(nameof(NDProperty.Utils))),
                  SyntaxFactory.GenericName(
-                     SyntaxFactory.Identifier(nameof(Utils.AttachedHelper<object, object>)))
+                     SyntaxFactory.Identifier(nameof(Utils.AttachedHelper<object, object, object>)))
                  .WithTypeArgumentList(
                      SyntaxFactory.TypeArgumentList(
                          SyntaxFactory.SeparatedList<TypeSyntax>(
@@ -471,7 +505,7 @@ namespace NDProperty.Generator
             {
                 if (d.ContainsKey("Settings"))
                     this.errorParsingAttribute = true;
-                    this.propertySettings = Propertys.NDPropertySettings.None;
+                this.propertySettings = Propertys.NDPropertySettings.None;
             }
 
             this.isReadOnly = this.propertySettings.HasFlag(Propertys.NDPropertySettings.ReadOnly);
@@ -627,7 +661,7 @@ namespace NDProperty.Generator
             return accesibility;
         }
 
-        protected static FieldDeclarationSyntax GenerateLeftKeyPart(TypeSyntax className, string propertyKey, ExpressionSyntax register, Accessibility filedAccessibility, PropertyKind kind, TypeSyntax genericTypeArgument)
+        protected static FieldDeclarationSyntax GenerateLeftKeyPart(TypeSyntax keyName, TypeSyntax className, string propertyKey, ExpressionSyntax register, Accessibility filedAccessibility, PropertyKind kind, TypeSyntax genericTypeArgument)
         {
             SyntaxKind accesibility;
 
@@ -637,13 +671,13 @@ namespace NDProperty.Generator
             switch (kind)
             {
                 case PropertyKind.Normal:
-                    propertyClass = nameof(Propertys.NDPropertyKey<object, object>);
+                    propertyClass = nameof(Propertys.NDPropertyKey<object, object, object>);
                     break;
                 case PropertyKind.Readonly:
-                    propertyClass = nameof(Propertys.NDReadOnlyPropertyKey<object, object>);
+                    propertyClass = nameof(Propertys.NDReadOnlyPropertyKey<object, object, object>);
                     break;
                 case PropertyKind.Attached:
-                    propertyClass = nameof(Propertys.NDAttachedPropertyKey<object, object>);
+                    propertyClass = nameof(Propertys.NDAttachedPropertyKey<object, object, object>);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -664,6 +698,8 @@ namespace NDProperty.Generator
                             SyntaxFactory.TypeArgumentList(
                                 SyntaxFactory.SeparatedList<TypeSyntax>(
                                     new SyntaxNodeOrToken[]{
+                                        keyName,
+                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
                                         genericTypeArgument,
                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                                         className })))))
@@ -682,7 +718,7 @@ namespace NDProperty.Generator
 
 
         }
-        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(string propertyName, TypeSyntax className, string propertyChangingMethod, TypeSyntax genericTypeArgument)
+        private MemberDeclarationSyntax GenerateReadOnlyPropertyKey(TypeSyntax keyName, string propertyName, TypeSyntax className, string propertyChangingMethod, TypeSyntax genericTypeArgument)
         {
             var propertyReadOnlyKey = GetReadOnlyPropertyKey(propertyName);
             var propertyKey = GetPropertyKey(propertyName);
@@ -690,9 +726,9 @@ namespace NDProperty.Generator
             var register = SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.IdentifierName(propertyKey),
-                                SyntaxFactory.IdentifierName(nameof(Propertys.INDProperty<object, object>.ReadOnlyProperty)));
+                                SyntaxFactory.IdentifierName(nameof(Propertys.INDProperty<object, object, object>.ReadOnlyProperty)));
 
-            return GenerateLeftKeyPart(className, propertyReadOnlyKey, register, Accessibility.Public, PropertyKind.Readonly, genericTypeArgument);
+            return GenerateLeftKeyPart(keyName, className, propertyReadOnlyKey, register, Accessibility.Public, PropertyKind.Readonly, genericTypeArgument);
         }
 
         protected static string GetReadOnlyPropertyKey(string propertyName)
@@ -714,7 +750,7 @@ namespace NDProperty.Generator
             return $"On{propertyName}Changing";
         }
 
-        protected MemberDeclarationSyntax GeneratePropertyKey(string propertyName, ExpressionSyntax defalutExpresion, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax propertyValue, PropertyKind kind)
+        protected MemberDeclarationSyntax GeneratePropertyKey(TypeSyntax keyName, string propertyName, ExpressionSyntax defalutExpresion, TypeSyntax className, Accessibility filedAccessibility, TypeSyntax propertyValue, PropertyKind kind)
         {
 
             //Callback
@@ -733,13 +769,13 @@ namespace NDProperty.Generator
                             SyntaxFactory.IdentifierName("t"),
                             SyntaxFactory.IdentifierName(propertyChangingMethod)));
 
-                    registerMethod = nameof(PropertyRegistar.Register);
+                    registerMethod = nameof(PropertyRegistar<object>.Register);
                     break;
                 case PropertyKind.Readonly:
-                    return GenerateReadOnlyPropertyKey(propertyName, className, propertyChangingMethod, propertyValue);
+                    return GenerateReadOnlyPropertyKey(keyName, propertyName, className, propertyChangingMethod, propertyValue);
                 case PropertyKind.Attached:
                     callback = SyntaxFactory.IdentifierName(propertyChangingMethod);
-                    registerMethod = nameof(PropertyRegistar.RegisterAttached);
+                    registerMethod = nameof(PropertyRegistar<object>.RegisterAttached);
                     break;
                 default:
                     throw new NotSupportedException($"The PropertyKind: {kind} is not supported.");
@@ -815,7 +851,11 @@ namespace NDProperty.Generator
                             SyntaxFactory.IdentifierName(
                                 SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                             SyntaxFactory.IdentifierName(nameof(NDProperty))),
-                        SyntaxFactory.IdentifierName(nameof(PropertyRegistar))),
+                                                                               SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier(nameof(PropertyRegistar<object>)))
+                                                            .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(keyName)))),
                     SyntaxFactory.GenericName(
                         SyntaxFactory.Identifier(registerMethod))
                         .WithTypeArgumentList(
@@ -835,7 +875,7 @@ namespace NDProperty.Generator
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(settingsSyntax)})));
 
-            return GenerateLeftKeyPart(className, propertyKey, register, filedAccessibility, kind, propertyValue);
+            return GenerateLeftKeyPart(keyName, className, propertyKey, register, filedAccessibility, kind, propertyValue);
         }
 
         protected static ExpressionSyntax GetDefaultSyntax(MethodDeclarationSyntax method, SemanticModel semanticModel, TypeSyntax valueType)

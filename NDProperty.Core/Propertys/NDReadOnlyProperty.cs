@@ -8,7 +8,7 @@ namespace NDProperty.Propertys
     /// </summary>
     /// <typeparam name="TValue">The type of the Property</typeparam>
     /// <typeparam name="TType">The type of the Object that defines the Property.</typeparam>
-    public class NDReadOnlyPropertyKey<TValue, TType> : IInternalNDReadOnlyProperty where TType : class
+    public class NDReadOnlyPropertyKey<TKey, TValue, TType> : IInternalNDReadOnlyProperty where TType : class
     {
         /// <summary>
         /// Returns if this Propety is inherited.
@@ -30,7 +30,7 @@ namespace NDProperty.Propertys
             DefaultValue = defaultValue;
         }
 
-        public bool Equals(NDReadOnlyPropertyKey<TValue, TType> obj)
+        public bool Equals(NDReadOnlyPropertyKey<TKey, TValue, TType> obj)
         {
             var other = GetReadonly(obj);
             var me = GetReadonly(this);
@@ -40,7 +40,7 @@ namespace NDProperty.Propertys
         }
         public override bool Equals(object obj)
         {
-            if (obj is NDReadOnlyPropertyKey<TValue, TType> p)
+            if (obj is NDReadOnlyPropertyKey<TKey, TValue, TType> p)
                 return Equals(p);
             return false;
         }
@@ -53,9 +53,9 @@ namespace NDProperty.Propertys
             return me.GetHashCode();
         }
 
-        private static NDReadOnlyPropertyKey<TValue, TType> GetReadonly(NDReadOnlyPropertyKey<TValue, TType> r)
+        private static NDReadOnlyPropertyKey<TKey, TValue, TType> GetReadonly(NDReadOnlyPropertyKey<TKey, TValue, TType> r)
         {
-            if (r is INDProperty<TValue, TType> p)
+            if (r is INDProperty<TKey, TValue, TType> p)
                 return p.ReadOnlyProperty;
             return r;
         }
@@ -63,20 +63,20 @@ namespace NDProperty.Propertys
         object IInternalNDReadOnlyProperty.GetValue(object obj)
         {
             if (obj is TType t)
-                return PropertyRegistar.GetValue(this, t);
+                return PropertyRegistar<TKey>.GetValue(this, t);
             throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }
         object IInternalNDReadOnlyProperty.GetLocalValue(object obj)
         {
             if (obj is TType t)
-                return PropertyRegistar.GetValue(this, t);
+                return PropertyRegistar<TKey>.GetValue(this, t);
             throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }
 
         bool IInternalNDReadOnlyProperty.HasLocalValue(object obj)
         {
             if (obj is TType t)
-                return PropertyRegistar.HasLocalValue(this, t);
+                return PropertyRegistar<TKey>.HasLocalValue(this, t);
             throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }
 
@@ -108,7 +108,7 @@ namespace NDProperty.Propertys
 
 
             if (objectToChange is TType t)
-                PropertyRegistar.FireValueChanged(this, t, sender, ov, nv);
+                PropertyRegistar<TKey>.FireValueChanged(this, t, sender, ov, nv);
 
 
         }

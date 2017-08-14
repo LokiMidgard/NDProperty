@@ -1,7 +1,7 @@
 ﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NDProperty.Generator")]
 namespace NDProperty.Propertys
 {
-    public interface INDProperty<TValue, TType> where TType : class
+    public interface INDProperty<TKey, TValue, TType> where TType : class
     {
         /// <summary>
         /// Access the readonly property of this Property.
@@ -9,6 +9,6 @@ namespace NDProperty.Propertys
         /// <remarks>
         /// This Proeprty can be used to allow read but not write to an Property.
         /// </remarks>
-        NDReadOnlyPropertyKey<TValue, TType> ReadOnlyProperty { get; }
+        NDReadOnlyPropertyKey<TKey, TValue, TType> ReadOnlyProperty { get; }
     }
 }

@@ -16,10 +16,10 @@ namespace NDProperty.Providers
         {
             var (oldValue, otherProvider) = PropertyRegistar.GetValueAndProvider(property, targetObject);
 
-            return Update(targetObject, property, value, updateCode, oldValue, otherProvider);
+            return Update(targetObject, targetObject, property, value, updateCode, oldValue, otherProvider);
         }
 
-        internal bool Update<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueManager otherProvider)
+        internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueManager otherProvider)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
         {
@@ -30,18 +30,18 @@ namespace NDProperty.Providers
             OnChangingArg<TValue> onChangingArg;
             if (property as object is NDAttachedPropertyKey<TValue, TType> attach)
             {
-                var attachArg = OnChangingArg.Create(targetObject, oldValue, value, this, otherProviderIndex > thisIndex); ;
+                var attachArg = OnChangingArg.Create(targetObject, oldValue, value, this, otherProviderIndex >= thisIndex); ;
                 onChangingArg = attachArg;
                 attach.changedMethod(attachArg);
             }
             else if (property as object is NDPropertyKey<TValue, TType> p)
             {
-                onChangingArg = OnChangingArg.Create(oldValue, value, this, otherProviderIndex > thisIndex);
+                onChangingArg = OnChangingArg.Create(oldValue, value, this, otherProviderIndex >= thisIndex);
                 p.changedMethod(targetObject)(onChangingArg);
             }
             else
                 throw new NotSupportedException();
-            return PropertyRegistar.ChangeValue(property, targetObject, onChangingArg, updateCode);
+            return PropertyRegistar.ChangeValue(sender, property, targetObject, onChangingArg, updateCode);
         }
 
         public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TValue, TType> property) where TType : class;
@@ -82,11 +82,13 @@ namespace NDProperty.Providers
 
         }
 
-        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueManager oldProvider, Func<bool> updateCode)
+        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueManager oldProvider, object sender = null)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
         {
-            Update(targetObject, property, newValue, updateCode, oldValue, oldProvider);
+            if (sender == null)
+                sender = targetObject;
+            Update(sender, targetObject, property, newValue, () => true, oldValue, oldProvider);
         }
     }
 

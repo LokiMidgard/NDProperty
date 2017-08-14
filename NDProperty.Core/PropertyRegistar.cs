@@ -225,7 +225,7 @@ namespace NDProperty
         /// <param name="obj"></param>
         /// <param name="onChangedArg"></param>
         /// <returns>true if <paramref name="onChangedArg"/> did not had reject set and the update function returns true.</returns>
-        internal static bool ChangeValue<TValue, TType, TPropertyType>(TPropertyType property, TType obj, OnChangingArg<TValue> onChangedArg, Func<bool> updateCode)
+        internal static bool ChangeValue<TValue, TType, TPropertyType>(object sender, TPropertyType property, TType obj, OnChangingArg<TValue> onChangedArg, Func<bool> updateCode)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TValue, TType>, INDProperty<TValue, TType>
         {
@@ -247,7 +247,8 @@ namespace NDProperty
                         if (tree.Current is TType t)
                         {
                             var (currentValue, currentManger) = GetValueAndProvider(property, t);
-                            oldValueList.Add((t, currentManger, currentValue));
+                            if (!Equals(currentValue, value))
+                                oldValueList.Add((t, currentManger, currentValue));
                         }
                         foreach (var child in tree.Childrean)
                             queue.Enqueue(child);
@@ -255,13 +256,13 @@ namespace NDProperty
                     updateCode();
 
                     foreach (var item in oldValueList)
-                        InheritenceValueManager.Instance.SetValue(item.targetObject, property, value, item.oldValue, item.manager, () => true);
+                        InheritenceValueManager.Instance.SetValue(item.targetObject, property, value, item.oldValue, item.manager, sender);
                 }
                 else
                     updateCode();
 
                 if (!Equals(onChangedArg.OldValue, value) && onChangedArg.WillChange)
-                    FireValueChanged(property, obj, obj, onChangedArg.OldValue, value);
+                    FireValueChanged(property, obj,sender , onChangedArg.OldValue, value);
                 if (onChangedArg.WillChange)
                     onChangedArg.FireExecuteAfterChange();
                 return true;

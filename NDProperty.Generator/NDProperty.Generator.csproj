@@ -38,7 +38,7 @@
     <None Include="..\packages\validation\2.4.13\lib\netstandard1.3\Validation.dll" Pack="true" PackagePath="tools" Visible="false" />
     <None Include="..\packages\validation\2.4.13\lib\netstandard1.3\Validation.xml" Pack="true" PackagePath="tools" Visible="false" />
 
-    <None Include="..\NDProperty.Core\bin\$(Configuration)\netstandard1.0\NDProperty.Core.dll" Pack="true" PackagePath="tools" Visible="false" />
+    <None Include="..\NDProperty.Core\bin\$(Configuration)\netstandard1.3\NDProperty.Core.dll" Pack="true" PackagePath="tools" Visible="false" />
 
   </ItemGroup>
 

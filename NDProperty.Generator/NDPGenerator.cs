@@ -340,7 +340,7 @@ namespace NDProperty.Generator
                 list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
             }
 
-            list.Add(GenerateHelper(propertyName, genericTypeType, genericValueType));
+            list.Add(GenerateHelper(keyTypeType, propertyName, genericTypeType, genericValueType));
             return SyntaxFactory.List(list);
         }
 
@@ -356,7 +356,7 @@ namespace NDProperty.Generator
         }
 
 
-        private MemberDeclarationSyntax GenerateHelper(string propertyName, TypeSyntax genericTypeType, TypeSyntax genericValueType)
+        private MemberDeclarationSyntax GenerateHelper(TypeSyntax keyName, string propertyName, TypeSyntax genericTypeType, TypeSyntax genericValueType)
         {
             var propertyKey = GetPropertyKey(propertyName);
             return SyntaxFactory.PropertyDeclaration(
@@ -373,6 +373,8 @@ namespace NDProperty.Generator
                      SyntaxFactory.TypeArgumentList(
                          SyntaxFactory.SeparatedList<TypeSyntax>(
                              new SyntaxNodeOrToken[]{
+                                keyName,
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
                                 genericValueType,
                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                 genericTypeType})))),
@@ -538,6 +540,11 @@ namespace NDProperty.Generator
 
         public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel semanticModel)
         {
+
+            //if (!System.Diagnostics.Debugger.IsAttached)
+            //    System.Diagnostics.Debugger.Launch();
+
+
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
 
             if (originalClassDeclaration == null)
@@ -580,20 +587,29 @@ namespace NDProperty.Generator
 
             if (defaultAttribute != null && !problemWithParameter)
             {
+                var typeArguments = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments;
 
-                var valueType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First().TypeArgumentList.Arguments.First();
+                TypeSyntax valueType;
+                if (typeArguments.Count >= 2)
+                    valueType = typeArguments[1];
+                else
+                    valueType = null;
 
                 ExpressionSyntax defaultValueExpresion = null;
                 if (defaultAttribute != null && defaultAttribute.ArgumentList.Arguments.Count > 0)
                 {
-                    //if (!System.Diagnostics.Debugger.IsAttached)
-                    //    System.Diagnostics.Debugger.Launch();
+
                     defaultValueExpresion = defaultAttribute.ArgumentList.Arguments.First().Expression;
-                    var defaultTypeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (ExpressionSyntax)defaultValueExpresion);
-                    var valueTypeInfo = semanticModel.GetTypeInfo(valueType);
-                    var conversion = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(semanticModel.Compilation, defaultTypeInfo.Type, valueTypeInfo.Type);
-                    if (!conversion.Exists)
+                    if (valueType == null)
                         yield return Diagnostic.Create(DefaultValueWrongType, defaultValueExpresion.GetLocation());
+                    else
+                    {
+                        var defaultTypeInfo = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(semanticModel, (ExpressionSyntax)defaultValueExpresion);
+                        var valueTypeInfo = semanticModel.GetTypeInfo(valueType);
+                        var conversion = Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(semanticModel.Compilation, defaultTypeInfo.Type, valueTypeInfo.Type);
+                        if (!conversion.Exists)
+                            yield return Diagnostic.Create(DefaultValueWrongType, defaultValueExpresion.GetLocation());
+                    }
 
                 }
 

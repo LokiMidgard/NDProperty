@@ -12,7 +12,9 @@
       <![CDATA[
 Added Support for:
 - General Improvements.
-
+- Modulized Value resolution
+- Added Configuration Interface
+- Provided Function to Isolate Propertys from other Propertys 
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

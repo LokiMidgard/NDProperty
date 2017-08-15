@@ -6,12 +6,12 @@ namespace NDProperty.Propertys
 {
     public static class OnChangingArg
     {
-        public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, TValue newValue, ValueManager<TKey> valueManger, bool willBeChanged) => new OnChangingArg<TKey, TValue>(oldValue, newValue, valueManger, willBeChanged);
-        public static OnChangingArg<TKey, TValue, TType> Create<TKey, TValue, TType>(TType changedObject, TValue oldValue, TValue newValue, ValueManager<TKey> valueManger, bool willBeChanged) where TType : class => new OnChangingArg<TKey, TValue, TType>(changedObject, oldValue, newValue, valueManger, willBeChanged);
+        public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, TValue newValue, ValueProvider<TKey> valueManger, bool willBeChanged) => new OnChangingArg<TKey, TValue>(oldValue, newValue, valueManger, willBeChanged);
+        public static OnChangingArg<TKey, TValue, TType> Create<TKey, TValue, TType>(TType changedObject, TValue oldValue, TValue newValue, ValueProvider<TKey> valueManger, bool willBeChanged) where TType : class => new OnChangingArg<TKey, TValue, TType>(changedObject, oldValue, newValue, valueManger, willBeChanged);
     }
     public class OnChangingArg<TKey, TValue>
     {
-        public OnChangingArg(TValue oldValue, TValue newValue, ValueManager<TKey> valueManger, bool willBeChanged)
+        public OnChangingArg(TValue oldValue, TValue newValue, ValueProvider<TKey> valueManger, bool willBeChanged)
         {
             OldValue = oldValue;
             NewValue = newValue;
@@ -68,7 +68,7 @@ namespace NDProperty.Propertys
 
     public class OnChangingArg<TKey, TValue, TType> : OnChangingArg<TKey, TValue> where TType : class
     {
-        public OnChangingArg(TType changedObject, TValue oldValue, TValue newValue, ValueManager<TKey> valueManger, bool willBeChanged) : base(oldValue, newValue, valueManger, willBeChanged)
+        public OnChangingArg(TType changedObject, TValue oldValue, TValue newValue, ValueProvider<TKey> valueManger, bool willBeChanged) : base(oldValue, newValue, valueManger, willBeChanged)
         {
             this.ChangedObject = changedObject;
         }

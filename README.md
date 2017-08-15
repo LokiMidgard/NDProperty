@@ -10,7 +10,7 @@ This Framework aims to provide simlar capabilitys as DependencyObjects. But with
 
 ```c#
 [NDP]
-private void OnStrChanging(OnChangingArg<string> arg) { }
+private void OnStrChanging(OnChangingArg<MyClass, string> arg) { }
 ```
 
 This is all that is needed for Propertys with getter setter events and everything else.
@@ -32,6 +32,8 @@ This is all that is needed for Propertys with getter setter events and everythin
 + Binding (OneWay and TwoWay)
   + Between NDPropertys
   + Between NDProperty and POCO
++ Isolation to allow parrallel use
++ Modulised value resulution to allow custimisation
 
 ### Planed Features
 
@@ -53,22 +55,22 @@ of the Property if this value is not valid. The class must be partial
 ```c#
 public partial class TestObject
 {
-    public static readonly NDPropertyKey<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanging, default(string), NDPropertySettings.None);
+    public static readonly NDPropertyKey<MyClass, string, TestObject> StrProperty = PropertyRegistar<MyClass>.Register<string, TestObject>(t => t.OnStrChanging, default(string), NDPropertySettings.None);
 
     public string Str
     {
-        get { return PropertyRegistar.GetValue(StrProperty, this); }
-        set { PropertyRegistar.SetValue(StrProperty, this, value); }
+        get { return PropertyRegistar<MyClass>.GetValue(StrProperty, this); }
+        set { PropertyRegistar<MyClass>.SetValue(StrProperty, this, value); }
     }
 
-    public event EventHandler<ChangedEventArgs<string, TestObject>> StrChanged
+    public event EventHandler<ChangedEventArgs<MyClass, string, TestObject>> StrChanged
     {
-        add { PropertyRegistar.AddEventHandler(StrProperty, this, value); }
-        remove { PropertyRegistar.RemoveEventHandler(StrProperty, this, value); }
+        add { PropertyRegistar<MyClass>.AddEventHandler(StrProperty, this, value); }
+        remove { PropertyRegistar<MyClass>.RemoveEventHandler(StrProperty, this, value); }
     }
 
 
-    private void OnStrChanging(OnChangingArg<string> arg)
+    private void OnStrChanging(OnChangingArg<MyClass, string> arg)
     {
         if (IsValid(arg.NewValue))
             arg.Reject = true;
@@ -86,7 +88,7 @@ is not adhered this Property will not be generated.
 ```c#
 
 [NDP]
-private void OnStrChanging(OnChangingArg<string> arg)
+private void OnStrChanging(OnChangingArg<MyClass, string> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -94,17 +96,19 @@ private void OnStrChanging(OnChangingArg<string> arg)
 
 ```
 
+The type ```MyClass``` is called ConfigurationType and is used to isolate different instances of this libray. This allows side by side execution with different configurations ([see below](###Configuration)).
+
 ### Attached Propertys
 
 Like with Dependency Propertys, you can define a Property that will be set on other Objects. 
 In this case your change handler should be static and the argument must be of type 
-```OnChangingArg<TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
+```OnChangingArg<MyClass, TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
 and ```TType``` the type of the objects where the value can be applied.
 
 ```c#
- private static readonly NDAttachedPropertyKey<string, MyOwnObject> StrProperty = PropertyRegistar.RegisterAttached(OnAttChanging, default(string), NDPropertySettings.None);
+ private static readonly NDAttachedPropertyKey<MyClass, string, MyOwnObject> StrProperty = PropertyRegistar<MyClass>.RegisterAttached(OnAttChanging, default(string), NDPropertySettings.None);
        
-private static void OnStrChanging(OnChangingArg<string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<MyClass, string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -117,7 +121,7 @@ You can also use a Attribute to automaticly generate the property from the chang
 
 ```c#
 [NDPAttach]       
-private static void OnStrChanging(OnChangingArg<string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<MyClass, string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -127,8 +131,8 @@ private static void OnStrChanging(OnChangingArg<string, MyOwnObject> arg)
 This will generate follwing code:
 
 ```c#
-public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar.RegisterAttached<string, MyOwnObject>(OnStrChanging, false, global::NDProperty.Propertys.NDPropertySettings.None);
-public static global::NDProperty.Utils.AttachedHelper<string, MyOwnObject> Str { get; } = global::NDProperty.Utils.AttachedHelper.Create(StrProperty);
+public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<MyClass, string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar<MyClass>.RegisterAttached<string, MyOwnObject>(OnStrChanging, false, global::NDProperty.Propertys.NDPropertySettings.None);
+public static global::NDProperty.Utils.AttachedHelper<MyClass, string, MyOwnObject> Str { get; } = global::NDProperty.Utils.AttachedHelper.Create(StrProperty);
 ```
 
 The AttachedHelper provides access to the change event and allows to get and set the value on a 
@@ -148,8 +152,8 @@ To Implement a ReadOnlyProperty you can declare it like this:
 
 ```c#
 
-private static readonly NDPropertyKey<string, TestObject> StrProperty = PropertyRegistar.Register<string, TestObject>(t => t.OnStrChanging, NDPropertySettings.ReadOnly);
-public static readonly NDReadOnlyPropertyKey<string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
+private static readonly NDPropertyKey<MyClass, string, TestObject> StrProperty = PropertyRegistar<MyClass>.Register<string, TestObject>(t => t.OnStrChanging, NDPropertySettings.ReadOnly);
+public static readonly NDReadOnlyPropertyKey<MyClass, string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
 
 ```
 
@@ -182,3 +186,49 @@ Use ```NDPropertySettings.SetLocalExplicityNull``` to enable this.
 You can set the default value of the Property using the ```System.ComponentModel.DefaultValueAttribute``` in code generation. The values that you can use are limited by what you can use as parameter for attributes.
 
 If you manually register the Property there are no restrictions.
+
+### Value resulution
+
+A property can return different Values from different sources. Besides the directly set value on the object (the local value) there are two more sources that are implemented in this framework. Both are already discribed above in this docu. [Default Value](#default-value) and [Inherited](#Inherited).
+
+In default configuration the order is following:
+ + Local Value
+ + Inherited Value
+ + Default Value
+
+If no local value was set, it will checked if an inherited value exists. If this is not the case the default Value will be returned (There is always a default value).
+
+This functionality is provided by types extending ```ValueProvider<TKey>```. For the supplyed functionality these are:
++ ```LocalValueProvider<TKey>```
++ ```InheritenceValueProvider<TKey>```
++ ```DefaultValueProvider<TKey>```
+
+You can create your own value provider by also extending the type ```ValueProvider<TKey>```. You have to implement the method and need to call Update whenever the value of this provider change. 
+
+```c#
+public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TKey, TValue, TType> property) where TType : class;
+```
+
+The ```Update``` method has an parameter ```updateCode```. This delegate should be updating your value. This is nessesary to safe the old value before the new value was set.
+
+To use your provider use it in the configuration type.
+
+### Configuration
+
+As mentioned above the configuration type is used to use different instances of this framework side by side. In order to change the default configuration this type must have an public parameterless constructor and implement the interface ```IInitilizer<TKey>``` where ```TKey``` is the configuration Type.
+
+An configuration equivalent to the default configuration would be following:
+
+```c#
+
+class MyConfiguration : IInitilizer<MyConfiguration>
+{
+    public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
+        NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,
+    };
+}
+
+
+```

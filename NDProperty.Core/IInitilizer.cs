@@ -7,6 +7,15 @@ namespace NDProperty
 {
     public interface IInitilizer<TKey>
     {
-        IEnumerable<ValueManager<TKey>> ValueProvider { get; }
+        IEnumerable<ValueProvider<TKey>> ValueProvider { get; }
     }
+
+class MyConfiguration : IInitilizer<MyConfiguration>
+{
+    public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
+        NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,
+    };
+}
 }

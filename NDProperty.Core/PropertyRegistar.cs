@@ -11,7 +11,7 @@ namespace NDProperty
     public static partial class PropertyRegistar<TKey>
     {
         public static bool IsInitilized { get; private set; }
-        public static IReadOnlyList<ValueManager<TKey>> Manager
+        public static IReadOnlyList<ValueProvider<TKey>> Manager
         {
             get
             {
@@ -21,7 +21,7 @@ namespace NDProperty
             }
         }
 
-        public static Dictionary<ValueManager<TKey>, int> ManagerOrder
+        public static Dictionary<ValueProvider<TKey>, int> ManagerOrder
         {
             get
             {
@@ -48,7 +48,7 @@ namespace NDProperty
                 return;
             IsInitilized = true;
 
-            IEnumerable<Providers.ValueManager<TKey>> valueManager;
+            IEnumerable<Providers.ValueProvider<TKey>> valueProvider;
 
             if (typeof(IInitilizer<TKey>).GetTypeInfo().IsAssignableFrom(typeof(TKey).GetTypeInfo()))
             {
@@ -57,22 +57,22 @@ namespace NDProperty
                     throw new ArgumentException($"If TypeParameter is of type {nameof(IInitilizer<TKey>)}, then it must have a default constructor", nameof(TKey));
 
                 var initilizer = typeof(TKey).GetConstructor(Type.EmptyTypes).Invoke(new object[0]) as IInitilizer<TKey>;
-                valueManager = initilizer.ValueProvider;
+                valueProvider = initilizer.ValueProvider;
             }
             else
-                valueManager = new ValueManager<TKey>[] { LocalValueManager<TKey>.Instance, InheritenceValueManager<TKey>.Instance, DefaultValueManager<TKey>.Instance };
+                valueProvider = new ValueProvider<TKey>[] { LocalValueProvider<TKey>.Instance, InheritenceValueProvider<TKey>.Instance, DefaultValueProvider<TKey>.Instance };
 
 
 
-            manager = valueManager.ToList();
-            managerOrder = valueManager.Select((manager, index) => new { Key = manager, Value = index }).ToDictionary(element => element.Key, element => element.Value);
+            manager = valueProvider.ToList();
+            managerOrder = valueProvider.Select((manager, index) => new { Key = manager, Value = index }).ToDictionary(element => element.Key, element => element.Value);
 
 
         }
 
         private static readonly Dictionary<Type, List<IInternalNDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<IInternalNDReadOnlyProperty>>();
-        private static IReadOnlyList<ValueManager<TKey>> manager;
-        private static Dictionary<ValueManager<TKey>, int> managerOrder;
+        private static IReadOnlyList<ValueProvider<TKey>> manager;
+        private static Dictionary<ValueProvider<TKey>, int> managerOrder;
 
         /// <summary>
         /// Registers a Property on the specific class
@@ -242,7 +242,7 @@ namespace NDProperty
         /// </remarks>
         public static bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
-            return LocalValueManager<TKey>.Instance.SetValue(property, changingObject, value);
+            return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace NDProperty
         /// </remarks>
         public static bool SetValue<TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
         {
-            return LocalValueManager<TKey>.Instance.SetValue(property, changingObject, value);
+            return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         }
 
         /// <summary>
@@ -280,9 +280,9 @@ namespace NDProperty
             {
                 if (property.Inherited)
                 {
-                    var inheritanceProviderIndex = ManagerOrder[InheritenceValueManager<TKey>.Instance];
+                    var inheritanceProviderIndex = ManagerOrder[InheritenceValueProvider<TKey>.Instance];
 
-                    var oldValueList = new List<(TType targetObject, ValueManager<TKey> manager, TValue oldValue)>();
+                    var oldValueList = new List<(TType targetObject, ValueProvider<TKey> manager, TValue oldValue)>();
 
                     var tree = Tree.GetTree(obj);
                     var queue = new Queue<Tree>();
@@ -302,7 +302,7 @@ namespace NDProperty
                     updateCode();
 
                     foreach (var item in oldValueList)
-                        InheritenceValueManager<TKey>.Instance.SetValue(item.targetObject, property, value, item.oldValue, item.manager, sender);
+                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, value, item.oldValue, item.manager, sender);
                 }
                 else
                     updateCode();
@@ -346,7 +346,7 @@ namespace NDProperty
         /// <returns>The Local value or the in the Property defined default value if no value was set on this Object.</returns>
         public static TValue GetLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
-            return LocalValueManager<TKey>.Instance.GetValue(obj, property).value;
+            return LocalValueProvider<TKey>.Instance.GetValue(obj, property).value;
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace NDProperty
         /// </remarks>
         public static bool RemoveLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
-            return LocalValueManager<TKey>.Instance.RemoveValue(property, obj);
+            return LocalValueProvider<TKey>.Instance.RemoveValue(property, obj);
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace NDProperty
         /// <returns><c>true</c> if the value is set on the object and is not calculated from another source.</returns>
         public static bool HasLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
-            return LocalValueManager<TKey>.Instance.GetValue(obj, property).hasValue;
+            return LocalValueProvider<TKey>.Instance.GetValue(obj, property).hasValue;
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace NDProperty
         {
             return GetValueAndProvider(property, obj).value;
         }
-        public static (TValue value, Providers.ValueManager<TKey> provider) GetValueAndProvider<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static (TValue value, Providers.ValueProvider<TKey> provider) GetValueAndProvider<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
 
             foreach (var provider in Manager)

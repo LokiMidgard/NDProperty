@@ -211,6 +211,8 @@ public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targ
 
 The ```Update``` method has an parameter ```updateCode```. This delegate should be updating your value. This is nessesary to safe the old value before the new value was set.
 
+Alternativly you can provide the old value and the provider that provided the value.
+
 To use your provider use it in the configuration type.
 
 ### Configuration

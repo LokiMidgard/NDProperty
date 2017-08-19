@@ -22,7 +22,7 @@ namespace NDProperty.Providers
                 if (Object.Equals(oldValue, value))
                     return true;
             }
-            return this.Update(changingObject, property, value, () =>
+            return this.Update(changingObject, changingObject, property, value, () =>
             {
                 if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
                     PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
@@ -41,7 +41,7 @@ namespace NDProperty.Providers
                 if (Object.Equals(oldValue, value))
                     return true;
             }
-            return this.Update(changingObject, property, value, () =>
+            return this.Update(changingObject, changingObject, property, value, () =>
             {
                 if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
                     PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));

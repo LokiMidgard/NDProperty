@@ -7,18 +7,27 @@ using NDProperty.Propertys;
 
 namespace NDProperty.Providers
 {
-
+    /// <summary>
+    /// Base class to provide aloternative value lookup for NDP Propertys
+    /// </summary>
+    /// <typeparam name="TKey">The Configuration</typeparam>
     public abstract class ValueProvider<TKey>
     {
-        protected bool Update<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode)
+        protected bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
             var (oldValue, otherProvider) = PropertyRegistar<TKey>.GetValueAndProvider(property, targetObject);
 
-            return Update(targetObject, targetObject, property, value, updateCode, oldValue, otherProvider);
+            return Update(sender, targetObject, property, value, updateCode, oldValue, otherProvider);
         }
 
+        protected bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueProvider<TKey> oldProvider)
+            where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
+        {
+            return Update(sender, targetObject, property, newValue, () => true, oldValue, oldProvider);
+        }
         internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueProvider<TKey> otherProvider)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey,TValue, TType>, INDProperty<TKey, TValue, TType>

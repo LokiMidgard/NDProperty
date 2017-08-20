@@ -11,7 +11,7 @@ namespace NDProperty
     public static partial class PropertyRegistar<TKey>
     {
         public static bool IsInitilized { get; private set; }
-        public static IReadOnlyList<ValueProvider<TKey>> Manager
+        public static IReadOnlyList<ValueProvider<TKey>> ValueProviders
         {
             get
             {
@@ -21,7 +21,7 @@ namespace NDProperty
             }
         }
 
-        public static Dictionary<ValueProvider<TKey>, int> ManagerOrder
+        public static Dictionary<ValueProvider<TKey>, int> ProviderOrder
         {
             get
             {
@@ -31,17 +31,7 @@ namespace NDProperty
             }
         }
 
-        //public static void Initilize(params Providers.ValueManager<TKey>[] valueManager)
-        //{
-        //    Initilize(valueManager as IEnumerable<ValueManager>);
-        //    if(TKey is IInitilizer)
-        //    {
 
-        //        if (typeof(TKey).GetConstructor(Type.EmptyTypes) == null)
-        //        {
-        //        }
-        //    }
-        //}
         private static void Initilize()
         {
             if (IsInitilized)
@@ -280,7 +270,7 @@ namespace NDProperty
             {
                 if (property.Inherited)
                 {
-                    var inheritanceProviderIndex = ManagerOrder[InheritenceValueProvider<TKey>.Instance];
+                    var inheritanceProviderIndex = ProviderOrder[InheritenceValueProvider<TKey>.Instance];
 
                     var oldValueList = new List<(TType targetObject, ValueProvider<TKey> manager, TValue oldValue)>();
 
@@ -310,7 +300,7 @@ namespace NDProperty
                 if (!Equals(onChangedArg.OldValue, value) && onChangedArg.WillChange)
                     FireValueChanged(property, obj, sender, onChangedArg.OldValue, value);
                 if (onChangedArg.WillChange)
-                    onChangedArg.FireExecuteAfterChange();
+                    onChangedArg.FireExecuteAfterChange(sender);
                 return true;
             }
             else
@@ -394,7 +384,7 @@ namespace NDProperty
         public static (TValue value, Providers.ValueProvider<TKey> provider) GetValueAndProvider<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
         {
 
-            foreach (var provider in Manager)
+            foreach (var provider in ValueProviders)
             {
                 var (providerValue, hasValue) = provider.GetValue(obj, property);
                 if (hasValue)

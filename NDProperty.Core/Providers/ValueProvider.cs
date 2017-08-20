@@ -28,24 +28,24 @@ namespace NDProperty.Providers
         {
             return Update(sender, targetObject, property, newValue, () => true, oldValue, oldProvider);
         }
-        internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueProvider<TKey> otherProvider)
+        internal bool Update<TValue, TType, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, Func<bool> updateCode, TValue oldValue, ValueProvider<TKey> oldProvider)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey,TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            var otherProviderIndex = PropertyRegistar<TKey>.ManagerOrder[otherProvider];
-            var thisIndex = PropertyRegistar<TKey>.ManagerOrder[this];
+            var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[oldProvider];
+            var thisIndex = PropertyRegistar<TKey>.ProviderOrder[this];
 
             // We need to call the actial update after we recived the current old value. Otherwise we could already read the 
             OnChangingArg<TKey, TValue> onChangingArg;
             if (property as object is NDAttachedPropertyKey<TKey, TValue, TType> attach)
             {
-                var attachArg = OnChangingArg.Create(targetObject, oldValue, value, this, otherProviderIndex >= thisIndex); ;
+                var attachArg = OnChangingArg.Create(targetObject, oldValue, value, oldProvider, this, otherProviderIndex >= thisIndex); ;
                 onChangingArg = attachArg;
                 attach.changedMethod(attachArg);
             }
             else if (property as object is NDPropertyKey<TKey, TValue, TType> p)
             {
-                onChangingArg = OnChangingArg.Create(oldValue, value, this, otherProviderIndex >= thisIndex);
+                onChangingArg = OnChangingArg.Create(oldValue, value, oldProvider,this, otherProviderIndex >= thisIndex);
                 p.changedMethod(targetObject)(onChangingArg);
             }
             else

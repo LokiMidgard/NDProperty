@@ -218,22 +218,22 @@ namespace NDProperty
             });
         }
 
-        /// <summary>
-        /// Sets a value on the Property
-        /// </summary>
-        /// <typeparam name="TValue">The Type of the Property</typeparam>
-        /// <typeparam name="TType">The Type on which the Property is defined</typeparam>
-        /// <param name="property">The Property that will be changed</param>
-        /// <param name="changingObject">The Object on which the property will be changed</param>
-        /// <param name="value">The new Value of the Property.</param>
-        /// <returns><c>false</c> if the operation was rejected</returns>
-        /// <remarks>
-        /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
-        /// </remarks>
-        public static bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
-        {
-            return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
-        }
+        ///// <summary>
+        ///// Sets a value on the Property
+        ///// </summary>
+        ///// <typeparam name="TValue">The Type of the Property</typeparam>
+        ///// <typeparam name="TType">The Type on which the Property is defined</typeparam>
+        ///// <param name="property">The Property that will be changed</param>
+        ///// <param name="changingObject">The Object on which the property will be changed</param>
+        ///// <param name="value">The new Value of the Property.</param>
+        ///// <returns><c>false</c> if the operation was rejected</returns>
+        ///// <remarks>
+        ///// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
+        ///// </remarks>
+        //public static bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
+        //{
+        //    return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
+        //}
 
         /// <summary>
         /// Sets a value on the Property
@@ -247,7 +247,9 @@ namespace NDProperty
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
+        public static bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value) 
+            where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
             return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         }

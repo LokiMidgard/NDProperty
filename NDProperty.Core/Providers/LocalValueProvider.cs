@@ -14,7 +14,9 @@ namespace NDProperty.Providers
         }
 
 
-        public bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
+        public bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value) 
+            where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
             if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
             {
@@ -33,24 +35,24 @@ namespace NDProperty.Providers
             });
 
         }
-        public bool SetValue<TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
-        {
-            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
-            {
-                var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
-                if (Object.Equals(oldValue, value))
-                    return true;
-            }
-            return this.Update(changingObject, changingObject, property, value, () =>
-            {
-                if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
-                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
-                else
-                    PropertyRegistar<TKey>.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
+        //public bool SetValue<TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
+        //{
+        //    if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
+        //    {
+        //        var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
+        //        if (Object.Equals(oldValue, value))
+        //            return true;
+        //    }
+        //    return this.Update(changingObject, changingObject, property, value, () =>
+        //    {
+        //        if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
+        //            PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
+        //        else
+        //            PropertyRegistar<TKey>.Lookup<TValue, TType>.Property[(changingObject, property)] = value;
 
-                return true;
-            });
-        }
+        //        return true;
+        //    });
+        //}
 
         public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property)
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using NDProperty.Providers;
 
 namespace NDProperty.Propertys
 {
@@ -8,7 +9,7 @@ namespace NDProperty.Propertys
     /// </summary>
     /// <typeparam name="TValue">The type of the Property</typeparam>
     /// <typeparam name="TType">The type of the Object that defines the Property.</typeparam>
-    public class NDReadOnlyPropertyKey<TKey, TValue, TType> : IInternalNDReadOnlyProperty where TType : class
+    public class NDReadOnlyPropertyKey<TKey, TValue, TType> : IInternalNDReadOnlyProperty<TKey> where TType : class
     {
         /// <summary>
         /// Returns if this Propety is inherited.
@@ -60,27 +61,22 @@ namespace NDProperty.Propertys
             return r;
         }
 
-        object IInternalNDReadOnlyProperty.GetValue(object obj)
+        (object, ValueProvider<TKey>) IInternalNDReadOnlyProperty<TKey>.GetValueAndProvider(object obj)
         {
             if (obj is TType t)
-                return PropertyRegistar<TKey>.GetValue(this, t);
-            throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
-        }
-        object IInternalNDReadOnlyProperty.GetLocalValue(object obj)
-        {
-            if (obj is TType t)
-                return PropertyRegistar<TKey>.GetValue(this, t);
+                return PropertyRegistar<TKey>.GetValueAndProvider(this, t);
             throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }
 
-        bool IInternalNDReadOnlyProperty.HasLocalValue(object obj)
+
+        (object value, bool hasValue) IInternalNDReadOnlyProperty<TKey>.GetProviderValue(object obj, ValueProvider<TKey> provider)
         {
             if (obj is TType t)
-                return PropertyRegistar<TKey>.HasLocalValue(this, t);
+                return provider.GetValue(t, this);
             throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }
 
-        void IInternalNDReadOnlyProperty.CallChangeHandler(object objectToChange, object sender, object oldValue, object newValue)
+        void IInternalNDReadOnlyProperty<TKey>.CallChangeHandler(object objectToChange, object sender, object oldValue, object newValue)
         {
             if (!(objectToChange is TType))
                 throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}", nameof(objectToChange));

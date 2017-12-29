@@ -1,40 +1,114 @@
-﻿using NDProperty.Propertys;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using NDProperty.Propertys;
 
 
 namespace NDProperty.Providers
 {
     public sealed class InheritenceValueProvider<TKey> : ValueProvider<TKey>
     {
-        private InheritenceValueProvider()
+        private InheritenceValueProvider() : base(false)
         {
 
         }
         public static InheritenceValueProvider<TKey> Instance { get; } = new InheritenceValueProvider<TKey>();
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey,TValue, TType> property)
+        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property)
         {
             if (property.Inherited)
             {
-                // go up the tree
-                var tree = PropertyRegistar<TKey>.Tree.GetTree(targetObject);
-                while (tree.Parent != null)
-                {
-                    tree = tree.Parent;
-                    if (tree.Current is TType instance)
-                        return (PropertyRegistar<TKey>.GetValue(property, instance), true);
-                }
+                var dic = table.GetOrCreateValue(targetObject);
+                if (dic.ContainsKey(property))
+                    return ((TValue)dic[property].value, true);
             }
             return (default(TValue), false);
 
         }
 
-        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TValue newValue, TValue oldValue, ValueProvider<TKey> oldProvider, object sender = null)
+
+        internal (object source, object value, ValueProvider<TKey> provider) SearchNewValue(object targetObject, IInternalNDReadOnlyProperty<TKey> property, Type definedType)
+        {
+            var tree = PropertyRegistar<TKey>.Tree.GetTree(targetObject);
+
+            while (tree.Parent != null)
+            {
+                tree = tree.Parent;
+                if (definedType.IsAssignableFrom(tree.Current.GetType()))
+                {
+                    var instance = tree.Current;
+                    var (value, provider) = property.GetValueAndProvider(instance);
+                    return (instance, value, provider);
+                }
+            }
+            return (null, null, null);
+
+        }
+        internal bool IsParantChangeInteresting(object targetObject, IInternalNDReadOnlyProperty<TKey> property, Type definedType, object removedParent)
+        {
+
+            var dic = table.GetOrCreateValue(targetObject);
+            if (dic.ContainsKey(property))
+            {
+
+                var (oldValue, oldSource) = dic[property];
+                var tree = PropertyRegistar<TKey>.Tree.GetTree(targetObject);
+
+                while (tree.Parent != null)
+                {
+                    tree = tree.Parent;
+                    if (definedType.IsAssignableFrom(tree.Current.GetType()))
+                    {
+                        var instance = tree.Current;
+                        if (instance == removedParent)
+                            return true;
+                        if (instance == oldSource)
+                            return false;
+                        //return (PropertyRegistar<TKey>.GetValue(property, instance), true);
+                    }
+                }
+                return true;
+            }
+            else // previosly no parent
+            {
+                return true;
+                //// go up the tree
+                //var tree = PropertyRegistar<TKey>.Tree.GetTree(targetObject);
+                //while (tree.Parent != null)
+                //{
+                //    tree = tree.Parent;
+                //    if (tree.Current is TType instance)
+                //    {
+
+                //        return (PropertyRegistar<TKey>.GetValue(property, instance), true);
+                //    }
+                //}
+            }
+        }
+
+
+        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TType sourceObject, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue, object sender = null)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
             if (sender == null)
                 sender = targetObject;
-            Update(sender, targetObject, property, newValue, () => true, oldValue, oldProvider);
+            Update(sender, targetObject, property, newValue, hasNewValue, () =>
+            {
+                var dic = table.GetOrCreateValue(targetObject);
+                if (hasNewValue)
+                    dic[property] = (newValue, sourceObject);
+                else
+                {
+                    dic.Remove(property);
+                    if (dic.Count == 0)
+                        table.Remove(targetObject);
+                }
+                return true;
+            }, oldValue, hasOldValue, currentProvider, currentValue);
         }
+
+
+        private System.Runtime.CompilerServices.ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, (object value, object source)>> table = new System.Runtime.CompilerServices.ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, (object value, object source)>>();
     }
 
     //public abstract class ValueProviderManager

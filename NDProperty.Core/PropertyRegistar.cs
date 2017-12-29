@@ -60,7 +60,7 @@ namespace NDProperty
 
         }
 
-        private static readonly Dictionary<Type, List<IInternalNDReadOnlyProperty>> inheritedPropertys = new Dictionary<Type, List<IInternalNDReadOnlyProperty>>();
+        private static readonly Dictionary<Type, List<IInternalNDProperty<TKey>>> inheritedPropertys = new Dictionary<Type, List<IInternalNDProperty<TKey>>>();
         private static IReadOnlyList<ValueProvider<TKey>> manager;
         private static Dictionary<ValueProvider<TKey>, int> managerOrder;
 
@@ -81,7 +81,7 @@ namespace NDProperty
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
-                    inheritedPropertys.Add(typeof(TType), new List<IInternalNDReadOnlyProperty>());
+                    inheritedPropertys.Add(typeof(TType), new List<IInternalNDProperty<TKey>>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
             if (settigns.HasFlag(NDPropertySettings.ParentReference))
@@ -107,7 +107,7 @@ namespace NDProperty
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
-                    inheritedPropertys.Add(typeof(TType), new List<IInternalNDReadOnlyProperty>());
+                    inheritedPropertys.Add(typeof(TType), new List<IInternalNDProperty<TKey>>());
                 inheritedPropertys[typeof(TType)].Add(p);
             }
             if (settigns.HasFlag(NDPropertySettings.ParentReference))
@@ -175,8 +175,10 @@ namespace NDProperty
         {
             AddEventHandler(p, (sender, e) =>
             {
+
                 var tree = Tree.GetTree(e.ChangedObject);
-                var affectedItems = new List<(object affectedObject, object oldValue, IInternalNDReadOnlyProperty affectedProperty)>();
+                var removedParent = tree.Parent?.Current;
+                var affectedItems = new List<(object affectedObject, object oldValue, bool hasOldValue, IInternalNDProperty<TKey> affectedProperty, Type propertyDefinedOn, ValueProvider<TKey> currentProvider, object currentValue)>();
                 if (inheritedPropertys.Count != 0)
                 {
                     // Get all affacted decendents
@@ -186,10 +188,17 @@ namespace NDProperty
                     while (queue.Count != 0)
                     {
                         tree = queue.Dequeue();
-                        if (inheritedPropertys.ContainsKey(tree.Current.GetType()))
+
                         {
-                            foreach (var affectedProperty in inheritedPropertys[tree.Current.GetType()])
-                                affectedItems.Add((tree.Current, affectedProperty.GetValue(tree.Current), affectedProperty));
+                            foreach (var affectedProperty in inheritedPropertys.Where(x => x.Key.IsAssignableFrom(tree.Current.GetType())).SelectMany(x => x.Value.Select(y => new { Value = y, Key = x.Key })))
+                                if (InheritenceValueProvider<TKey>.Instance.IsParantChangeInteresting(tree.Current, affectedProperty.Value, affectedProperty.Key, removedParent))
+                                {
+                                    var (currentValue, currentProvider) = affectedProperty.Value.GetValueAndProvider(tree.Current);
+                                    var (oldValue, hasOldValue) = affectedProperty.Value.GetProviderValue(tree.Current, InheritenceValueProvider<TKey>.Instance);
+
+
+                                    affectedItems.Add((tree.Current, oldValue, hasOldValue, affectedProperty.Value, affectedProperty.Key, currentProvider, currentValue));
+                                }
                         }
                         foreach (var child in tree.Childrean)
                             queue.Enqueue(child);
@@ -211,9 +220,15 @@ namespace NDProperty
                 // Notify AffectedItems
                 foreach (var item in affectedItems)
                 {
-                    var newValue = item.affectedProperty.GetValue(item.affectedObject);
-                    if (newValue != item.oldValue)
-                        item.affectedProperty.CallChangeHandler(item.affectedObject, sender, item.oldValue, newValue);
+                    var searchedNewValue = InheritenceValueProvider<TKey>.Instance.SearchNewValue(item.affectedObject, item.affectedProperty, item.propertyDefinedOn);
+                    if (searchedNewValue.source != null)
+                    {
+                        (item.affectedProperty).CallSetOmInHeritanceProvider(item.affectedObject, searchedNewValue.source, searchedNewValue.value, true, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue);
+                        //InheritenceValueProvider<TKey>.Instance.SetValue(item.affectedObject, item.affectedProperty, searchedNewValue.source, searchedNewValue.value, true, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue);
+                        //var newValue = item.affectedProperty.GetValue(item.affectedObject);
+                        //if (newValue != item.oldValue)
+                        //    item.affectedProperty.CallChangeHandler(item.affectedObject, sender, item.oldValue, newValue);
+                    }
                 }
             });
         }
@@ -247,7 +262,7 @@ namespace NDProperty
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value) 
+        public static bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
@@ -270,44 +285,66 @@ namespace NDProperty
             var value = onChangedArg.MutatedValue;
             if (!onChangedArg.Reject)
             {
+
+                bool updateSuccsessfull;
                 if (property.Inherited)
                 {
                     var inheritanceProviderIndex = ProviderOrder[InheritenceValueProvider<TKey>.Instance];
 
-                    var oldValueList = new List<(TType targetObject, ValueProvider<TKey> manager, TValue oldValue)>();
+                    var oldValueList = new List<(TType targetObject, ValueProvider<TKey> currentProvider, TValue currentValue, TValue oldValue, bool hasOldValue)>();
 
                     var tree = Tree.GetTree(obj);
                     var queue = new Queue<Tree>();
-                    queue.Enqueue(tree);
+                    foreach (var child in tree.Childrean)
+                        queue.Enqueue(child);
+
                     while (queue.Count != 0)
                     {
                         tree = queue.Dequeue();
-                        if (tree.Current is TType t)
+                        if (tree.Current is TType t) // the childrean of this child will be notified when updating InheritanceValueProvider.
                         {
                             var (currentValue, currentManger) = GetValueAndProvider(property, t);
-                            if (!Equals(currentValue, value))
-                                oldValueList.Add((t, currentManger, currentValue));
+                            var (oldValue, hasOldValue) = InheritenceValueProvider<TKey>.Instance.GetValue(t, property);
+                            oldValueList.Add((t, currentManger, currentValue, oldValue, hasOldValue));
                         }
-                        foreach (var child in tree.Childrean)
-                            queue.Enqueue(child);
+                        else
+                            foreach (var child in tree.Childrean)
+                                queue.Enqueue(child);
                     }
-                    updateCode();
-
+                    updateSuccsessfull = updateCode();
+                    if (!updateSuccsessfull)
+                        return false;
                     foreach (var item in oldValueList)
-                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, value, item.oldValue, item.manager, sender);
+                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
                 }
                 else
-                    updateCode();
+                    updateSuccsessfull = updateCode();
 
-                if (!Equals(onChangedArg.OldValue, value) && onChangedArg.WillChange)
+                if (!updateSuccsessfull)
+                    return false;
+
+                if (!Equals(onChangedArg.OldValue, value) && onChangedArg.ObjectValueChanging)
                     FireValueChanged(property, obj, sender, onChangedArg.OldValue, value);
-                if (onChangedArg.WillChange)
+                if (onChangedArg.ObjectValueChanging)
                     onChangedArg.FireExecuteAfterChange(sender);
+
+                var currentProviderIndex = ProviderOrder[onChangedArg.ChangingProvider];
+
+                for (int i = 0; i < ValueProviders.Count; i++)
+                {
+                    var providerToNotify = ValueProviders[i];
+                    if (i < currentProviderIndex)
+                        providerToNotify.LowerProviderUpdated(sender, obj, property, value, onChangedArg.ChangingProvider);
+                    else if (i > currentProviderIndex)
+                        providerToNotify.HigherProviderUpdated(sender, obj, property, value, onChangedArg.ChangingProvider);
+                }
+
                 return true;
             }
             else
                 return false;
         }
+
 
         internal static void FireValueChanged<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
         {
@@ -353,9 +390,10 @@ namespace NDProperty
         /// If this property supports inheritence it will now inherre the value from it parent againe. <para/>
         /// If the <see cref="NullTreatment.RemoveLocalValue"/> is set, assigneing null to the property will resolve in the same as calling this Method.
         /// </remarks>
-        public static bool RemoveLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static bool RemoveLocalValue<TValue, TType, TPropertyType>(TPropertyType property, TType obj) where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            return LocalValueProvider<TKey>.Instance.RemoveValue(property, obj);
+            return LocalValueProvider<TKey>.Instance.RemoveValue<TValue, TType, TPropertyType>(property, obj);
         }
 
         /// <summary>

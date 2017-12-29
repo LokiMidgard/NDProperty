@@ -8,23 +8,26 @@ namespace NDProperty.Providers
     {
         public static LocalValueProvider<TKey> Instance { get; } = new LocalValueProvider<TKey>();
 
-        private LocalValueProvider()
+        private LocalValueProvider() : base(false)
         {
 
         }
 
 
-        public bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value) 
+        public bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
-            {
-                var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
-                if (Object.Equals(oldValue, value))
-                    return true;
-            }
-            return this.Update(changingObject, changingObject, property, value, () =>
+            //if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
+            //{
+            //    var oldValue = PropertyRegistar<TKey>.GetValue(property, changingObject);
+            //    if (Object.Equals(oldValue, value))
+            //        return true;
+            //}
+
+            var hasValue = value != null || property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull);
+
+            return this.Update(changingObject, changingObject, property, value, hasValue, () =>
             {
                 if (value == null && !property.Settigns.HasFlag(NDPropertySettings.SetLocalExplicityNull))
                     PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
@@ -65,9 +68,16 @@ namespace NDProperty.Providers
 
 
 
-        public bool RemoveValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public bool RemoveValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject)
+              where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
         {
-            return PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((obj, property));
+
+            return this.Update(changingObject, changingObject, property, default(TValue), false, () =>
+            {
+                PropertyRegistar<TKey>.Lookup<TValue, TType>.Property.Remove((changingObject, property));
+                return true;
+            });
         }
     }
 

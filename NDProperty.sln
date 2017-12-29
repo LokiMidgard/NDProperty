@@ -1,36 +1,37 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Core", "NDProperty.Core\NDProperty.Core.csproj", "{0CD29ECE-06BC-4BC6-AEBD-99A046E8B62B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty.Core", "NDProperty.Core\NDProperty.Core.csproj", "{0CD29ECE-06BC-4BC6-AEBD-99A046E8B62B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Analyzer.Test", "NDProperty.Analyzer\NDProperty.Analyzer.Test\NDProperty.Analyzer.Test.csproj", "{12EBDBC0-79AB-4F04-A8A8-A29561724FF6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ECADA391-9B34-4910-A8F7-A81BAD338AA6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		copyToLocalNuget.ps1 = copyToLocalNuget.ps1
 		README.md = README.md
 		version.targets = version.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Test", "NDProperty.Test\NDProperty.Test.csproj", "{D6EA9C7F-EEE8-47D4-A171-45DEB2E6B340}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty.Test", "NDProperty.Test\NDProperty.Test.csproj", "{D6EA9C7F-EEE8-47D4-A171-45DEB2E6B340}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Generator", "NDProperty.Generator\NDProperty.Generator.csproj", "{66887DB5-5C82-4048-AA93-2F061C09B1F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty.Generator", "NDProperty.Generator\NDProperty.Generator.csproj", "{66887DB5-5C82-4048-AA93-2F061C09B1F3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A1D6FC6B-D0B5-41E6-AC64-967FED3078D6} = {A1D6FC6B-D0B5-41E6-AC64-967FED3078D6}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Analyzer", "NDProperty.Analyzer\NDProperty.Analyzer\NDProperty.Analyzer.csproj", "{1C464CCB-3CDB-4A4C-8EDD-667066700314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty.Analyzer", "NDProperty.Analyzer\NDProperty.Analyzer\NDProperty.Analyzer.csproj", "{1C464CCB-3CDB-4A4C-8EDD-667066700314}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A1D6FC6B-D0B5-41E6-AC64-967FED3078D6} = {A1D6FC6B-D0B5-41E6-AC64-967FED3078D6}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Analyzer.Dependencys", "NDProperty.Analyzer\NDProperty.Analyzer.Dependencys\NDProperty.Analyzer.Dependencys.csproj", "{A1D6FC6B-D0B5-41E6-AC64-967FED3078D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty.Generator.Attributes", "NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj", "{DB7DC478-0D4B-4FAE-BEF8-3AE24EA2F7AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty.Generator.Attributes", "NDProperty.Generator.Attributes\NDProperty.Generator.Attributes.csproj", "{DB7DC478-0D4B-4FAE-BEF8-3AE24EA2F7AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDProperty", "NDProperty\NDProperty.csproj", "{F773B0D9-A3F9-4C20-9BAE-01AE03973E97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDProperty", "NDProperty\NDProperty.csproj", "{F773B0D9-A3F9-4C20-9BAE-01AE03973E97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,5 +72,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CE5948E1-61CD-4685-960B-BC25924E20E4}
 	EndGlobalSection
 EndGlobal

@@ -11,7 +11,7 @@ namespace NDProperty.Test
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
-           // PropertyRegistar<Configuration>.Initilize(Providers.LocalValueManager.Instance, Providers.InheritenceValueManager.Instance, Providers.DefaultValueManager.Instance);
+            // PropertyRegistar<Configuration>.Initilize(Providers.LocalValueManager.Instance, Providers.InheritenceValueManager.Instance, Providers.DefaultValueManager.Instance);
         }
         [TestMethod]
         public void TestSetAndGet()
@@ -80,6 +80,8 @@ namespace NDProperty.Test
             var p2 = PropertyRegistar<Configuration>.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.CallOnChangedHandlerOnEquals);
 
 
+            PropertyRegistar<Configuration>.SetValue(p1, t, str1);
+            t.testArguments = null;
             PropertyRegistar<Configuration>.SetValue(p1, t, str1);
             Assert.IsNull(t.testArguments);
 
@@ -299,7 +301,7 @@ namespace NDProperty.Test
 
         [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
         //[System.ComponentModel.DefaultValue("asdf")]
-        private void OnTestAttributeChanging(OnChangingArg<Configuration,MyStruct> arg)
+        private void OnTestAttributeChanging(OnChangingArg<Configuration, MyStruct> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
@@ -311,7 +313,7 @@ namespace NDProperty.Test
         }
 
         #region Attach
-        public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<Configuration, string, object> AttachProperty = global::NDProperty.PropertyRegistar< Configuration>.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
+        public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<Configuration, string, object> AttachProperty = global::NDProperty.PropertyRegistar<Configuration>.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
 
         public static global::NDProperty.Utils.AttachedHelper<Configuration, string, object> Attach { get; } = global::NDProperty.Utils.AttachedHelper.Create(AttachProperty);
 
@@ -326,7 +328,7 @@ namespace NDProperty.Test
 
         public string Str
         {
-            get { return PropertyRegistar< Configuration>.GetValue(StrProperty, this); }
+            get { return PropertyRegistar<Configuration>.GetValue(StrProperty, this); }
             set { PropertyRegistar<Configuration>.SetValue(StrProperty, this, value); }
         }
 

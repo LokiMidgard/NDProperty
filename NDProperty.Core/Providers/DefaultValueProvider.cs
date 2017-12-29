@@ -5,7 +5,7 @@ namespace NDProperty.Providers
 {
     public sealed class DefaultValueProvider<TKey> : ValueProvider<TKey>
     {
-        private DefaultValueProvider()
+        private DefaultValueProvider() : base(false)
         {
 
         }

@@ -10,20 +10,20 @@ namespace NDProperty.Providers
 
         }
         public static DefaultValueProvider<TKey> Instance { get; } = new DefaultValueProvider<TKey>();
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property) => (property.DefaultValue, true);
+        public override (TValue value, bool hasValue) GetValue<TType, TValue>(TType targetObject, NDReadOnlyPropertyKey<TKey, TType, TValue> property) => (property.DefaultValue, true);
     }
 
     //public abstract class ValueProviderManager
     //{
     //    private readonly Dictionary<object, object> providers = new Dictionary<object, object>();
 
-    //    internal ValueProvider<TValue> GetProvider<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TValue, TType> property)
+    //    internal ValueProvider<TValue> GetProvider<TType, TValue>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TType, TValue> property)
     //        where TType : class
     //    {
 
     //    }
 
-    //    internal void SetProvider<TValue, TType>(ValueProvider<TValue> provider, TType targetObject, NDReadOnlyPropertyKey<TValue, TType> property) where TType : class
+    //    internal void SetProvider<TType, TValue>(ValueProvider<TValue> provider, TType targetObject, NDReadOnlyPropertyKey<TType, TValue> property) where TType : class
     //    {
     //        throw new NotImplementedException();
     //    }

@@ -4,15 +4,16 @@ namespace NDProperty.Propertys
 {
     public static class ChangedEventArgs
     {
-        public static ChangedEventArgs<TValue, TType> Create<TValue, TType>(TType objectThatChanged, TValue oldValue, TValue newValue) where TType : class => new ChangedEventArgs<TValue, TType>(objectThatChanged, oldValue, newValue);
+        public static ChangedEventArgs<TKey, TType, TValue> Create<TKey, TType, TValue>(TType objectThatChanged, NDReadOnlyPropertyKey<TKey, TType, TValue> changedProperty, TValue oldValue, TValue newValue) where TType : class => new ChangedEventArgs<TKey, TType, TValue>(objectThatChanged, changedProperty, oldValue, newValue);
     }
-    public class ChangedEventArgs<TValue, TType> : EventArgs where TType : class
+    public class ChangedEventArgs<TKey, TType, TValue> : EventArgs where TType : class
     {
-        public ChangedEventArgs(TType objectThatChanged, TValue oldValue, TValue newValue)
+        public ChangedEventArgs(TType objectThatChanged, NDReadOnlyPropertyKey<TKey, TType, TValue> changedProperty, TValue oldValue, TValue newValue)
         {
             ChangedObject = objectThatChanged;
-            this.OldValue = oldValue;
-            this.NewValue = newValue;
+            ChangedProperty = changedProperty;
+            OldValue = oldValue;
+            NewValue = newValue;
         }
 
         /// <summary>
@@ -27,6 +28,10 @@ namespace NDProperty.Propertys
         /// The Object on which the value is changed.
         /// </summary>
         public TType ChangedObject { get; }
+        /// <summary>
+        /// The Property that did Change
+        /// </summary>
+        public NDReadOnlyPropertyKey<TKey, TType, TValue> ChangedProperty { get; }
     }
 
 

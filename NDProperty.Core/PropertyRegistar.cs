@@ -74,10 +74,10 @@ namespace NDProperty
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDPropertyKey<TKey, TValue, TType> Register<TValue, TType>(Func<TType, OnChanging<TKey, TValue>> changingMethod, TValue defaultValue, NDPropertySettings settigns)
+        public static NDPropertyKey<TKey, TType, TValue> Register<TType, TValue>(Func<TType, OnChanging<TKey, TValue>> changingMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDPropertyKey<TKey, TValue, TType>(changingMethod, defaultValue, settigns);
+            var p = new NDPropertyKey<TKey, TType, TValue>(changingMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -100,10 +100,10 @@ namespace NDProperty
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDAttachedPropertyKey<TKey, TValue, TType> RegisterAttached<TValue, TType>(OnChanging<TKey, TValue, TType> changingMethod, TValue defaultValue, NDPropertySettings settigns)
+        public static NDAttachedPropertyKey<TKey, TType, TValue> RegisterAttached<TType, TValue>(OnChanging<TKey, TType, TValue> changingMethod, TValue defaultValue, NDPropertySettings settigns)
             where TType : class
         {
-            var p = new NDAttachedPropertyKey<TKey, TValue, TType>(changingMethod, defaultValue, settigns);
+            var p = new NDAttachedPropertyKey<TKey, TType, TValue>(changingMethod, defaultValue, settigns);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -116,12 +116,12 @@ namespace NDProperty
             return p;
         }
 
-        //public static void SetProvider<TValue, TType>(Providers.ValueProvider<TValue> provider, TType targetObject, NDPropertyKey<TValue, TType> property)
+        //public static void SetProvider<TType, TValue>(Providers.ValueProvider<TValue> provider, TType targetObject, NDPropertyKey<TType, TValue> property)
         //    where TType : class
         //{
-        //    if (Lookup<TValue, TType>.ProviderListener.ContainsKey((provider.Manager, property, targetObject)))
+        //    if (Lookup<TType, TValue>.ProviderListener.ContainsKey((provider.Manager, property, targetObject)))
         //    {
-        //        var oldListener = Lookup<TValue, TType>.ProviderListener[(provider.Manager, property, targetObject)];
+        //        var oldListener = Lookup<TType, TValue>.ProviderListener[(provider.Manager, property, targetObject)];
         //        provider.Manager.GetProvider(targetObject, property).ValueWillChange -= (EventHandler<IValueWillChangeEventArgs<TValue>>)(object)oldListener;
         //    }
         //    EventHandler<Providers.IValueWillChangeEventArgs<TValue>> listener = (sender, e) =>
@@ -164,14 +164,14 @@ namespace NDProperty
         //            FireValueChanged(property, targetObject, provider, oldValue, provider.CurrentValue);
         //        };
         //    };
-        //    Lookup<TValue, TType>.ProviderListener[(provider.Manager, property, targetObject)] = listener;
+        //    Lookup<TType, TValue>.ProviderListener[(provider.Manager, property, targetObject)] = listener;
 
         //    provider.ValueWillChange += listener;
         //    provider.Manager.SetProvider(provider, targetObject, property);
         //}
 
 
-        private static void AddParentHandler<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> p) where TType : class
+        private static void AddParentHandler<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> p) where TType : class
         {
             AddEventHandler(p, (sender, e) =>
             {
@@ -245,7 +245,7 @@ namespace NDProperty
         ///// <remarks>
         ///// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         ///// </remarks>
-        //public static bool SetValue<TValue, TType>(NDPropertyKey<TKey, TValue, TType> property, TType changingObject, TValue value) where TType : class
+        //public static bool SetValue<TType, TValue>(NDPropertyKey<TKey, TType, TValue> property, TType changingObject, TValue value) where TType : class
         //{
         //    return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         //}
@@ -262,9 +262,9 @@ namespace NDProperty
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TValue, TType, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
+        public static bool SetValue<TType, TValue, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         }
@@ -278,9 +278,9 @@ namespace NDProperty
         /// <param name="obj"></param>
         /// <param name="onChangedArg"></param>
         /// <returns>true if <paramref name="onChangedArg"/> did not had reject set and the update function returns true.</returns>
-        internal static bool ChangeValue<TValue, TType, TPropertyType>(object sender, TPropertyType property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<bool> updateCode)
+        internal static bool ChangeValue<TType, TValue, TPropertyType>(object sender, TPropertyType property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<bool> updateCode)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             var value = onChangedArg.MutatedValue;
             if (!onChangedArg.Reject)
@@ -323,8 +323,30 @@ namespace NDProperty
                 if (!updateSuccsessfull)
                     return false;
 
+                TValue newActualValue = default;
+                if (onChangedArg.ChangingProvider == onChangedArg.CurrentProvider && !onChangedArg.HasNewValue)
+                {
+                    // the current value was provided by the changing provider but now it will no longer have a value
+                    // we need to find out what the new value will be.
+                    bool found = false;
+                    foreach (var item in PropertyRegistar<TKey>.ValueProviders)
+                    {
+                        var (providerValue, hasValue) = item.GetValue(obj, property);
+                        if (hasValue)
+                        {
+                            found = true;
+                            newActualValue = providerValue;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        throw new InvalidOperationException("No Value Found");
+                }
+                else
+                    newActualValue = value;
+
                 if (!Equals(onChangedArg.OldValue, value) && onChangedArg.ObjectValueChanging)
-                    FireValueChanged(property, obj, sender, onChangedArg.OldValue, value);
+                    FireValueChanged(property, obj, sender, onChangedArg.OldValue, newActualValue);
                 if (onChangedArg.ObjectValueChanging)
                     onChangedArg.FireExecuteAfterChange(sender);
 
@@ -346,23 +368,23 @@ namespace NDProperty
         }
 
 
-        internal static void FireValueChanged<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
+        internal static void FireValueChanged<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
         {
-            if (Lookup<TValue, TType>.Handler.ContainsKey((objectOfValueChange, property)))
+            if (Lookup<TType, TValue>.Handler.ContainsKey((objectOfValueChange, property)))
             {
-                var list = Lookup<TValue, TType>.Handler[(objectOfValueChange, property)];
+                var list = Lookup<TType, TValue>.Handler[(objectOfValueChange, property)];
                 foreach (var handler in list)
-                    handler(sender, ChangedEventArgs.Create(objectOfValueChange, oldValue, newValue));
+                    handler(sender, ChangedEventArgs.Create(objectOfValueChange, property, oldValue, newValue));
             }
             FireValueForAllChanged(property, objectOfValueChange, sender, oldValue, newValue);
         }
-        private static void FireValueForAllChanged<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
+        private static void FireValueForAllChanged<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
         {
-            if (!Lookup<TValue, TType>.PropertyHandler.ContainsKey(property))
+            if (!Lookup<TType, TValue>.PropertyHandler.ContainsKey(property))
                 return;
-            var list = Lookup<TValue, TType>.PropertyHandler[property];
+            var list = Lookup<TType, TValue>.PropertyHandler[property];
             foreach (var handler in list)
-                handler(sender, ChangedEventArgs.Create(objectOfValueChange, oldValue, newValue));
+                handler(sender, ChangedEventArgs.Create(objectOfValueChange, property, oldValue, newValue));
         }
 
         /// <summary>
@@ -373,7 +395,7 @@ namespace NDProperty
         /// <param name="property">The property which value to retrive</param>
         /// <param name="obj">The object that holds the value</param>
         /// <returns>The Local value or the in the Property defined default value if no value was set on this Object.</returns>
-        public static TValue GetLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static TValue GetLocalValue<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj) where TType : class
         {
             return LocalValueProvider<TKey>.Instance.GetValue(obj, property).value;
         }
@@ -390,10 +412,10 @@ namespace NDProperty
         /// If this property supports inheritence it will now inherre the value from it parent againe. <para/>
         /// If the <see cref="NullTreatment.RemoveLocalValue"/> is set, assigneing null to the property will resolve in the same as calling this Method.
         /// </remarks>
-        public static bool RemoveLocalValue<TValue, TType, TPropertyType>(TPropertyType property, TType obj) where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
+        public static bool RemoveLocalValue<TType, TValue, TPropertyType>(TPropertyType property, TType obj) where TType : class
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
-            return LocalValueProvider<TKey>.Instance.RemoveValue<TValue, TType, TPropertyType>(property, obj);
+            return LocalValueProvider<TKey>.Instance.RemoveValue<TType, TValue, TPropertyType>(property, obj);
         }
 
         /// <summary>
@@ -404,7 +426,7 @@ namespace NDProperty
         /// <param name="property">The Property to check</param>
         /// <param name="obj">The Object to check</param>
         /// <returns><c>true</c> if the value is set on the object and is not calculated from another source.</returns>
-        public static bool HasLocalValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static bool HasLocalValue<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj) where TType : class
         {
             return LocalValueProvider<TKey>.Instance.GetValue(obj, property).hasValue;
         }
@@ -417,11 +439,11 @@ namespace NDProperty
         /// <param name="property">The Property to obtaine the value from</param>
         /// <param name="obj">The Object to obtaine the value from</param>
         /// <returns>The value</returns>
-        public static TValue GetValue<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static TValue GetValue<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj) where TType : class
         {
             return GetValueAndProvider(property, obj).value;
         }
-        public static (TValue value, Providers.ValueProvider<TKey> provider) GetValueAndProvider<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj) where TType : class
+        public static (TValue value, Providers.ValueProvider<TKey> provider) GetValueAndProvider<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj) where TType : class
         {
 
             foreach (var provider in ValueProviders)
@@ -442,11 +464,11 @@ namespace NDProperty
         /// <param name="property">The Property whichthe Eventhandler will be watch.</param>
         /// <param name="obj">The object the Eventhandler will be watch.</param>
         /// <param name="handler">The handler that will be called if the Property changes.</param>
-        public static void AddEventHandler<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj, EventHandler<ChangedEventArgs<TValue, TType>> handler) where TType : class
+        public static void AddEventHandler<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj, EventHandler<ChangedEventArgs<TKey, TType, TValue>> handler) where TType : class
         {
-            if (!Lookup<TValue, TType>.Handler.ContainsKey((obj, property)))
-                Lookup<TValue, TType>.Handler.Add((obj, property), new List<EventHandler<ChangedEventArgs<TValue, TType>>>());
-            var list = Lookup<TValue, TType>.Handler[(obj, property)];
+            if (!Lookup<TType, TValue>.Handler.ContainsKey((obj, property)))
+                Lookup<TType, TValue>.Handler.Add((obj, property), new List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>());
+            var list = Lookup<TType, TValue>.Handler[(obj, property)];
             list.Add(handler);
         }
         /// <summary>
@@ -457,14 +479,14 @@ namespace NDProperty
         /// <param name="property">The Property whichthe Eventhandler will be removed.</param>
         /// <param name="obj">The object the Eventhandler will be removed.</param>
         /// <param name="handler">The handler that should no longer be called if the Property changes.</param>
-        public static void RemoveEventHandler<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, TType obj, EventHandler<ChangedEventArgs<TValue, TType>> handler) where TType : class
+        public static void RemoveEventHandler<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType obj, EventHandler<ChangedEventArgs<TKey, TType, TValue>> handler) where TType : class
         {
-            if (!Lookup<TValue, TType>.Handler.ContainsKey((obj, property)))
+            if (!Lookup<TType, TValue>.Handler.ContainsKey((obj, property)))
                 return;
-            var list = Lookup<TValue, TType>.Handler[(obj, property)];
+            var list = Lookup<TType, TValue>.Handler[(obj, property)];
             list.Remove(handler);
             if (list.Count == 0)
-                Lookup<TValue, TType>.Handler.Remove((obj, property));
+                Lookup<TType, TValue>.Handler.Remove((obj, property));
         }
 
         /// <summary>
@@ -474,11 +496,11 @@ namespace NDProperty
         /// <typeparam name="TType">The Type of the Object that defines the Property</typeparam>
         /// <param name="property">The Property that will be watched.</param>
         /// <param name="handler">The handler that will be called if a Property Changes.</param>
-        public static void AddEventHandler<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, EventHandler<ChangedEventArgs<TValue, TType>> handler) where TType : class
+        public static void AddEventHandler<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, EventHandler<ChangedEventArgs<TKey, TType, TValue>> handler) where TType : class
         {
-            if (!Lookup<TValue, TType>.PropertyHandler.ContainsKey(property))
-                Lookup<TValue, TType>.PropertyHandler.Add(property, new List<EventHandler<ChangedEventArgs<TValue, TType>>>());
-            var list = Lookup<TValue, TType>.PropertyHandler[property];
+            if (!Lookup<TType, TValue>.PropertyHandler.ContainsKey(property))
+                Lookup<TType, TValue>.PropertyHandler.Add(property, new List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>());
+            var list = Lookup<TType, TValue>.PropertyHandler[property];
             list.Add(handler);
         }
 
@@ -489,21 +511,22 @@ namespace NDProperty
         /// <typeparam name="TType">The Type of the Object that defines the Property</typeparam>
         /// <param name="property">The Property that will no longer be watched.</param>
         /// <param name="handler">The handler that will no longer be called if a Property Changes.</param>
-        public static void RemoveEventHandler<TValue, TType>(NDReadOnlyPropertyKey<TKey, TValue, TType> property, EventHandler<ChangedEventArgs<TValue, TType>> handler) where TType : class
+        public static void RemoveEventHandler<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, EventHandler<ChangedEventArgs<TKey, TType, TValue>> handler)
+            where TType : class
         {
-            if (!Lookup<TValue, TType>.PropertyHandler.ContainsKey(property))
+            if (!Lookup<TType, TValue>.PropertyHandler.ContainsKey(property))
                 return;
-            var list = Lookup<TValue, TType>.PropertyHandler[property];
+            var list = Lookup<TType, TValue>.PropertyHandler[property];
             list.Remove(handler);
             if (list.Count == 0)
-                Lookup<TValue, TType>.PropertyHandler.Remove(property);
+                Lookup<TType, TValue>.PropertyHandler.Remove(property);
         }
 
-        internal static class Lookup<TValue, TType> where TType : class
+        internal static class Lookup<TType, TValue> where TType : class
         {
-            public readonly static Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TValue, TType>), TValue> Property = new Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TValue, TType>), TValue>();
-            public readonly static Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TValue, TType>), List<EventHandler<ChangedEventArgs<TValue, TType>>>> Handler = new Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TValue, TType>), List<EventHandler<ChangedEventArgs<TValue, TType>>>>();
-            public readonly static Dictionary<NDReadOnlyPropertyKey<TKey, TValue, TType>, List<EventHandler<ChangedEventArgs<TValue, TType>>>> PropertyHandler = new Dictionary<NDReadOnlyPropertyKey<TKey, TValue, TType>, List<EventHandler<ChangedEventArgs<TValue, TType>>>>();
+            public readonly static Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TType, TValue>), TValue> Property = new Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TType, TValue>), TValue>();
+            public readonly static Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TType, TValue>), List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>> Handler = new Dictionary<(TType, NDReadOnlyPropertyKey<TKey, TType, TValue>), List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>>();
+            public readonly static Dictionary<NDReadOnlyPropertyKey<TKey, TType, TValue>, List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>> PropertyHandler = new Dictionary<NDReadOnlyPropertyKey<TKey, TType, TValue>, List<EventHandler<ChangedEventArgs<TKey, TType, TValue>>>>();
         }
 
 
@@ -532,7 +555,7 @@ namespace NDProperty
     }
 
     public delegate void OnChanging<TKey, TValue>(OnChangingArg<TKey, TValue> arg);
-    public delegate void OnChanging<TKey, TValue, TType>(OnChangingArg<TKey, TValue, TType> arg) where TType : class;
+    public delegate void OnChanging<TKey, TType, TValue>(OnChangingArg<TKey, TType, TValue> arg) where TType : class;
 
 
 }

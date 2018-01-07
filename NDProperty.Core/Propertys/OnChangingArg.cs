@@ -8,8 +8,8 @@ namespace NDProperty.Propertys
     {
         public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) => new OnChangingArg<TKey, TValue>(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged);
         public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool canReject) => new OnChangingArg<TKey, TValue>(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, canReject);
-        public static OnChangingArg<TKey, TValue, TType> Create<TKey, TValue, TType>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) where TType : class => new OnChangingArg<TKey, TValue, TType>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged);
-        public static OnChangingArg<TKey, TValue, TType> Create<TKey, TValue, TType>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool canReject) where TType : class => new OnChangingArg<TKey, TValue, TType>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, canReject);
+        public static OnChangingArg<TKey, TType, TValue> Create<TKey, TType, TValue>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) where TType : class => new OnChangingArg<TKey, TType, TValue>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged);
+        public static OnChangingArg<TKey, TType, TValue> Create<TKey, TType, TValue>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool canReject) where TType : class => new OnChangingArg<TKey, TType, TValue>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, canReject);
     }
     public class OnChangingArg<TKey, TValue>
     {
@@ -164,7 +164,7 @@ namespace NDProperty.Propertys
         }
     }
 
-    public class OnChangingArg<TKey, TValue, TType> : OnChangingArg<TKey, TValue> where TType : class
+    public class OnChangingArg<TKey, TType, TValue> : OnChangingArg<TKey, TValue> where TType : class
     {
         public OnChangingArg(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool rejectAllowed) : base(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, rejectAllowed)
         {

@@ -13,7 +13,7 @@ namespace NDProperty.Providers
 
         }
         public static InheritenceValueProvider<TKey> Instance { get; } = new InheritenceValueProvider<TKey>();
-        public override (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, NDReadOnlyPropertyKey<TKey, TValue, TType> property)
+        public override (TValue value, bool hasValue) GetValue<TType, TValue>(TType targetObject, NDReadOnlyPropertyKey<TKey, TType, TValue> property)
         {
             if (property.Inherited)
             {
@@ -86,9 +86,9 @@ namespace NDProperty.Providers
         }
 
 
-        internal void SetValue<TValue, TType, TPropertyType>(TType targetObject, TPropertyType property, TType sourceObject, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue, object sender = null)
+        internal void SetValue<TType, TValue, TPropertyType>(TType targetObject, TPropertyType property, TType sourceObject, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue, object sender = null)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TValue, TType>, INDProperty<TKey, TValue, TType>
+            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             if (sender == null)
                 sender = targetObject;
@@ -115,13 +115,13 @@ namespace NDProperty.Providers
     //{
     //    private readonly Dictionary<object, object> providers = new Dictionary<object, object>();
 
-    //    internal ValueProvider<TValue> GetProvider<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TValue, TType> property)
+    //    internal ValueProvider<TValue> GetProvider<TType, TValue>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TType, TValue> property)
     //        where TType : class
     //    {
 
     //    }
 
-    //    internal void SetProvider<TValue, TType>(ValueProvider<TValue> provider, TType targetObject, NDReadOnlyPropertyKey<TValue, TType> property) where TType : class
+    //    internal void SetProvider<TType, TValue>(ValueProvider<TValue> provider, TType targetObject, NDReadOnlyPropertyKey<TType, TValue> property) where TType : class
     //    {
     //        throw new NotImplementedException();
     //    }

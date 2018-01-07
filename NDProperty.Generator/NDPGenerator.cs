@@ -62,6 +62,7 @@ namespace NDProperty.Generator
             var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericTypeArgument);
 
             var list = new System.Collections.Generic.List<MemberDeclarationSyntax>();
+
             if (isReadOnly)
             {
                 list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
@@ -102,9 +103,11 @@ namespace NDProperty.Generator
                                     SyntaxFactory.TypeArgumentList(
                                         SyntaxFactory.SeparatedList<TypeSyntax>(
                                             new SyntaxNodeOrToken[]{
-                                                genericTypeArgument,
+                                                keyName,
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                className }))))))),
+                                                className,
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                 genericTypeArgument}))))))),
                 SyntaxFactory.Identifier(propertyEvent))
                 .WithModifiers(
                 SyntaxFactory.TokenList(
@@ -324,8 +327,8 @@ namespace NDProperty.Generator
 
             var genericType = method.ParameterList.Parameters.First().Type.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
             var keyTypeType = genericType.TypeArgumentList.Arguments[0];
-            var genericValueType = genericType.TypeArgumentList.Arguments[1];
-            var genericTypeType = genericType.TypeArgumentList.Arguments[2];
+            var genericTypeType = genericType.TypeArgumentList.Arguments[1];
+            var genericValueType = genericType.TypeArgumentList.Arguments[2];
 
             var defaultValueExpresion = GetDefaultSyntax(method, semanticModel, genericValueType);
 
@@ -375,9 +378,9 @@ namespace NDProperty.Generator
                              new SyntaxNodeOrToken[]{
                                 keyName,
                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                genericValueType,
+                          genericTypeType      ,
                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                genericTypeType})))),
+                             genericValueType   })))),
              SyntaxFactory.Identifier(propertyName))
          .WithModifiers(
              SyntaxFactory.TokenList(
@@ -501,11 +504,12 @@ namespace NDProperty.Generator
 
             var d = attributeData.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
-            if (d.ContainsKey("Settings") && d["Settigns"].Value != null)
-                this.propertySettings = (Propertys.NDPropertySettings)d["Settigns"].Value;
+            const string Settings = "Settings";
+            if (d.ContainsKey(Settings) && d[Settings].Value != null)
+                this.propertySettings = (Propertys.NDPropertySettings)d[Settings].Value;
             else
             {
-                if (d.ContainsKey("Settings"))
+                if (d.ContainsKey(Settings))
                     this.errorParsingAttribute = true;
                 this.propertySettings = Propertys.NDPropertySettings.None;
             }
@@ -591,7 +595,7 @@ namespace NDProperty.Generator
 
                 TypeSyntax valueType;
                 if (typeArguments.Count >= 2)
-                    valueType = typeArguments[1];
+                    valueType = typeArguments[typeArguments.Count - 1];
                 else
                     valueType = null;
 
@@ -716,9 +720,9 @@ namespace NDProperty.Generator
                                     new SyntaxNodeOrToken[]{
                                         keyName,
                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                        genericTypeArgument,
+                              className          ,
                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                        className })))))
+                                      genericTypeArgument   })))))
                                         .WithVariables(
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
@@ -878,9 +882,9 @@ namespace NDProperty.Generator
                         SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SeparatedList<TypeSyntax>(
                                 new SyntaxNodeOrToken[]{
-                               propertyValue,
+                                    className,
                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    className})))))
+                                    propertyValue})))))
                                     .WithArgumentList(
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList<ArgumentSyntax>(

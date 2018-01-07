@@ -8,13 +8,13 @@ namespace NDProperty.Utils
 
     public static class AttachedHelper
     {
-        public static AttachedHelper<TKey, TValue, TType> Create<TKey, TValue, TType>(NDAttachedPropertyKey<TKey, TValue, TType> property) where TType : class => new AttachedHelper<TKey, TValue, TType>(property);
+        public static AttachedHelper<TKey, TType, TValue> Create<TKey, TType, TValue>(NDAttachedPropertyKey<TKey, TType, TValue> property) where TType : class => new AttachedHelper<TKey, TType, TValue>(property);
     }
-    public class AttachedHelper<TKey, TValue, TType> where TType : class
+    public class AttachedHelper<TKey, TType, TValue> where TType : class
     {
-        private readonly NDAttachedPropertyKey<TKey, TValue, TType> property;
+        private readonly NDAttachedPropertyKey<TKey, TType, TValue> property;
 
-        public AttachedHelper(NDAttachedPropertyKey<TKey, TValue, TType> property)
+        public AttachedHelper(NDAttachedPropertyKey<TKey, TType, TValue> property)
         {
             this.property = property;
         }
@@ -26,10 +26,10 @@ namespace NDProperty.Utils
 
         public class Delegater
         {
-            private NDAttachedPropertyKey<TKey, TValue, TType> property;
+            private NDAttachedPropertyKey<TKey, TType, TValue> property;
             private TType index;
 
-            public Delegater(NDAttachedPropertyKey<TKey, TValue, TType> property, TType index)
+            public Delegater(NDAttachedPropertyKey<TKey, TType, TValue> property, TType index)
             {
                 this.property = property;
                 this.index = index;
@@ -41,7 +41,7 @@ namespace NDProperty.Utils
                 set => PropertyRegistar<TKey>.SetValue(property, index, value);
             }
 
-            public event EventHandler<ChangedEventArgs<TValue, TType>> Changed
+            public event EventHandler<ChangedEventArgs<TKey,TType, TValue>> Changed
             {
                 add => PropertyRegistar<TKey>.AddEventHandler(property, value);
                 remove => PropertyRegistar<TKey>.RemoveEventHandler(property, index, value);

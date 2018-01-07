@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NDProperty.Propertys;
+using NDProperty.Providers;
+using NDProperty.Providers.Binding;
+
 
 namespace NDProperty.Test
 {
@@ -46,7 +50,7 @@ namespace NDProperty.Test
             const string str1 = "Hallo Welt!";
             const string str2 = "Hallo Welt!2";
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
 
             t.StrChanged += (sender, e) =>
             {
@@ -76,8 +80,8 @@ namespace NDProperty.Test
             var t = new TestObject();
             const string str1 = "Hallo Welt!";
 
-            var p1 = PropertyRegistar<Configuration>.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.None);
-            var p2 = PropertyRegistar<Configuration>.Register<string, TestObject>(x => x.TestChangeMethod, str1, NDPropertySettings.CallOnChangedHandlerOnEquals);
+            var p1 = PropertyRegistar<Configuration>.Register<TestObject, string>(x => x.TestChangeMethod, str1, NDPropertySettings.None);
+            var p2 = PropertyRegistar<Configuration>.Register<TestObject, string>(x => x.TestChangeMethod, str1, NDPropertySettings.CallOnChangedHandlerOnEquals);
 
 
             PropertyRegistar<Configuration>.SetValue(p1, t, str1);
@@ -98,7 +102,7 @@ namespace NDProperty.Test
             const string str1 = "Hallo Welt!";
             const string str2 = "Hallo Welt!2";
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             t.Str = str1;
 
             t.Reject = true;
@@ -114,6 +118,8 @@ namespace NDProperty.Test
             Assert.AreEqual(str1, t.Str);
         }
 
+
+
         [TestMethod]
         public void TestRejectAndMutate()
         {
@@ -122,7 +128,7 @@ namespace NDProperty.Test
             const string str2 = "Hallo Welt!2";
             const string str3 = "Hallo Welt!3";
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             t.Str = str1;
 
             t.Reject = true;
@@ -147,7 +153,7 @@ namespace NDProperty.Test
             const string str2 = "Hallo Welt!2";
             const string str3 = "Hallo Welt!3";
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             t.Str = str1;
 
             t.Mutate = str3;
@@ -195,7 +201,7 @@ namespace NDProperty.Test
             const string str2 = "Hallo Welt!2";
             tc.Parent = tp;
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             object eventSender = null;
             tc.InheritedStrChanged += (sender, e) =>
             {
@@ -235,7 +241,7 @@ namespace NDProperty.Test
             tp2.InheritedStr = str2;
 
 
-            ChangedEventArgs<string, TestObject> eventArg = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             object eventSender = null;
             tc.InheritedStrChanged += (sender, e) =>
             {
@@ -277,12 +283,241 @@ namespace NDProperty.Test
         }
 
 
+        [TestMethod]
+        public void TestOneWayBinding()
+        {
+            var t1 = new TestObject();
+            var t2 = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+
+            ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
+
+            t1.StrChanged += (sender, e) =>
+            {
+                eventArg = e;
+            };
+
+            using (TestObject.StrProperty.Bind(t1, TestObject.StrProperty.Of(t2).OneWay()))
+            {
+                t2.Str = str1;
+                Assert.IsNotNull(eventArg);
+                Assert.AreEqual(str1, t1.Str);
+                Assert.AreEqual(str1, eventArg.NewValue);
+                Assert.AreEqual(null, eventArg.OldValue);
+                eventArg = null;
+            }
+
+            // check if new value is notified if binding is cancled.
+            Assert.IsNotNull(eventArg);
+            Assert.AreEqual(null, t1.Str);
+            Assert.AreEqual(null, eventArg.NewValue);
+            Assert.AreEqual(str1, eventArg.OldValue);
+
+            // check if binding is actual gone.
+            eventArg = null;
+            t2.Str = str2;
+
+            Assert.IsNull(eventArg);
+            Assert.AreEqual(null, t1.Str);
+        }
+
+        [TestMethod]
+        public void TestOneWayBindingOver()
+        {
+            var t1 = new TestObject();
+            var t2 = new TestObject();
+            var t3 = new TestObject();
+            var t4 = new TestObject();
+            const string str1 = "Hallo 1";
+            const string str2 = "Hallo 2";
+            const string str3 = "Hallo 3";
+            const string str4 = "Hallo 4";
+            const string str5 = "Hallo 5";
+
+            t3.Str = str3;
+            t4.Str = str4;
+
+            t2.Parent = t3;
+
+            ChangedEventArgs<Configuration, TestObject, string> eventArg1 = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg2 = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg3 = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg4 = null;
+
+
+            t1.StrChanged += (sender, e) =>
+            {
+                eventArg1 = e;
+            };
+            t2.StrChanged += (sender, e) =>
+            {
+                eventArg2 = e;
+            };
+            t3.StrChanged += (sender, e) =>
+            {
+                eventArg3 = e;
+            };
+            t4.StrChanged += (sender, e) =>
+            {
+                eventArg4 = e;
+            };
+
+            using (TestObject.StrProperty.Bind(t1, TestObject.ParentProperty.Of(t2).Over(TestObject.StrProperty).OneWay()))
+            {
+                t3.Str = str1;
+                Assert.IsNotNull(eventArg1);
+                Assert.IsNull(eventArg2);
+                Assert.IsNotNull(eventArg3);
+                Assert.IsNull(eventArg4);
+
+                Assert.AreEqual(str1, t1.Str);
+                Assert.AreEqual(null, t2.Str);
+                Assert.AreEqual(str1, t3.Str);
+                Assert.AreEqual(str4, t4.Str);
+
+                Assert.AreEqual(str1, eventArg1.NewValue);
+                Assert.AreEqual(str1, eventArg3.NewValue);
+                Assert.AreEqual(null, eventArg1.OldValue);
+                Assert.AreEqual(str3, eventArg3.OldValue);
+                eventArg1 = null;
+                eventArg2 = null;
+                eventArg3 = null;
+                eventArg4 = null;
+
+                t2.Parent = t4;
+                Assert.IsNotNull(eventArg1);
+                Assert.IsNull(eventArg2);
+                Assert.IsNull(eventArg3);
+                Assert.IsNull(eventArg4);
+
+                Assert.AreEqual(str4, t1.Str);
+                Assert.AreEqual(null, t2.Str);
+                Assert.AreEqual(str1, t3.Str);
+                Assert.AreEqual(str4, t4.Str);
+
+                Assert.AreEqual(str4, eventArg1.NewValue);
+                Assert.AreEqual(str1, eventArg1.OldValue);
+                eventArg1 = null;
+                eventArg2 = null;
+                eventArg3 = null;
+                eventArg4 = null;
+            }
+
+            // check if new value is notified if binding is cancled.
+            Assert.IsNotNull(eventArg1);
+            Assert.IsNull(eventArg2);
+            Assert.IsNull(eventArg3);
+            Assert.IsNull(eventArg4);
+
+            Assert.AreEqual(null, t1.Str);
+            Assert.AreEqual(null, t2.Str);
+            Assert.AreEqual(str1, t3.Str);
+            Assert.AreEqual(str4, t4.Str);
+
+            Assert.AreEqual(null, eventArg1.NewValue);
+            Assert.AreEqual(str4, eventArg1.OldValue);
+            eventArg1 = null;
+            eventArg2 = null;
+            eventArg3 = null;
+            eventArg4 = null;
+
+            // check if binding is actual gone.
+            t4.Str = str5;
+
+            Assert.IsNull(eventArg1);
+            Assert.AreEqual(null, t1.Str);
+            Assert.AreEqual(null, t2.Str);
+            Assert.AreEqual(str1, t3.Str);
+            Assert.AreEqual(str5, t4.Str);
+        }
+
+
+        [TestMethod]
+        public void TestTwoWayBinding()
+        {
+            var t1 = new TestObject();
+            var t2 = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+            const string str3 = "Hallo Welt!3";
+
+            ChangedEventArgs<Configuration, TestObject, string> eventArg1 = null;
+            ChangedEventArgs<Configuration, TestObject, string> eventArg2 = null;
+
+
+            t1.StrChanged += (sender, e) =>
+            {
+                eventArg1 = e;
+            };
+            t2.StrChanged += (sender, e) =>
+            {
+                eventArg2 = e;
+            };
+
+            using (TestObject.StrProperty.Bind(t1, TestObject.StrProperty.Of(t2).TwoWay()))
+            {
+                t1.Str = str1;
+                Assert.IsNotNull(eventArg1);
+                Assert.IsNotNull(eventArg2);
+                Assert.AreEqual(str1, t2.Str);
+                Assert.AreEqual(str1, t1.Str);
+                Assert.AreEqual(str1, eventArg1.NewValue);
+                Assert.AreEqual(str1, eventArg2.NewValue);
+                Assert.AreEqual(null, eventArg1.OldValue);
+                Assert.AreEqual(null, eventArg2.OldValue);
+                eventArg1 = null;
+                eventArg2 = null;
+
+                t2.Str = str2;
+                Assert.IsNotNull(eventArg1);
+                Assert.IsNotNull(eventArg2);
+                Assert.AreEqual(str2, t2.Str);
+                Assert.AreEqual(str2, t1.Str);
+                Assert.AreEqual(str2, eventArg1.NewValue);
+                Assert.AreEqual(str1, eventArg1.OldValue);
+                Assert.AreEqual(str2, eventArg2.NewValue);
+                Assert.AreEqual(str1, eventArg2.OldValue);
+                eventArg1 = null;
+                eventArg2 = null;
+            }
+
+            // check if new value is notified if binding is cancled.
+            Assert.IsNotNull(eventArg1);
+            Assert.IsNull(eventArg2);
+            Assert.AreEqual(str1, t1.Str);
+            Assert.AreEqual(str2, t2.Str);
+            Assert.AreEqual(str1, eventArg1.NewValue);
+            Assert.AreEqual(str2, eventArg1.OldValue);
+
+            // check if binding is actual gone.
+            eventArg1 = null;
+            eventArg2 = null;
+            t2.Str = str3;
+
+            Assert.IsNull(eventArg1);
+            Assert.IsNotNull(eventArg2);
+            Assert.AreEqual(str1, t1.Str);
+            Assert.AreEqual(str3, t2.Str);
+            Assert.AreEqual(str3, eventArg2.NewValue);
+            Assert.AreEqual(str2, eventArg2.OldValue);
+
+        }
+
+
     }
 
 
-    public class Configuration
+    public class Configuration : NDProperty.IInitilizer<Configuration>
     {
+        public IEnumerable<Providers.ValueProvider<Configuration>> ValueProvider => new Providers.ValueProvider<Configuration>[]
+        {
+            BindingProvider<Configuration>.Instance,
+            LocalValueProvider<Configuration>.Instance,
+            InheritenceValueProvider<Configuration>.Instance,
 
+            DefaultValueProvider<Configuration>.Instance,
+        };
     }
 
     public struct MyStruct
@@ -299,14 +534,15 @@ namespace NDProperty.Test
         public bool Reject { get; set; }
         public string Mutate { get; set; }
 
-        [NDP(Settigns = NDPropertySettings.CallOnChangedHandlerOnEquals)]
+        [NDP(Settings = NDPropertySettings.CallOnChangedHandlerOnEquals | NDPropertySettings.ReadOnly)]
         //[System.ComponentModel.DefaultValue("asdf")]
         private void OnTestAttributeChanging(OnChangingArg<Configuration, MyStruct> arg)
         {
             var test = TestAttributeProperty.ToString();
         }
 
-        [NDP(Settigns = NDPropertySettings.ReadOnly)]
+        [NDP(Settings = NDPropertySettings.ReadOnly)]
+        [System.ComponentModel.DefaultValue("")]
         private void OnMyBlaChanging(OnChangingArg<Configuration, string> arg)
         {
             var test = TestAttributeProperty.ToString();
@@ -324,7 +560,7 @@ namespace NDProperty.Test
         #endregion
 
         #region Str
-        public static readonly NDPropertyKey<Configuration, string, TestObject> StrProperty = PropertyRegistar<Configuration>.Register<string, TestObject>(t => t.OnStrChanged, default(string), NDPropertySettings.None);
+        public static readonly NDPropertyKey<Configuration, TestObject, string> StrProperty = PropertyRegistar<Configuration>.Register<TestObject, string>(t => t.OnStrChanged, default(string), NDPropertySettings.None);
 
         public string Str
         {
@@ -332,7 +568,7 @@ namespace NDProperty.Test
             set { PropertyRegistar<Configuration>.SetValue(StrProperty, this, value); }
         }
 
-        public event EventHandler<ChangedEventArgs<string, TestObject>> StrChanged
+        public event EventHandler<ChangedEventArgs<Configuration, TestObject, string>> StrChanged
         {
             add { PropertyRegistar<Configuration>.AddEventHandler(StrProperty, this, value); }
             remove { PropertyRegistar<Configuration>.RemoveEventHandler(StrProperty, this, value); }
@@ -348,7 +584,7 @@ namespace NDProperty.Test
         #endregion
 
         #region InheritedStr
-        public static readonly NDPropertyKey<Configuration, string, TestObject> InheritedStrProperty = PropertyRegistar<Configuration>.Register<string, TestObject>(t => t.OnInheritedStrChanged, default(string), NDPropertySettings.Inherited);
+        public static readonly NDPropertyKey<Configuration, TestObject, string> InheritedStrProperty = PropertyRegistar<Configuration>.Register<TestObject, string>(t => t.OnInheritedStrChanged, default(string), NDPropertySettings.Inherited);
 
         public string InheritedStr
         {
@@ -356,7 +592,7 @@ namespace NDProperty.Test
             set => PropertyRegistar<Configuration>.SetValue(InheritedStrProperty, this, value);
         }
 
-        public event EventHandler<ChangedEventArgs<string, TestObject>> InheritedStrChanged
+        public event EventHandler<ChangedEventArgs<Configuration, TestObject, string>> InheritedStrChanged
         {
             add => PropertyRegistar<Configuration>.AddEventHandler(InheritedStrProperty, this, value);
             remove => PropertyRegistar<Configuration>.RemoveEventHandler(InheritedStrProperty, this, value);
@@ -377,7 +613,7 @@ namespace NDProperty.Test
             set => PropertyRegistar<Configuration>.SetValue(ParentProperty, this, value);
         }
 
-        public event EventHandler<ChangedEventArgs<TestObject, TestObject>> ParentChanged
+        public event EventHandler<ChangedEventArgs<Configuration, TestObject, TestObject>> ParentChanged
         {
             add => PropertyRegistar<Configuration>.AddEventHandler(ParentProperty, this, value);
             remove => PropertyRegistar<Configuration>.RemoveEventHandler(ParentProperty, this, value);

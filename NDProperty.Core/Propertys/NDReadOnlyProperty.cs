@@ -9,7 +9,7 @@ namespace NDProperty.Propertys
     /// </summary>
     /// <typeparam name="TValue">The type of the Property</typeparam>
     /// <typeparam name="TType">The type of the Object that defines the Property.</typeparam>
-    public class NDReadOnlyPropertyKey<TKey, TValue, TType> : IInternalNDReadOnlyProperty<TKey> where TType : class
+    public class NDReadOnlyPropertyKey<TKey, TType, TValue> : IInternalNDReadOnlyProperty<TKey>, INDReadOnlyPropertyKey<TKey, TType, TValue> where TType : class
     {
         /// <summary>
         /// Returns if this Propety is inherited.
@@ -31,7 +31,7 @@ namespace NDProperty.Propertys
             DefaultValue = defaultValue;
         }
 
-        public bool Equals(NDReadOnlyPropertyKey<TKey, TValue, TType> obj)
+        public bool Equals(NDReadOnlyPropertyKey<TKey, TType, TValue> obj)
         {
             var other = GetReadonly(obj);
             var me = GetReadonly(this);
@@ -41,7 +41,7 @@ namespace NDProperty.Propertys
         }
         public override bool Equals(object obj)
         {
-            if (obj is NDReadOnlyPropertyKey<TKey, TValue, TType> p)
+            if (obj is NDReadOnlyPropertyKey<TKey, TType, TValue> p)
                 return Equals(p);
             return false;
         }
@@ -54,9 +54,9 @@ namespace NDProperty.Propertys
             return me.GetHashCode();
         }
 
-        private static NDReadOnlyPropertyKey<TKey, TValue, TType> GetReadonly(NDReadOnlyPropertyKey<TKey, TValue, TType> r)
+        private static NDReadOnlyPropertyKey<TKey, TType, TValue> GetReadonly(NDReadOnlyPropertyKey<TKey, TType, TValue> r)
         {
-            if (r is INDProperty<TKey, TValue, TType> p)
+            if (r is INDProperty<TKey, TType, TValue> p)
                 return p.ReadOnlyProperty;
             return r;
         }

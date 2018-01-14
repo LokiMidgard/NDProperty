@@ -35,13 +35,11 @@ namespace NDProperty.Providers.Binding
 
         public static IBindingConfigurator<TKey, TType, TValue> Of<TKey, TType, TValue>(this NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType of)
             where TType : class
-            where TValue : class
         {
             return new Start<TKey, TType, TValue>(property, of);
         }
         public static IBindingConfiguratorWritable<TKey, TType, TValue> Of<TKey, TType, TValue>(this NDBasePropertyKey<TKey, TType, TValue> property, TType of)
             where TType : class
-            where TValue : class
         {
             return new StartWritable<TKey, TType, TValue>(property, of);
         }

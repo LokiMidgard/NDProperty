@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>0.0.13</Version>
+    <Version>0.13.1</Version>
     <Version Condition="'$(Configuration)'=='Debug'">$(Version)-Debug</Version>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
@@ -11,10 +11,11 @@
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
-- Fix Bug in Attached Propertys when value was null
-- Refactored OnChangingArgs (**Breaking Change**)
-  Fix a Bug where it was not correctly firering when deliting a Property.
-  Now it should be better structured.
+- Fix visibility for Property OldValue in OnChangingArg
+- ObjectValueChanging => IsObjectValueChaning (in OnChangingArg) (**Breaking Change**)
+- Fix bug wher Binding was not posible in all cases when Property was a Struct.
+- Fix bug where Provider was not initially updated when creating a Binding.
+- Change versioning pattern.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

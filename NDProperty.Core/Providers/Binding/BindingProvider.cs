@@ -106,7 +106,17 @@ namespace NDProperty.Providers.Binding
             where TType : class, TOldValue
             where TOldType : class
         {
-            public override TValue CurrentValue => PropertyRegistar<TKey>.GetValue(Property, (TType)this.oldBindingConfiguration.CurrentValue);
+            public override TValue CurrentValue
+            {
+                get
+                {
+                    var currentValue = (TType)this.oldBindingConfiguration.CurrentValue;
+                    if (currentValue == null)
+                        return default;
+                    return PropertyRegistar<TKey>.GetValue(Property, currentValue);
+
+                }
+            }
 
             private readonly BindingConfiguration<TKey, TOldType, TOldValue> oldBindingConfiguration;
 
@@ -247,7 +257,8 @@ namespace NDProperty.Providers.Binding
             private void BindedObjectIsChanging<TSourceType>(object sender, ChangedEventArgs<TKey, TSourceType, TValue> e)
                 where TSourceType : class
             {
-                LocalValueProvider<TKey>.Instance.SetValue(this.writableBindingConfiguration.Property, this.bindingConfiguration.CurrentObject, e.NewValue);
+                if (this.bindingConfiguration.CurrentObject != null)
+                    LocalValueProvider<TKey>.Instance.SetValue(this.writableBindingConfiguration.Property, this.bindingConfiguration.CurrentObject, e.NewValue);
             }
 
             public void Destroy()

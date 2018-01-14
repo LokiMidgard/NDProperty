@@ -43,7 +43,7 @@ namespace NDProperty.Providers
         {
             var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[oldActualProvider];
             var thisIndex = PropertyRegistar<TKey>.ProviderOrder[this];
-            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldProviderValue, newProviderValue))
+            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldProviderValue, newProviderValue) && hasOldValue == hasNewValue)
                 return true;
 
             TValue newActualValue = default;

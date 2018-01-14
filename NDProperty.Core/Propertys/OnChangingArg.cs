@@ -6,123 +6,29 @@ namespace NDProperty.Propertys
 {
     public static class OnChangingArg
     {
-        public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) => new OnChangingArg<TKey, TValue>(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged);
-        public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool canReject) => new OnChangingArg<TKey, TValue>(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, canReject);
-        public static OnChangingArg<TKey, TType, TValue> Create<TKey, TType, TValue>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) where TType : class => new OnChangingArg<TKey, TType, TValue>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged);
-        public static OnChangingArg<TKey, TType, TValue> Create<TKey, TType, TValue>(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool canReject) where TType : class => new OnChangingArg<TKey, TType, TValue>(changedObject, oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, canReject);
+        public static OnChangingArg<TKey, TValue> Create<TKey, TValue>(TValue oldProviderValue, bool hasOldValue, TValue newProviderValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider, TValue oldPropertyValue, TValue newPropertyValue, bool rejectAllowed) => new OnChangingArg<TKey, TValue>(oldProviderValue, hasOldValue, newProviderValue, hasNewValue, changingProvider, oldProvider, newProvider, oldPropertyValue, newPropertyValue, rejectAllowed);
+        public static OnChangingArg<TKey, TType, TValue> Create<TKey, TType, TValue>(TType changedObject, TValue oldProviderValue, bool hasOldValue, TValue newProviderValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider, TValue oldPropertyValue, TValue newPropertyValue, bool rejectAllowed) where TType : class => new OnChangingArg<TKey, TType, TValue>(changedObject, oldProviderValue, hasOldValue, newProviderValue, hasNewValue, changingProvider, oldProvider, newProvider, oldPropertyValue, newPropertyValue, rejectAllowed);
     }
     public class OnChangingArg<TKey, TValue>
     {
-        public OnChangingArg(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged)
-            : this(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, true)
-        {
+        private TValue newActualValue;
+        private bool didChange;
 
-        }
-        public OnChangingArg(TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool rejectAllowed)
+        public OnChangingArg(TValue oldProviderValue, bool hasOldValue, TValue newProviderValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider, TValue oldPropertyValue, TValue newPropertyValue, bool rejectAllowed)
         {
-            CanChange = true; // ofcourse we must allow changes in the constructor ;)
-            OldValue = oldValue;
-            HasOldValue = hasOldValue;
-            HasNewValue = hasNewValue;
-            NewValue = newValue;
-            MutatedValue = newValue;
-            ObjectValueChanging = willBeChanged;
-            ChangingProvider = changingProvider;
-            CurrentProvider = currentProvider;
-            CurrentValue = CurrentValue;
-            CanChange = rejectAllowed;
+            Property = new PropertyChanged(this, oldPropertyValue, newPropertyValue, oldProvider, newProvider);
+            Provider = new ProviderChanged(this, changingProvider, rejectAllowed, oldProviderValue, newProviderValue, hasOldValue, hasNewValue);
         }
 
         /// <summary>
-        /// The value before the change on the Provider.
+        /// Capsuls Information on Changes of the Property of the Object.
         /// </summary>
-        internal TValue OldValue { get; }
-        /// <summary>
-        /// The value after the change on the Provider.
-        /// </summary>
-        public TValue NewValue { get; }
+        public PropertyChanged Property { get; }
 
         /// <summary>
-        /// If <c>false</c> the Value was not set yet on this provider.
+        /// Capsuls Information on Changes of the Provider that is currently changing.
         /// </summary>
-        public bool HasOldValue { get; }
-        /// <summary>
-        /// If <c>false</c> the Value on this Provider will be deleted.
-        /// </summary>
-        public bool HasNewValue { get; }
-
-        /// <summary>
-        /// The Value this Property currently has.  Will Change to <see cref="NewValue"/> if <see cref="ObjectValueChanging"/> is <c>true</c>.
-        /// </summary>
-        public TValue CurrentValue { get; }
-
-
-        /// <summary>
-        /// This value can be changed by the called function to transform the value befor it is set on the provider.
-        /// </summary>
-        /// <remarks>
-        /// Deletion of a value can't be mutated.
-        /// </remarks>
-        /// <exception cref="InvalidOperationException">When CanReject <c>false</c></exception>
-        public TValue MutatedValue
-        {
-            get => mutatedValue;
-            set
-            {
-                if (!CanChange)
-                    throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(MutatedValue)} is not allowed");
-                mutatedValue = value;
-            }
-        }
-        private TValue mutatedValue;
-
-        /// <summary>
-        /// If set to true the change will not be applied.
-        /// </summary>
-        /// <remarks>
-        /// Deletion of a value can't be rejected.
-        /// </remarks>
-        /// <exception cref="InvalidOperationException">When CanReject <c>false</c></exception>
-        public bool Reject
-        {
-            get => reject;
-            set
-            {
-                if (!CanChange)
-                    throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(Reject)} is not allowed");
-                reject = value;
-            }
-        }
-        private bool reject;
-
-
-        /// <summary>
-        /// Defines if rejecting is and modifing allowed.
-        /// </summary>
-        public bool CanChange { get; private set; }
-
-        /// <summary>
-        /// Determins if the Property will actually change, or if only the value should be veryfied
-        /// </summary>
-        public bool ObjectValueChanging { get; }
-
-        /// <summary>
-        /// The Provider which value is about to change.
-        /// </summary>
-        public ValueProvider<TKey> ChangingProvider { get; }
-
-        /// <summary>
-        /// The Provider that Provides the value before the change.
-        /// </summary>
-        /// <remarks>
-        /// The Provider will cahnge if <see cref="ObjectValueChanging"/> is <c>true</c>.
-        /// </remarks>
-        public ValueProvider<TKey> CurrentProvider { get; }
-
-        /// <summary>
-        /// Set this Property to imply an data error.
-        /// </summary>
-        public StringResource Error { get; set; }
+        public ProviderChanged Provider { get; }
 
         /// <summary>
         /// Register at this event if you need to perform an action after the value was change on the Proeprty.
@@ -130,47 +36,164 @@ namespace NDProperty.Propertys
         /// <remarks>
         /// The eventhandler will be called before the value is changed. Accessing the Property at this time wil result in the old value.<para/>
         /// If you need to call methods that will access this property and the methods need the new value, call those metheds in an Action that is
-        /// registert at this event.
+        /// registert at this event.<para/>
+        /// This Handler will also be fired if the actual property of the Object will not change.
         /// </remarks>
         public event EventHandler<ValueChangedEventArgs> ExecuteAfterChange;
 
         internal void FireExecuteAfterChange(object sender)
         {
-            ExecuteAfterChange?.Invoke(sender, new ValueChangedEventArgs(NewValue, HasNewValue, OldValue, HasOldValue, ChangingProvider, CurrentProvider, ObjectValueChanging));
+            ExecuteAfterChange?.Invoke(sender, new ValueChangedEventArgs(Property, Provider));
         }
 
+        public class ProviderChanged
+        {
+            public ProviderChanged(OnChangingArg<TKey, TValue> parent, ValueProvider<TKey> changingProvider, bool rejectAllowed, TValue oldValue, TValue newValue, bool hasOldValue, bool hasNewValue)
+            {
+                this.parent = parent;
+                CanChange = true;
+                HasOldValue = hasOldValue;
+                HasNewValue = hasNewValue;
+                OldValue = oldValue;
+                NewValue = newValue;
+                MutatedValue = newValue;
+                ChangingProvider = changingProvider;
+                CanChange = rejectAllowed;
+            }
+
+            /// <summary>
+            /// The provider that is changing.
+            /// </summary>
+            public ValueProvider<TKey> ChangingProvider { get; }
+
+            /// <summary>
+            /// The value before the change on the Provider.
+            /// </summary>
+            internal TValue OldValue { get; }
+            /// <summary>
+            /// The value after the change on the Provider.
+            /// </summary>
+            public TValue NewValue { get; }
+
+            /// <summary>
+            /// If <c>false</c> the Value was not set yet on this provider.
+            /// </summary>
+            public bool HasOldValue { get; }
+            /// <summary>
+            /// If <c>false</c> the Value on this Provider will be deleted.
+            /// </summary>
+            public bool HasNewValue { get; }
+
+            /// <summary>
+            /// This value can be changed by the called function to transform the value befor it is set on the provider.
+            /// </summary>
+            /// <remarks>
+            /// Deletion of a value can't be mutated.
+            /// </remarks>
+            /// <exception cref="InvalidOperationException">When CanReject <c>false</c></exception>
+            public TValue MutatedValue
+            {
+                get => this.mutatedValue;
+                set
+                {
+                    if (!CanChange)
+                        throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(MutatedValue)} is not allowed");
+                    this.mutatedValue = value;
+                    if (ChangingProvider == this.parent.Property.NewProvider) // we need to publicate the mutation to Property
+                    {
+                        this.parent.newActualValue = value;
+                        this.parent.didChange = !Equals(this.parent.Property.OldValue, this.parent.Property.NewValue);
+                    }
+                }
+            }
+            private TValue mutatedValue;
+
+            /// <summary>
+            /// If set to true the change will not be applied.
+            /// </summary>
+            /// <remarks>
+            /// Deletion of a value can't be rejected.
+            /// </remarks>
+            /// <exception cref="InvalidOperationException">When CanReject <c>false</c></exception>
+            public bool Reject
+            {
+                get => this.reject;
+                set
+                {
+                    if (!CanChange)
+                        throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(Reject)} is not allowed");
+                    this.reject = value;
+                }
+            }
+            private bool reject;
+            private readonly OnChangingArg<TKey, TValue> parent;
+
+            /// <summary>
+            /// Defines if rejecting is and modifing allowed.
+            /// </summary>
+            public bool CanChange { get; private set; }
+        }
+
+        public class PropertyChanged
+        {
+            public PropertyChanged(OnChangingArg<TKey, TValue> parent, TValue oldValue, TValue newValue, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider)
+            {
+                this.parent = parent;
+                OldProvider = oldProvider;
+                NewProvider = newProvider;
+                OldValue = oldValue;
+                parent.newActualValue = newValue;
+                parent.didChange = !Equals(OldValue, NewValue);
+            }
+
+            /// <summary>
+            /// The value of the Property before the change on the Provider.
+            /// </summary>
+            internal TValue OldValue { get; }
+            /// <summary>
+            /// The value of the Property after the change on the Provider.
+            /// </summary>
+            public TValue NewValue => this.parent.newActualValue;
+
+
+            /// <summary>
+            /// The Provider that provides the Value for the Property after the change.
+            /// </summary>
+            public ValueProvider<TKey> NewProvider { get; }
+
+            private readonly OnChangingArg<TKey, TValue> parent;
+
+            /// <summary>
+            /// The Provider that provides the Value for the Property befor the change.
+            /// </summary>
+            public ValueProvider<TKey> OldProvider { get; }
+
+
+            /// <summary>
+            /// Determins if the Property will actually change, or if only the value should be veryfied
+            /// </summary>
+            public bool ObjectValueChanging => this.parent.didChange;
+
+        }
 
         public class ValueChangedEventArgs : EventArgs
         {
-            public ValueChangedEventArgs(TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, bool objectValueChanging)
+            public ValueChangedEventArgs(PropertyChanged property, ProviderChanged provider)
             {
-                NewValue = newValue;
-                OldValue = oldValue;
-                HasNewValue = hasNewValue;
-                HasOldValue = hasOldValue;
-
-                ChangingProvider = changingProvider ?? throw new ArgumentNullException(nameof(changingProvider));
-                CurrentProvider = currentProvider ?? throw new ArgumentNullException(nameof(currentProvider));
-                ObjectValueChanging = objectValueChanging;
+                Property = property;
+                Provider = provider;
             }
 
-            public TValue NewValue { get; }
-            public TValue OldValue { get; }
-            public ValueProvider<TKey> ChangingProvider { get; }
-            public ValueProvider<TKey> CurrentProvider { get; }
-            public bool ObjectValueChanging { get; }
-            public bool HasNewValue { get; }
-            public bool HasOldValue { get; }
+            public PropertyChanged Property { get; }
+
+            public ProviderChanged Provider { get; }
+
         }
     }
 
     public class OnChangingArg<TKey, TType, TValue> : OnChangingArg<TKey, TValue> where TType : class
     {
-        public OnChangingArg(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged, bool rejectAllowed) : base(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged, rejectAllowed)
-        {
-            this.ChangedObject = changedObject;
-        }
-        public OnChangingArg(TType changedObject, TValue oldValue, bool hasOldValue, TValue newValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> currentProvider, TValue currentValue, bool willBeChanged) : base(oldValue, hasOldValue, newValue, hasNewValue, changingProvider, currentProvider, currentValue, willBeChanged)
+        public OnChangingArg(TType changedObject, TValue oldProviderValue, bool hasOldValue, TValue newProviderValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider, TValue oldPropertyValue, TValue newPropertyValue, bool rejectAllowed) : base(oldProviderValue, hasOldValue, newProviderValue, hasNewValue, changingProvider, oldProvider, newProvider, oldPropertyValue, newPropertyValue, rejectAllowed)
         {
             this.ChangedObject = changedObject;
         }

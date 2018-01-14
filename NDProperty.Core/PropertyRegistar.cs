@@ -282,8 +282,8 @@ namespace NDProperty
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
-            var value = onChangedArg.MutatedValue;
-            if (!onChangedArg.Reject)
+            var value = onChangedArg.Provider.MutatedValue;
+            if (!onChangedArg.Provider.Reject)
             {
 
                 bool updateSuccsessfull;
@@ -315,7 +315,7 @@ namespace NDProperty
                     if (!updateSuccsessfull)
                         return false;
                     foreach (var item in oldValueList)
-                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
+                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.Provider.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
                 }
                 else
                     updateSuccsessfull = updateCode();
@@ -323,42 +323,42 @@ namespace NDProperty
                 if (!updateSuccsessfull)
                     return false;
 
-                TValue newActualValue = default;
-                if (onChangedArg.ChangingProvider == onChangedArg.CurrentProvider && !onChangedArg.HasNewValue)
-                {
-                    // the current value was provided by the changing provider but now it will no longer have a value
-                    // we need to find out what the new value will be.
-                    bool found = false;
-                    foreach (var item in PropertyRegistar<TKey>.ValueProviders)
-                    {
-                        var (providerValue, hasValue) = item.GetValue(obj, property);
-                        if (hasValue)
-                        {
-                            found = true;
-                            newActualValue = providerValue;
-                            break;
-                        }
-                    }
-                    if (!found)
-                        throw new InvalidOperationException("No Value Found");
-                }
-                else
-                    newActualValue = value;
+                //TValue newActualValue = default;
+                //if (onChangedArg.ChangingProvider == onChangedArg.CurrentProvider && !onChangedArg.HasNewValue)
+                //{
+                //    // the current value was provided by the changing provider but now it will no longer have a value
+                //    // we need to find out what the new value will be.
+                //    bool found = false;
+                //    foreach (var item in PropertyRegistar<TKey>.ValueProviders)
+                //    {
+                //        var (providerValue, hasValue) = item.GetValue(obj, property);
+                //        if (hasValue)
+                //        {
+                //            found = true;
+                //            newActualValue = providerValue;
+                //            break;
+                //        }
+                //    }
+                //    if (!found)
+                //        throw new InvalidOperationException("No Value Found");
+                //}
+                //else
+                //    newActualValue = value;
 
-                if (!Equals(onChangedArg.OldValue, value) && onChangedArg.ObjectValueChanging)
-                    FireValueChanged(property, obj, sender, onChangedArg.OldValue, newActualValue);
-                if (onChangedArg.ObjectValueChanging)
-                    onChangedArg.FireExecuteAfterChange(sender);
+                if (onChangedArg.Property.ObjectValueChanging)
+                    FireValueChanged(property, obj, sender, onChangedArg.Property.OldValue, onChangedArg.Property.NewValue);
 
-                var currentProviderIndex = ProviderOrder[onChangedArg.ChangingProvider];
+                onChangedArg.FireExecuteAfterChange(sender);
+
+                var currentProviderIndex = ProviderOrder[onChangedArg.Provider.ChangingProvider];
 
                 for (int i = 0; i < ValueProviders.Count; i++)
                 {
                     var providerToNotify = ValueProviders[i];
                     if (i < currentProviderIndex)
-                        providerToNotify.LowerProviderUpdated(sender, obj, property, value, onChangedArg.ChangingProvider);
+                        providerToNotify.LowerProviderUpdated(sender, obj, property, value, onChangedArg.Provider.ChangingProvider);
                     else if (i > currentProviderIndex)
-                        providerToNotify.HigherProviderUpdated(sender, obj, property, value, onChangedArg.ChangingProvider);
+                        providerToNotify.HigherProviderUpdated(sender, obj, property, value, onChangedArg.Provider.ChangingProvider);
                 }
 
                 return true;

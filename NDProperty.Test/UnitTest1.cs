@@ -91,7 +91,7 @@ namespace NDProperty.Test
 
             PropertyRegistar<Configuration>.SetValue(p2, t, str1);
             Assert.IsNotNull(t.testArguments);
-            Assert.AreEqual(str1, t.testArguments.NewValue);
+            Assert.AreEqual(str1, t.testArguments.Property.NewValue);
             //Assert.AreEqual(str1, t.testArguments.OldValue);
         }
 
@@ -577,9 +577,9 @@ namespace NDProperty.Test
 
         private void OnStrChanged(OnChangingArg<Configuration, string> arg)
         {
-            arg.Reject = Reject;
+            arg.Provider.Reject = Reject;
             if (Mutate != null)
-                arg.MutatedValue = Mutate;
+                arg.Provider.MutatedValue = Mutate;
         }
         #endregion
 

@@ -37,31 +37,67 @@ namespace NDProperty.Providers
             return Update(sender, targetObject, property, newValue, hasNewValue, () => true, oldValue, hasOldValue, currentProvider, currentValue);
         }
 
-        internal bool Update<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newValue, bool hasNewValue, Func<bool> updateCode, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue)
+        internal bool Update<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newProviderValue, bool hasNewValue, Func<bool> updateCode, TValue oldProviderValue, bool hasOldValue, ValueProvider<TKey> oldActualProvider, TValue oldActualValue)
             where TType : class
             where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
-            var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[currentProvider];
+            var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[oldActualProvider];
             var thisIndex = PropertyRegistar<TKey>.ProviderOrder[this];
-            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldValue, newValue))
+            if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals) && Object.Equals(oldProviderValue, newProviderValue))
                 return true;
+
+            TValue newActualValue = default;
+            ValueProvider<TKey> newActualProvider = null;
+            if (this == oldActualProvider && !hasNewValue)
+            {
+                // the current value was provided by the changing provider but now it will no longer have a value
+                // we need to find out what the new value will be.
+                bool found = false;
+                foreach (var item in PropertyRegistar<TKey>.ValueProviders)
+                {
+                    if (item == this)
+                        continue;
+                    var (providerValue, hasValue) = item.GetValue(targetObject, property);
+                    if (hasValue)
+                    {
+                        found = true;
+                        newActualProvider = item;
+                        newActualValue = providerValue;
+                        break;
+                    }
+                }
+                if (!found)
+                    throw new InvalidOperationException("No Value Found");
+            }
+            else if (otherProviderIndex >= thisIndex)
+            {
+                newActualProvider = this;
+                newActualValue = newProviderValue;
+            }
+            else
+            {
+                newActualProvider = oldActualProvider;
+                newActualValue = oldActualValue;
+            }
+
+
             // We need to call the actial update after we recived the current old value. Otherwise we could already read the 
             OnChangingArg<TKey, TValue> onChangingArg;
             if (property as object is NDAttachedPropertyKey<TKey, TType, TValue> attach)
             {
-                var attachArg = OnChangingArg.Create(targetObject, oldValue, hasOldValue, newValue, hasNewValue, this, currentProvider, currentValue, otherProviderIndex >= thisIndex, hasNewValue || !this.canDeletionBePrevented);
+                var attachArg = OnChangingArg.Create(targetObject, oldProviderValue, hasOldValue, newProviderValue, hasNewValue, this, oldActualProvider, newActualProvider, oldActualValue, newActualValue, hasNewValue || !this.canDeletionBePrevented);
                 onChangingArg = attachArg;
                 attach.changedMethod(attachArg);
             }
             else if (property as object is NDPropertyKey<TKey, TType, TValue> p)
             {
-                onChangingArg = OnChangingArg.Create(oldValue, hasOldValue, newValue, hasNewValue, this, currentProvider, currentValue, otherProviderIndex >= thisIndex, hasNewValue || !this.canDeletionBePrevented);
+                onChangingArg = OnChangingArg.Create(oldProviderValue, hasOldValue, newProviderValue, hasNewValue, this, oldActualProvider, newActualProvider, oldActualValue, newActualValue, hasNewValue || !this.canDeletionBePrevented);
                 p.changedMethod(targetObject)(onChangingArg);
             }
             else
                 throw new NotSupportedException();
             var result = PropertyRegistar<TKey>.ChangeValue(sender, property, targetObject, onChangingArg, updateCode);
-            FireEventHandler(property, targetObject, sender, new ChangedEventArgs<TKey, TType, TValue>(targetObject, property, oldValue, newValue));
+            FireEventHandler(property, targetObject, sender, ChangedEventArgs.Create(targetObject, property, oldProviderValue, newProviderValue));
             return result;
         }
 
@@ -85,7 +121,7 @@ namespace NDProperty.Providers
         {
             public event EventHandler<T> Handler;
 
-            public int Count => Handler?.GetInvocationList()?.Length??0;
+            public int Count => Handler?.GetInvocationList()?.Length ?? 0;
 
             public void Fire(object sender, T arg) => Handler?.Invoke(sender, arg);
         }

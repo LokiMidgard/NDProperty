@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>0.0.12</Version>
+    <Version>0.0.13</Version>
     <Version Condition="'$(Configuration)'=='Debug'">$(Version)-Debug</Version>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
@@ -11,13 +11,10 @@
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
-- Extracted Interface for Contravariance
-- Fix order of generic parameter(**Breaking Change**)
-- Fix Spelling of Settings property in NDPAttribute (**Breaking Change**)
-  Fixes also bug for readonly Propertys
-- ChangedEventArgs now has information about the changed Property.
-- Changed Binding Code (**Breaking Change**)
-  Now supports proper binding chaning of propertys. E.g bind a to x.y.z (changing y also changes z)
+- Fix Bug in Attached Propertys when value was null
+- Refactored OnChangingArgs (**Breaking Change**)
+  Fix a Bug where it was not correctly firering when deliting a Property.
+  Now it should be better structured.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

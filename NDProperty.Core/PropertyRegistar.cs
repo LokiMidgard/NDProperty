@@ -345,7 +345,7 @@ namespace NDProperty
                 //else
                 //    newActualValue = value;
 
-                if (onChangedArg.Property.ObjectValueChanging)
+                if (onChangedArg.Property.IsObjectValueChanging)
                     FireValueChanged(property, obj, sender, onChangedArg.Property.OldValue, onChangedArg.Property.NewValue);
 
                 onChangedArg.FireExecuteAfterChange(sender);

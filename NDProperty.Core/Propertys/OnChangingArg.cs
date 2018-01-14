@@ -69,7 +69,7 @@ namespace NDProperty.Propertys
             /// <summary>
             /// The value before the change on the Provider.
             /// </summary>
-            internal TValue OldValue { get; }
+            public TValue OldValue { get; }
             /// <summary>
             /// The value after the change on the Provider.
             /// </summary>
@@ -149,7 +149,7 @@ namespace NDProperty.Propertys
             /// <summary>
             /// The value of the Property before the change on the Provider.
             /// </summary>
-            internal TValue OldValue { get; }
+            public TValue OldValue { get; }
             /// <summary>
             /// The value of the Property after the change on the Provider.
             /// </summary>
@@ -172,7 +172,7 @@ namespace NDProperty.Propertys
             /// <summary>
             /// Determins if the Property will actually change, or if only the value should be veryfied
             /// </summary>
-            public bool ObjectValueChanging => this.parent.didChange;
+            public bool IsObjectValueChanging => this.parent.didChange;
 
         }
 

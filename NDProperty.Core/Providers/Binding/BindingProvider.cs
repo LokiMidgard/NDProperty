@@ -27,9 +27,6 @@ namespace NDProperty.Providers.Binding
             where TSourceType : class
         {
             return new Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType>(source, property, configuration as IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue>);
-
-            throw new NotImplementedException();
-
         }
 
 
@@ -47,6 +44,8 @@ namespace NDProperty.Providers.Binding
                 where TTargetType : class
 
         {
+            TSourceValue CurrentValue { get; }
+
             event Action<TSourceValue> NewValue;
             void Generate<TSourceType>(TSourceType source, NDBasePropertyKey<TKey, TSourceType, TSourceValue> bindingProperty) where TSourceType : class;
             void Destroy();
@@ -56,6 +55,8 @@ namespace NDProperty.Providers.Binding
             where TType : class
         {
             public readonly TType of;
+
+            public override TValue CurrentValue => PropertyRegistar<TKey>.GetValue(Property, of);
 
             public Start(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType of) : base(property)
             {
@@ -71,6 +72,8 @@ namespace NDProperty.Providers.Binding
         private class StartWritable<TKey, TType, TValue> : BindingConfiguration<TKey, TType, TValue>, IBindingConfiguratorWritable<TKey, TType, TValue>, IHaveWritableProperty<TKey, TType, TValue>
             where TType : class
         {
+            public override TValue CurrentValue => PropertyRegistar<TKey>.GetValue(Property, of);
+
             public readonly TType of;
 
             public new NDBasePropertyKey<TKey, TType, TValue> Property { get; }
@@ -103,6 +106,8 @@ namespace NDProperty.Providers.Binding
             where TType : class, TOldValue
             where TOldType : class
         {
+            public override TValue CurrentValue => PropertyRegistar<TKey>.GetValue(Property, (TType)this.oldBindingConfiguration.CurrentValue);
+
             private readonly BindingConfiguration<TKey, TOldType, TOldValue> oldBindingConfiguration;
 
             public Over(NDReadOnlyPropertyKey<TKey, TType, TValue> property, BindingConfiguration<TKey, TOldType, TOldValue> oldBindingConfiguration) : base(property)
@@ -126,6 +131,9 @@ namespace NDProperty.Providers.Binding
         private class OverWritable<TKey, TType, TValue, TOldType, TOldValue> : Over<TKey, TType, TValue, TOldType, TOldValue>, IBindingConfiguratorWritable<TKey, TType, TValue>, IHaveWritableProperty<TKey, TType, TValue> where TType : class, TOldValue
     where TOldType : class
         {
+
+
+
             public new NDBasePropertyKey<TKey, TType, TValue> Property { get; }
 
             public OverWritable(NDBasePropertyKey<TKey, TType, TValue> property, BindingConfiguration<TKey, TOldType, TOldValue> oldBindingConfiguration) : base(property, oldBindingConfiguration)
@@ -153,6 +161,8 @@ namespace NDProperty.Providers.Binding
             public readonly BindingConfiguration<TKey, TTargetType, TTargetValue> bindingConfiguration;
             public readonly Func<TTargetValue, TSourceValue> converter;
 
+            public TSourceValue CurrentValue => this.converter(this.bindingConfiguration.CurrentValue);
+
             public event Action<TSourceValue> NewValue;
 
             public End(BindingConfiguration<TKey, TTargetType, TTargetValue> bindingConfiguration, Func<TTargetValue, TSourceValue> converter)
@@ -177,6 +187,8 @@ namespace NDProperty.Providers.Binding
     where TTargetType : class
         {
             public readonly BindingConfiguration<TKey, TTargetType, TSourceValue> bindingConfiguration;
+
+            public TSourceValue CurrentValue => this.bindingConfiguration.CurrentValue;
 
             public event Action<TSourceValue> NewValue;
 
@@ -206,7 +218,11 @@ namespace NDProperty.Providers.Binding
 
             private Action destoryHandler;
 
+            public TValue CurrentValue => this.bindingConfiguration.CurrentValue;
+
             public event Action<TValue> NewValue;
+
+
 
             public EndWritable(BindingConfiguration<TKey, TType, TValue> bindingConfiguration)
             {
@@ -253,6 +269,8 @@ namespace NDProperty.Providers.Binding
             private Func<TTargetValue, TSourceValue> convert;
 
             private Action destoryHandler;
+
+            public TSourceValue CurrentValue => this.convert(this.bindingConfiguration.CurrentValue);
 
             public event Action<TSourceValue> NewValue;
 
@@ -308,7 +326,7 @@ namespace NDProperty.Providers.Binding
         }
         private abstract class BindingConfiguration<TKey, TType, TValue> : BindingConfiguration<TKey>, IBindingConfigurator<TKey, TType, TValue> where TType : class
         {
-
+            public abstract TValue CurrentValue { get; }
 
             internal event Action<TValue> NewValueRecived;
 
@@ -443,6 +461,12 @@ namespace NDProperty.Providers.Binding
             configuration.NewValue += Configuration_NewValue;
             BindingProvider<TKey>.Instance.RegisterBinding(this);
 
+            BindingProvider<TKey>.Instance.Update(this, configuration.CurrentValue, true, () =>
+           {
+               CurrentValue = configuration.CurrentValue;
+               HasValue = true;
+               return true;
+           });
         }
 
         private void Configuration_NewValue(TSourceValue obj)

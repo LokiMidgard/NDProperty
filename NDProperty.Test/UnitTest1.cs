@@ -288,7 +288,8 @@ namespace NDProperty.Test
         {
             var t1 = new TestObject();
             var t2 = new TestObject();
-            const string str1 = "Hallo Welt!";
+            const string str0 = "Hallo Welt!0";
+            const string str1 = "Hallo Welt!1";
             const string str2 = "Hallo Welt!2";
 
             ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
@@ -297,14 +298,20 @@ namespace NDProperty.Test
             {
                 eventArg = e;
             };
-
+            t2.Str = str0;
             using (TestObject.StrProperty.Bind(t1, TestObject.StrProperty.Of(t2).OneWay()))
             {
+                Assert.IsNotNull(eventArg);
+                Assert.AreEqual(str0, t1.Str);
+                Assert.AreEqual(str0, eventArg.NewValue);
+                Assert.AreEqual(null, eventArg.OldValue);
+                eventArg = null;
+
                 t2.Str = str1;
                 Assert.IsNotNull(eventArg);
                 Assert.AreEqual(str1, t1.Str);
                 Assert.AreEqual(str1, eventArg.NewValue);
-                Assert.AreEqual(null, eventArg.OldValue);
+                Assert.AreEqual(str0, eventArg.OldValue);
                 eventArg = null;
             }
 
@@ -365,6 +372,23 @@ namespace NDProperty.Test
 
             using (TestObject.StrProperty.Bind(t1, TestObject.ParentProperty.Of(t2).Over(TestObject.StrProperty).OneWay()))
             {
+                Assert.IsNotNull(eventArg1);
+                Assert.IsNull(eventArg2);
+                Assert.IsNull(eventArg3);
+                Assert.IsNull(eventArg4);
+
+                Assert.AreEqual(str3, t1.Str);
+                Assert.AreEqual(null, t2.Str);
+                Assert.AreEqual(str3, t3.Str);
+                Assert.AreEqual(str4, t4.Str);
+
+                Assert.AreEqual(str3, eventArg1.NewValue);
+                Assert.AreEqual(null, eventArg1.OldValue);
+                eventArg1 = null;
+                eventArg2 = null;
+                eventArg3 = null;
+                eventArg4 = null;
+
                 t3.Str = str1;
                 Assert.IsNotNull(eventArg1);
                 Assert.IsNull(eventArg2);
@@ -378,7 +402,7 @@ namespace NDProperty.Test
 
                 Assert.AreEqual(str1, eventArg1.NewValue);
                 Assert.AreEqual(str1, eventArg3.NewValue);
-                Assert.AreEqual(null, eventArg1.OldValue);
+                Assert.AreEqual(str3, eventArg1.OldValue);
                 Assert.AreEqual(str3, eventArg3.OldValue);
                 eventArg1 = null;
                 eventArg2 = null;

@@ -31,7 +31,6 @@ This is all that is needed for Propertys with getter setter events and everythin
 + Default value (For compile time constants)
 + Binding (OneWay and TwoWay)
   + Between NDPropertys
-  + Between NDProperty and POCO
 + Isolation to allow parrallel use
 + Modulised value resulution to allow custimisation
 
@@ -39,6 +38,8 @@ This is all that is needed for Propertys with getter setter events and everythin
 
 + Optimisation using WeakReferences
 + Default value (Using Generator)
++ Binding (OneWay and TwoWay)
+  + Between NDProperty and POCO
 
 ### Things DependencyObjects have that this Framework will not support
 
@@ -82,7 +83,7 @@ public partial class TestObject
 Using the Source Code Generator the boilerplate code is reduced. All that will need 
 to be implemented is the change handler. The compiled code will be the same as above. 
 **Important!** The Method must begin with ```On``` and end with ```Changing```. The 
-Property name will be whatever is between this pr‰- and postfix. If this naming convention 
+Property name will be whatever is between this pr√§- and postfix. If this naming convention 
 is not adhered this Property will not be generated.
 
 ```c#

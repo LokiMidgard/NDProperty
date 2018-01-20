@@ -20,9 +20,8 @@ namespace NDProperty.Providers
             this.canDeletionBePrevented = canDeletionBePrevented;
         }
 
-        protected bool Update<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newValue, bool hasNewValue, Func<bool> updateCode)
+        protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, Func<bool> updateCode)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             var (currentValue, currentProvider) = PropertyRegistar<TKey>.GetValueAndProvider(property, targetObject);
             var (oldValue, hasOldValue) = GetValue(targetObject, property);
@@ -30,16 +29,14 @@ namespace NDProperty.Providers
             return Update(sender, targetObject, property, newValue, hasNewValue, updateCode, oldValue, hasOldValue, currentProvider, currentValue);
         }
 
-        protected bool Update<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue)
+        protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             return Update(sender, targetObject, property, newValue, hasNewValue, () => true, oldValue, hasOldValue, currentProvider, currentValue);
         }
 
-        internal bool Update<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue newProviderValue, bool hasNewValue, Func<bool> updateCode, TValue oldProviderValue, bool hasOldValue, ValueProvider<TKey> oldActualProvider, TValue oldActualValue)
+        internal bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newProviderValue, bool hasNewValue, Func<bool> updateCode, TValue oldProviderValue, bool hasOldValue, ValueProvider<TKey> oldActualProvider, TValue oldActualValue)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[oldActualProvider];
             var thisIndex = PropertyRegistar<TKey>.ProviderOrder[this];
@@ -104,13 +101,11 @@ namespace NDProperty.Providers
 
         public abstract (TValue value, bool hasValue) GetValue<TType, TValue>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TKey, TType, TValue> property) where TType : class;
 
-        public virtual void HigherProviderUpdated<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, ValueProvider<TKey> updatedProvider)
+        public virtual void HigherProviderUpdated<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue value, ValueProvider<TKey> updatedProvider)
                     where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         { }
-        public virtual void LowerProviderUpdated<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, ValueProvider<TKey> updatedProvider)
+        public virtual void LowerProviderUpdated<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue value, ValueProvider<TKey> updatedProvider)
                     where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         { }
 
         private readonly ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, EventWrapper>> listener = new ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, EventWrapper>>();

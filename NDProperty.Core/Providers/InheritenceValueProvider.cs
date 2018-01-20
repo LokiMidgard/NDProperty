@@ -86,9 +86,8 @@ namespace NDProperty.Providers
         }
 
 
-        internal void SetValue<TType, TValue, TPropertyType>(TType targetObject, TPropertyType property, TType sourceObject, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue, object sender = null)
+        internal void SetValue<TType, TValue>(TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TType sourceObject, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue, object sender = null)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             if (sender == null)
                 sender = targetObject;

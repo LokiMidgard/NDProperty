@@ -21,12 +21,11 @@ namespace NDProperty.Providers.Binding
 
         //    }
 
-        public static Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType> Bind<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType>(this TPropertyType property, TSourceType source, IBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue> configuration)
-            where TPropertyType : NDBasePropertyKey<TKey, TSourceType, TSourceValue>, INDProperty<TKey, TSourceType, TSourceValue>
+        public static Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue> Bind<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue>(this NDBasePropertyKey<TKey, TSourceType, TSourceValue> property, TSourceType source, IBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue> configuration)
             where TTargetType : class
             where TSourceType : class
         {
-            return new Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType>(source, property, configuration as IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue>);
+            return new Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue>(source, property, configuration as IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue>);
         }
 
 
@@ -444,20 +443,18 @@ namespace NDProperty.Providers.Binding
         public bool HasValue { get; protected set; }
 
     }
-    public abstract class Binding<TKey, TSourceType, TSourceValue, TPropertyType> : Binding<TKey, TSourceType, TSourceValue>
-           where TPropertyType : NDReadOnlyPropertyKey<TKey, TSourceType, TSourceValue>, INDProperty<TKey, TSourceType, TSourceValue>
+    public abstract class BindingWritable<TKey, TSourceType, TSourceValue> : Binding<TKey, TSourceType, TSourceValue>
            where TSourceType : class
     {
-        public new TPropertyType Property { get; }
+        public new NDBasePropertyKey<TKey, TSourceType, TSourceValue> Property { get; }
 
-        internal Binding(TSourceType target, TPropertyType property) : base(target, property)
+        internal BindingWritable(TSourceType target, NDBasePropertyKey<TKey, TSourceType, TSourceValue> property) : base(target, property)
         {
             Property = property;
         }
 
     }
-    public sealed class Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType> : Binding<TKey, TSourceType, TSourceValue, TPropertyType>, IDisposable
-            where TPropertyType : NDBasePropertyKey<TKey, TSourceType, TSourceValue>, INDProperty<TKey, TSourceType, TSourceValue>
+    public sealed class Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue> : BindingWritable<TKey, TSourceType, TSourceValue>, IDisposable
             where TTargetType : class
             where TSourceType : class
     {
@@ -465,7 +462,7 @@ namespace NDProperty.Providers.Binding
 
         private Binding.IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue> configuration;
 
-        internal Binding(TSourceType target, TPropertyType property, Binding.IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue> configuration) : base(target, property)
+        internal Binding(TSourceType target, NDBasePropertyKey<TKey, TSourceType, TSourceValue> property, Binding.IInternalBindingConfiguration<TKey, TSourceValue, TTargetType, TTargetValue> configuration) : base(target, property)
         {
             this.configuration = configuration;
             configuration.Generate(target, property);
@@ -574,16 +571,13 @@ namespace NDProperty.Providers.Binding
             return binding;
         }
 
-        internal bool Update<TType, TValue, TPropertyType>(Binding<TKey, TType, TValue, TPropertyType> binding, TValue newValue, bool hasNewValue, Func<bool> updateCode)
+        internal bool Update<TType, TValue>(BindingWritable<TKey, TType, TValue> binding, TValue newValue, bool hasNewValue, Func<bool> updateCode)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
-
         {
             return base.Update(binding, binding.Target, binding.Property, newValue, hasNewValue, updateCode);
         }
 
-        internal void RegisterBinding<TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType>(Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType> binding)
-            where TPropertyType : NDBasePropertyKey<TKey, TSourceType, TSourceValue>, INDProperty<TKey, TSourceType, TSourceValue>
+        internal void RegisterBinding<TSourceType, TSourceValue, TTargetType, TTargetValue>(Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue> binding)
             where TTargetType : class
             where TSourceType : class
         {
@@ -600,8 +594,7 @@ namespace NDProperty.Providers.Binding
             //GetBinding(e.ChangedObject,e.)
         }
 
-        internal void RemoveBinding<TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType>(Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue, TPropertyType> binding)
-            where TPropertyType : NDBasePropertyKey<TKey, TSourceType, TSourceValue>, INDProperty<TKey, TSourceType, TSourceValue>
+        internal void RemoveBinding<TSourceType, TSourceValue, TTargetType, TTargetValue>(Binding<TKey, TSourceType, TSourceValue, TTargetType, TTargetValue> binding)
             where TTargetType : class
             where TSourceType : class
         {
@@ -622,7 +615,7 @@ namespace NDProperty.Providers.Binding
         //where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         //    { }
 
-        public override void HigherProviderUpdated<TType, TValue, TPropertyType>(object sender, TType targetObject, TPropertyType property, TValue value, ValueProvider<TKey> updatedProvider)
+        public override void HigherProviderUpdated<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue value, ValueProvider<TKey> updatedProvider)
         {
             base.HigherProviderUpdated(sender, targetObject, property, value, updatedProvider);
 

@@ -262,9 +262,8 @@ namespace NDProperty
         /// <remarks>
         /// if <see cref="NDPropertySettings.CallOnChangedHandlerOnEquals"/> is not set and the <paramref name="value"/> equals the current value, this method returns <c>true</c>.
         /// </remarks>
-        public static bool SetValue<TType, TValue, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
+        public static bool SetValue<TType, TValue>(NDBasePropertyKey<TKey, TType, TValue> property, TType changingObject, TValue value)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             return LocalValueProvider<TKey>.Instance.SetValue(property, changingObject, value);
         }
@@ -278,9 +277,8 @@ namespace NDProperty
         /// <param name="obj"></param>
         /// <param name="onChangedArg"></param>
         /// <returns>true if <paramref name="onChangedArg"/> did not had reject set and the update function returns true.</returns>
-        internal static bool ChangeValue<TType, TValue, TPropertyType>(object sender, TPropertyType property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<bool> updateCode)
+        internal static bool ChangeValue<TType, TValue>(object sender, NDBasePropertyKey<TKey, TType, TValue> property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<bool> updateCode)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             var value = onChangedArg.Provider.MutatedValue;
             if (!onChangedArg.Provider.Reject)
@@ -412,10 +410,9 @@ namespace NDProperty
         /// If this property supports inheritence it will now inherre the value from it parent againe. <para/>
         /// If the <see cref="NullTreatment.RemoveLocalValue"/> is set, assigneing null to the property will resolve in the same as calling this Method.
         /// </remarks>
-        public static bool RemoveLocalValue<TType, TValue, TPropertyType>(TPropertyType property, TType obj) where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
+        public static bool RemoveLocalValue<TType, TValue, TPropertyType>(NDProperty.Propertys.NDBasePropertyKey<TKey, TType, TValue> property, TType obj) where TType : class
         {
-            return LocalValueProvider<TKey>.Instance.RemoveValue<TType, TValue, TPropertyType>(property, obj);
+            return LocalValueProvider<TKey>.Instance.RemoveValue<TType, TValue>(property, obj);
         }
 
         /// <summary>

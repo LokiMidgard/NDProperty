@@ -337,13 +337,12 @@ namespace NDProperty.Test
             var t3 = new TestObject();
             var t4 = new TestObject();
             const string str1 = "Hallo 1";
-            const string str2 = "Hallo 2";
-            const string str3 = "Hallo 3";
-            const string str4 = "Hallo 4";
-            const string str5 = "Hallo 5";
+            const string str2 = "Hallo 3";
+            const string str3 = "Hallo 4";
+            const string str4 = "Hallo 5";
 
-            t3.Str = str3;
-            t4.Str = str4;
+            t3.Str = str2;
+            t4.Str = str3;
 
             t2.Parent = t3;
 
@@ -377,12 +376,12 @@ namespace NDProperty.Test
                 Assert.IsNull(eventArg3);
                 Assert.IsNull(eventArg4);
 
-                Assert.AreEqual(str3, t1.Str);
+                Assert.AreEqual(str2, t1.Str);
                 Assert.AreEqual(null, t2.Str);
-                Assert.AreEqual(str3, t3.Str);
-                Assert.AreEqual(str4, t4.Str);
+                Assert.AreEqual(str2, t3.Str);
+                Assert.AreEqual(str3, t4.Str);
 
-                Assert.AreEqual(str3, eventArg1.NewValue);
+                Assert.AreEqual(str2, eventArg1.NewValue);
                 Assert.AreEqual(null, eventArg1.OldValue);
                 eventArg1 = null;
                 eventArg2 = null;
@@ -398,12 +397,12 @@ namespace NDProperty.Test
                 Assert.AreEqual(str1, t1.Str);
                 Assert.AreEqual(null, t2.Str);
                 Assert.AreEqual(str1, t3.Str);
-                Assert.AreEqual(str4, t4.Str);
+                Assert.AreEqual(str3, t4.Str);
 
                 Assert.AreEqual(str1, eventArg1.NewValue);
                 Assert.AreEqual(str1, eventArg3.NewValue);
-                Assert.AreEqual(str3, eventArg1.OldValue);
-                Assert.AreEqual(str3, eventArg3.OldValue);
+                Assert.AreEqual(str2, eventArg1.OldValue);
+                Assert.AreEqual(str2, eventArg3.OldValue);
                 eventArg1 = null;
                 eventArg2 = null;
                 eventArg3 = null;
@@ -415,12 +414,12 @@ namespace NDProperty.Test
                 Assert.IsNull(eventArg3);
                 Assert.IsNull(eventArg4);
 
-                Assert.AreEqual(str4, t1.Str);
+                Assert.AreEqual(str3, t1.Str);
                 Assert.AreEqual(null, t2.Str);
                 Assert.AreEqual(str1, t3.Str);
-                Assert.AreEqual(str4, t4.Str);
+                Assert.AreEqual(str3, t4.Str);
 
-                Assert.AreEqual(str4, eventArg1.NewValue);
+                Assert.AreEqual(str3, eventArg1.NewValue);
                 Assert.AreEqual(str1, eventArg1.OldValue);
                 eventArg1 = null;
                 eventArg2 = null;
@@ -437,23 +436,23 @@ namespace NDProperty.Test
             Assert.AreEqual(null, t1.Str);
             Assert.AreEqual(null, t2.Str);
             Assert.AreEqual(str1, t3.Str);
-            Assert.AreEqual(str4, t4.Str);
+            Assert.AreEqual(str3, t4.Str);
 
             Assert.AreEqual(null, eventArg1.NewValue);
-            Assert.AreEqual(str4, eventArg1.OldValue);
+            Assert.AreEqual(str3, eventArg1.OldValue);
             eventArg1 = null;
             eventArg2 = null;
             eventArg3 = null;
             eventArg4 = null;
 
             // check if binding is actual gone.
-            t4.Str = str5;
+            t4.Str = str4;
 
             Assert.IsNull(eventArg1);
             Assert.AreEqual(null, t1.Str);
             Assert.AreEqual(null, t2.Str);
             Assert.AreEqual(str1, t3.Str);
-            Assert.AreEqual(str5, t4.Str);
+            Assert.AreEqual(str4, t4.Str);
         }
 
 

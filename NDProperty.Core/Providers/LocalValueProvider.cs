@@ -14,9 +14,8 @@ namespace NDProperty.Providers
         }
 
 
-        public bool SetValue<TType, TValue, TPropertyType>(TPropertyType property, TType changingObject, TValue value)
+        public bool SetValue<TType, TValue>(NDBasePropertyKey<TKey, TType, TValue> property, TType changingObject, TValue value)
             where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
             //if (!property.Settigns.HasFlag(NDPropertySettings.CallOnChangedHandlerOnEquals))
             //{
@@ -68,11 +67,9 @@ namespace NDProperty.Providers
 
 
 
-        public bool RemoveValue<TType, TValue, TPropertyType>(TPropertyType property, TType changingObject)
+        public bool RemoveValue<TType, TValue>(NDBasePropertyKey<TKey, TType, TValue> property, TType changingObject)
               where TType : class
-            where TPropertyType : NDReadOnlyPropertyKey<TKey, TType, TValue>, INDProperty<TKey, TType, TValue>
         {
-
             return this.Update(changingObject, changingObject, property, default(TValue), false, () =>
             {
                 PropertyRegistar<TKey>.Lookup<TType, TValue>.Property.Remove((changingObject, property));

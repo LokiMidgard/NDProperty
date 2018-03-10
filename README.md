@@ -235,3 +235,65 @@ class MyConfiguration : IInitilizer<MyConfiguration>
 
 
 ```
+
+## Callback Events
+
+There are essential two kind of events. The Changed event everyone can subscrib to and the changing event that defines the property in the first place.
+
+The simpler one is the changed event, this contains 4 Propertys.
+
+- `NewValue`  
+   This contains the new Value. It is already set on the Property.
+- `OldValue`  
+   This contains the Value the Property had before the change occured.
+- `ChangedProperty`  
+   This is the PropertyKey that changed.
+- `ChangedObject`  
+   This is the Object that was changed.
+
+Every time the callback is called the Value of the Property has changed. The Changing event handler however is not quite that simple. It can be called without the Property actually changing. The reason for this is that the value can originate from different value providers (See [Value resulution](#Value-resulution)) and that the callback can prevent a change from happening.
+
+If a provider changes its value, regardless if the actul property value is affacted, this callback is called. E.g. if you have a high provider that provides the value of an property, and a lower priorised provider changes, this callback will be called, but the value of the property will not change.
+
+The event of this callback has 3 propertys:
+
+- `ChangedObject`  
+  This is a reference to the changing object.
+- `Provider`  
+  This encapsules all changes relevant for the provider.
+- `Property`
+  This encapsules all changes relevant for the Property.
+
+If you want to check if a property actually changed, you can use `Property.IsObjectValueChanging`. If this value is `true` the other values can give you more informations on the state of the Propery. Those additional values are:
+
+- `NewValue`  
+  This contains the new Value that will be set.
+- `OldValue`
+  This contains the old, current, Value.
+- `NewProvider`  
+  This shows wich provider is responsible for the new value.
+- `OldProvider`  
+  This shows wich provider was responsible untill now for the value. If both are the same, the provider didn't change.
+
+On the `Provider` property you have following propertys:
+
+- `NewValue`  
+  This contains the new Value that will be set on the provider. If a higher provider also provides a value, this will not be the new value of the Property (yet).
+- `OldValue`
+  This contains the old value of the provider. Again, this may not be the old value of the Property.
+- `HasNewValue`  
+  This tells if the provider will provide a value at all. If false `NewValue` has now mening.
+- `HasOldValue`
+  This tells if the provider had provide a value before. If false `OldValue` has now mening.
+- `ChangingProvider`  
+  Tells which provider is currently changing.
+- `Reject`  
+  Can be set to `true` in order to prevent this change from happening.
+- `MutatedValue`  
+  Can be set in order to change the Value that will be set. This can be used for example to trim a string.
+- `CanChange`  
+  If false the property `MutatedValue` and `Reject` mustn't be used.
+
+The last member missing is the event `ExecuteAfterChange` on the event argument. This can be used to execute code after the change happend. This can be usfull for INotifyPropertyChanged interfaces. Not using this can sometimes result in endless rekursion, if your recursion anchor is a check on the value of this property.
+
+

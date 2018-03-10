@@ -12,6 +12,7 @@
       <![CDATA[
 Changes:
  - Readonly on Attached Propertys did not work as intended.
+ - Fix problem with NDPropertys on generic classes.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

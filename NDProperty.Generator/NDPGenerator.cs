@@ -49,9 +49,30 @@ namespace NDProperty.Generator
 
         protected override SyntaxList<MemberDeclarationSyntax> GenerateProperty(MethodDeclarationSyntax method, SemanticModel semanticModel, bool isReadOnly)
         {
-
+            //if (!System.Diagnostics.Debugger.IsAttached)
+            //    System.Diagnostics.Debugger.Launch();
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
-            var className = SyntaxFactory.IdentifierName(originalClassDeclaration.Identifier.Text);
+
+            NameSyntax className;
+
+            if ((originalClassDeclaration?.TypeParameterList?.Parameters.Count ?? 0) > 0)
+            {
+                //System.Diagnostics.Debugger.Launch();
+                className = SyntaxFactory.GenericName(originalClassDeclaration.Identifier.Text).WithTypeArgumentList(
+                    SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                            originalClassDeclaration.TypeParameterList.Parameters.Select(x =>
+                            SyntaxFactory.IdentifierName(x.ToString())
+                                ).ToArray())
+                        ));
+
+            }
+            else
+            {
+                className = SyntaxFactory.IdentifierName(originalClassDeclaration.Identifier.Text);
+            }
+
+
 
             var nameMatch = nameRegex.Match(method.Identifier.Text);
             var propertyName = nameMatch.Groups["name"].Value;

@@ -337,13 +337,15 @@ namespace NDProperty.Generator
             {
                 list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Private, genericValueType, PropertyKind.Attached));
                 list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Readonly));
+                list.Add(GenerateHelper(keyTypeType, propertyName, genericTypeType, genericValueType, Accessibility.Private, false));
+                list.Add(GenerateHelper(keyTypeType, propertyName, genericTypeType, genericValueType, Accessibility.Public, true));
             }
             else
             {
                 list.Add(GeneratePropertyKey(keyTypeType, propertyName, defaultValueExpresion, genericTypeType, Accessibility.Public, genericValueType, PropertyKind.Attached));
+                list.Add(GenerateHelper(keyTypeType, propertyName, genericTypeType, genericValueType, Accessibility.Public, false));
             }
 
-            list.Add(GenerateHelper(keyTypeType, propertyName, genericTypeType, genericValueType));
             return SyntaxFactory.List(list);
         }
 
@@ -359,19 +361,50 @@ namespace NDProperty.Generator
         }
 
 
-        private MemberDeclarationSyntax GenerateHelper(TypeSyntax keyName, string propertyName, TypeSyntax genericTypeType, TypeSyntax genericValueType)
+        private MemberDeclarationSyntax GenerateHelper(TypeSyntax keyName, string propertyName, TypeSyntax genericTypeType, TypeSyntax genericValueType, Accessibility accessibility, bool isReadonly)
         {
-            var propertyKey = GetPropertyKey(propertyName);
+            var propertyKey = isReadonly ? GetReadOnlyPropertyKey(propertyName) : GetPropertyKey(propertyName);
+            SyntaxKind[] visibility;
+            switch (accessibility)
+            {
+                default:
+                case Accessibility.NotApplicable:
+                    visibility = new[] { SyntaxKind.StaticKeyword };
+                    break;
+                case Accessibility.Private:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.PrivateKeyword };
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                    //case Accessibility.ProtectedAndFriend:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword };
+                    break;
+                case Accessibility.Protected:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.ProtectedKeyword };
+                    break;
+                case Accessibility.Internal:
+                    //case Accessibility.Friend:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.InternalKeyword };
+                    break;
+                case Accessibility.ProtectedOrInternal:
+                    //case Accessibility.ProtectedOrFriend:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword };
+                    break;
+                case Accessibility.Public:
+                    visibility = new[] { SyntaxKind.StaticKeyword, SyntaxKind.PublicKeyword };
+                    break;
+            }
+
+
             return SyntaxFactory.PropertyDeclaration(
-             SyntaxFactory.QualifiedName(
-                 SyntaxFactory.QualifiedName(
-                     SyntaxFactory.AliasQualifiedName(
-                         SyntaxFactory.IdentifierName(
-                             SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+SyntaxFactory.QualifiedName(
+SyntaxFactory.QualifiedName(
+SyntaxFactory.AliasQualifiedName(
+SyntaxFactory.IdentifierName(
+SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                          SyntaxFactory.IdentifierName(nameof(NDProperty))),
                      SyntaxFactory.IdentifierName(nameof(NDProperty.Utils))),
                  SyntaxFactory.GenericName(
-                     SyntaxFactory.Identifier(nameof(Utils.AttachedHelper<object, object, object>)))
+                     SyntaxFactory.Identifier(isReadonly ? nameof(Utils.AttachedHelperReadOnly<object, object, object>) : nameof(Utils.AttachedHelper<object, object, object>)))
                  .WithTypeArgumentList(
                      SyntaxFactory.TypeArgumentList(
                          SyntaxFactory.SeparatedList<TypeSyntax>(
@@ -381,12 +414,10 @@ namespace NDProperty.Generator
                           genericTypeType      ,
                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                              genericValueType   })))),
-             SyntaxFactory.Identifier(propertyName))
+             SyntaxFactory.Identifier(propertyName + (isReadonly ? "ReadOnly" : "")))
          .WithModifiers(
              SyntaxFactory.TokenList(
-                 new[]{
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                    SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                visibility.Select(x => SyntaxFactory.Token(x))))
          .WithAccessorList(
              SyntaxFactory.AccessorList(
                  SyntaxFactory.SingletonList(

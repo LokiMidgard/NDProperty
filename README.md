@@ -10,7 +10,7 @@ This Framework aims to provide simlar capabilitys as DependencyObjects. But with
 
 ```c#
 [NDP]
-private void OnStrChanging(OnChangingArg<MyClass, string> arg) { }
+private void OnStrChanging(OnChangingArg<MyConfiguration, string> arg) { }
 ```
 
 This is all that is needed for Propertys with getter setter events and everything else.
@@ -56,22 +56,22 @@ of the Property if this value is not valid. The class must be partial
 ```c#
 public partial class TestObject
 {
-    public static readonly NDPropertyKey<MyClass, string, TestObject> StrProperty = PropertyRegistar<MyClass>.Register<string, TestObject>(t => t.OnStrChanging, default(string), NDPropertySettings.None);
+    public static readonly NDPropertyKey<MyConfiguration, string, TestObject> StrProperty = PropertyRegistar<MyConfiguration>.Register<string, TestObject>(t => t.OnStrChanging, default(string), NDPropertySettings.None);
 
     public string Str
     {
-        get { return PropertyRegistar<MyClass>.GetValue(StrProperty, this); }
-        set { PropertyRegistar<MyClass>.SetValue(StrProperty, this, value); }
+        get { return PropertyRegistar<MyConfiguration>.GetValue(StrProperty, this); }
+        set { PropertyRegistar<MyConfiguration>.SetValue(StrProperty, this, value); }
     }
 
-    public event EventHandler<ChangedEventArgs<MyClass, string, TestObject>> StrChanged
+    public event EventHandler<ChangedEventArgs<MyConfiguration, string, TestObject>> StrChanged
     {
-        add { PropertyRegistar<MyClass>.AddEventHandler(StrProperty, this, value); }
-        remove { PropertyRegistar<MyClass>.RemoveEventHandler(StrProperty, this, value); }
+        add { PropertyRegistar<MyConfiguration>.AddEventHandler(StrProperty, this, value); }
+        remove { PropertyRegistar<MyConfiguration>.RemoveEventHandler(StrProperty, this, value); }
     }
 
 
-    private void OnStrChanging(OnChangingArg<MyClass, string> arg)
+    private void OnStrChanging(OnChangingArg<MyConfiguration, string> arg)
     {
         if (IsValid(arg.NewValue))
             arg.Reject = true;
@@ -89,7 +89,7 @@ is not adhered this Property will not be generated.
 ```c#
 
 [NDP]
-private void OnStrChanging(OnChangingArg<MyClass, string> arg)
+private void OnStrChanging(OnChangingArg<MyConfiguration, string> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -97,19 +97,19 @@ private void OnStrChanging(OnChangingArg<MyClass, string> arg)
 
 ```
 
-The type ```MyClass``` is called ConfigurationType and is used to isolate different instances of this libray. This allows side by side execution with different configurations ([see below](###Configuration)).
+The type ```MyConfiguration``` is called ConfigurationType and is used to isolate different instances of this libray. This allows side by side execution with different configurations ([see below](###Configuration)).
 
 ### Attached Propertys
 
 Like with Dependency Propertys, you can define a Property that will be set on other Objects. 
 In this case your change handler should be static and the argument must be of type 
-```OnChangingArg<MyClass, TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
+```OnChangingArg<MyConfiguration, TValue, TType>```. Where ```TValue``` is the type of the value that can be set 
 and ```TType``` the type of the objects where the value can be applied.
 
 ```c#
- private static readonly NDAttachedPropertyKey<MyClass, string, MyOwnObject> StrProperty = PropertyRegistar<MyClass>.RegisterAttached(OnAttChanging, default(string), NDPropertySettings.None);
+ private static readonly NDAttachedPropertyKey<MyConfiguration, string, MyOwnObject> StrProperty = PropertyRegistar<MyConfiguration>.RegisterAttached(OnAttChanging, default(string), NDPropertySettings.None);
        
-private static void OnStrChanging(OnChangingArg<MyClass, string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<MyConfiguration, string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -122,7 +122,7 @@ You can also use a Attribute to automaticly generate the property from the chang
 
 ```c#
 [NDPAttach]       
-private static void OnStrChanging(OnChangingArg<MyClass, string, MyOwnObject> arg)
+private static void OnStrChanging(OnChangingArg<MyConfiguration, string, MyOwnObject> arg)
 {
     if (IsValid(arg.NewValue))
         arg.Reject = true;
@@ -132,8 +132,8 @@ private static void OnStrChanging(OnChangingArg<MyClass, string, MyOwnObject> ar
 This will generate follwing code:
 
 ```c#
-public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<MyClass, string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar<MyClass>.RegisterAttached<string, MyOwnObject>(OnStrChanging, false, global::NDProperty.Propertys.NDPropertySettings.None);
-public static global::NDProperty.Utils.AttachedHelper<MyClass, string, MyOwnObject> Str { get; } = global::NDProperty.Utils.AttachedHelper.Create(StrProperty);
+public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<MyConfiguration, string, MyOwnObject> StrProperty = global::NDProperty.PropertyRegistar<MyConfiguration>.RegisterAttached<string, MyOwnObject>(OnStrChanging, false, global::NDProperty.Propertys.NDPropertySettings.None);
+public static global::NDProperty.Utils.AttachedHelper<MyConfiguration, string, MyOwnObject> Str { get; } = global::NDProperty.Utils.AttachedHelper.Create(StrProperty);
 ```
 
 The AttachedHelper provides access to the change event and allows to get and set the value on a 
@@ -153,8 +153,8 @@ To Implement a ReadOnlyProperty you can declare it like this:
 
 ```c#
 
-private static readonly NDPropertyKey<MyClass, string, TestObject> StrProperty = PropertyRegistar<MyClass>.Register<string, TestObject>(t => t.OnStrChanging, NDPropertySettings.ReadOnly);
-public static readonly NDReadOnlyPropertyKey<MyClass, string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
+private static readonly NDPropertyKey<MyConfiguration, string, TestObject> StrProperty = PropertyRegistar<MyConfiguration>.Register<string, TestObject>(t => t.OnStrChanging, NDPropertySettings.ReadOnly);
+public static readonly NDReadOnlyPropertyKey<MyConfiguration, string, TestObject> StrReadOnlyProperty = StrProperty.ReadOnlyProperty;
 
 ```
 

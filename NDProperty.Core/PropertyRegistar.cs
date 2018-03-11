@@ -74,10 +74,10 @@ namespace NDProperty
         /// <param name="nullTreatment">Defines how to handle Null values.</param>
         /// <param name="settigns">Additional Settings.</param>
         /// <returns>The Property key</returns>
-        public static NDPropertyKey<TKey, TType, TValue> Register<TType, TValue>(Func<TType, OnChanging<TKey, TValue>> changingMethod, TValue defaultValue, NDPropertySettings settigns)
+        public static NDPropertyKey<TKey, TType, TValue> Register<TType, TValue>(Func<TType, OnChanging<TKey, TValue>> changingMethod, TValue defaultValue, NDPropertySettings settigns, Action<TType> notifyPropertyChanged = null)
             where TType : class
         {
-            var p = new NDPropertyKey<TKey, TType, TValue>(changingMethod, defaultValue, settigns);
+            var p = new NDPropertyKey<TKey, TType, TValue>(changingMethod, defaultValue, settigns, notifyPropertyChanged);
             if (p.Inherited)
             {
                 if (!inheritedPropertys.ContainsKey(typeof(TType)))
@@ -342,11 +342,11 @@ namespace NDProperty
                 //}
                 //else
                 //    newActualValue = value;
+                onChangedArg.FireExecuteAfterChange(sender);
 
                 if (onChangedArg.Property.IsObjectValueChanging)
                     FireValueChanged(property, obj, sender, onChangedArg.Property.OldValue, onChangedArg.Property.NewValue);
 
-                onChangedArg.FireExecuteAfterChange(sender);
 
                 var currentProviderIndex = ProviderOrder[onChangedArg.Provider.ChangingProvider];
 
@@ -375,6 +375,8 @@ namespace NDProperty
                     handler(sender, ChangedEventArgs.Create(objectOfValueChange, property, oldValue, newValue));
             }
             FireValueForAllChanged(property, objectOfValueChange, sender, oldValue, newValue);
+            if(property is NDPropertyKey<TKey, TType, TValue> key)
+                key.FirePropertyChanged(objectOfValueChange);
         }
         private static void FireValueForAllChanged<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class
         {

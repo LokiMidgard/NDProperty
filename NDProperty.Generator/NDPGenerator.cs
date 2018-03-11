@@ -53,6 +53,9 @@ namespace NDProperty.Generator
             //    System.Diagnostics.Debugger.Launch();
             var originalClassDeclaration = method.Parent as ClassDeclarationSyntax;
 
+            var implementsINotifyPropertyChanged = semanticModel.GetDeclaredSymbol(originalClassDeclaration).AllInterfaces
+                .Any(item => TypeSymbolMatchesType(item, typeof(System.ComponentModel.INotifyPropertyChanged), semanticModel));
+
             NameSyntax className;
 
             if ((originalClassDeclaration?.TypeParameterList?.Parameters.Count ?? 0) > 0)
@@ -86,12 +89,12 @@ namespace NDProperty.Generator
 
             if (isReadOnly)
             {
-                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Private, genericTypeArgument, implementsINotifyPropertyChanged ? PropertyKind.NormalWithPropertyChanged : PropertyKind.Normal));
                 list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Readonly));
             }
             else
             {
-                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, PropertyKind.Normal));
+                list.Add(GeneratePropertyKey(keyTypeArgument, propertyName, defaultValueExpresion, className, Accessibility.Public, genericTypeArgument, implementsINotifyPropertyChanged ? PropertyKind.NormalWithPropertyChanged : PropertyKind.Normal));
             }
 
             list.Add(GeneratePropertyProperty(keyTypeArgument, propertyName, genericTypeArgument, isReadOnly ? Accessibility.Private : Accessibility.NotApplicable));
@@ -700,6 +703,7 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
         protected enum PropertyKind
         {
             Normal,
+            NormalWithPropertyChanged,
             Readonly,
             Attached
         }
@@ -742,6 +746,7 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
             string propertyClass;
             switch (kind)
             {
+                case PropertyKind.NormalWithPropertyChanged:
                 case PropertyKind.Normal:
                     propertyClass = nameof(Propertys.NDPropertyKey<object, object, object>);
                     break;
@@ -752,7 +757,7 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                     propertyClass = nameof(Propertys.NDAttachedPropertyKey<object, object, object>);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"The {nameof(PropertyKind)} {kind} is not handled.");
             }
 
             return SyntaxFactory.FieldDeclaration(
@@ -832,6 +837,7 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
             string registerMethod;
             switch (kind)
             {
+                case PropertyKind.NormalWithPropertyChanged:
                 case PropertyKind.Normal:
                     callback = SyntaxFactory.SimpleLambdaExpression(
                         SyntaxFactory.Parameter(
@@ -850,7 +856,7 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                     registerMethod = nameof(PropertyRegistar<object>.RegisterAttached);
                     break;
                 default:
-                    throw new NotSupportedException($"The PropertyKind: {kind} is not supported.");
+                    throw new NotSupportedException($"The {nameof(PropertyKind)}: {kind} is not supported.");
             }
 
 
@@ -913,6 +919,98 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                     SyntaxFactory.IdentifierName(nameof(Propertys.NDPropertySettings.None)));
             }
 
+            // Check NotifyPropertyChanged callback
+            ArgumentSyntax notifyChangeArgumentSyntax;
+            if (kind == PropertyKind.NormalWithPropertyChanged)
+            {
+                notifyChangeArgumentSyntax = SyntaxFactory.Argument(
+                    SyntaxFactory.SimpleLambdaExpression(
+                        SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("changingObject")
+                            ),
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("changingObject"),
+                                SyntaxFactory.IdentifierName(nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged))),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                    new SyntaxNodeOrToken[]{
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.IdentifierName("changingObject")),
+                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.ObjectCreationExpression(
+                                                SyntaxFactory.QualifiedName(
+                                                    SyntaxFactory.QualifiedName(
+                                                        SyntaxFactory.IdentifierName(nameof(System)),
+                                                        SyntaxFactory.IdentifierName(nameof(System.ComponentModel))),
+                                                    SyntaxFactory.IdentifierName(nameof(System.ComponentModel.PropertyChangedEventArgs))))
+                                                                   .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                    new SyntaxNodeOrToken[] {
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.InvocationExpression(
+                                                SyntaxFactory.IdentifierName("nameof"))
+                                                .WithArgumentList(
+                                                SyntaxFactory.ArgumentList(
+                                                    SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                        new SyntaxNodeOrToken[]{
+                                                             SyntaxFactory.Argument(
+                                                                 SyntaxFactory.IdentifierName(propertyName))
+                                                        }))))
+                                    })))
+                                                    )})))
+                                     
+                                                    
+                                                    ));
+                //                    .WithArgumentList(
+                //                SyntaxFactory.ArgumentList(
+                //SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                //        new SyntaxNodeOrToken[]{
+                //        })));
+
+
+
+
+
+                //        new SyntaxNodeOrToken[]{
+                //                SyntaxFactory.ArgumentList(
+                //                    SyntaxFactory.SingletonList(
+                //                    SyntaxFactory.Argument(
+                //                        SyntaxFactory.InvocationExpression(
+                //                            SyntaxFactory.IdentifierName("nameof"))
+                //                            .WithArgumentList(
+
+                //                            SyntaxFactory.ArgumentList(
+                //SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                //    new SyntaxNodeOrToken[]{
+                //        SyntaxFactory.Argument(callback),
+                //        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                //        SyntaxFactory.Argument(defalutExpresion),
+                //        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                //        SyntaxFactory.Argument(settingsSyntax),
+                //        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                //        SyntaxFactory.Argument(settingsSyntax)}))
+                //                            ))))})))));
+                //SyntaxFactory.ArgumentList(
+                //    new ArgumentSyntax[]
+                //    {
+                //    SyntaxFactory.Argument(
+                //        SyntaxFactory.IdentifierName(propertyName))
+
+                //    }
+                //        )))))))))));
+
+
+
+            }
+            else
+            {
+                notifyChangeArgumentSyntax = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            }
+
             // Put everything together
             var register = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -945,7 +1043,9 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(defalutExpresion),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(settingsSyntax)})));
+                            SyntaxFactory.Argument(settingsSyntax),
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            notifyChangeArgumentSyntax})));
 
             return GenerateLeftKeyPart(keyName, className, propertyKey, register, filedAccessibility, kind, propertyValue);
         }

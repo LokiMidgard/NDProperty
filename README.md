@@ -20,9 +20,9 @@ This is all that is needed for Propertys with getter setter events and everythin
 + Implementing Propertys
 + Implementing ReadOnlyPropertys
 + No need to extend a class or implement an interface
++ Fires NotifyPropertyChanged if class support it (Currently not for Attached Propertys)
 + Callback with provides new and old value
 + Ability for an object to prevent a change
-+ Providing error text for invalid values (Through cant be readed yet :/)
 + Support for Parent Child relationships of data objects
 + Inherit a value from a parent
 + Attached Propertys
@@ -294,6 +294,6 @@ On the `Provider` property you have following propertys:
 - `CanChange`  
   If false the property `MutatedValue` and `Reject` mustn't be used.
 
-The last member missing is the event `ExecuteAfterChange` on the event argument. This can be used to execute code after the change happend. This can be usfull for INotifyPropertyChanged interfaces. Not using this can sometimes result in endless rekursion, if your recursion anchor is a check on the value of this property.
+The last member missing is the event `ExecuteAfterChange` on the event argument. This can be used to execute code after the change happend. This can be usfull for INotifyPropertyChanged interfaces. Not using this can sometimes result in endless rekursion, if your recursion anchor is a check on the value of this property. The Event will be fired after the change, but before other changed events are fired.
 
 

@@ -12,12 +12,15 @@ namespace NDProperty.Propertys
         where TType : class
     {
         internal readonly Func<TType, OnChanging<TKey, TValue>> changedMethod;
+        private readonly Action<TType> notifyPropertyChanged;
 
-
-        internal NDPropertyKey(Func<TType, OnChanging<TKey, TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns) : base(defaultValue, settigns)
+        internal NDPropertyKey(Func<TType, OnChanging<TKey, TValue>> changedMethod, TValue defaultValue, NDPropertySettings settigns, Action<TType> notifyPropertyChanged) : base(defaultValue, settigns)
         {
             this.changedMethod = changedMethod;
+            this.notifyPropertyChanged = notifyPropertyChanged;
         }
+
+        internal void FirePropertyChanged(TType obj) => this.notifyPropertyChanged?.Invoke(obj);
 
         void IInternalNDProperty<TKey>.CallSetOmInHeritanceProvider(object obj, object source, object newValue, bool hasNewValue, object oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, object currentValue)
         {

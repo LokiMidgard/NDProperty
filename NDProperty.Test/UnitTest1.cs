@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NDProperty.Propertys;
 using NDProperty.Providers;
@@ -73,6 +74,33 @@ namespace NDProperty.Test
             Assert.AreEqual(str1, eventArg.OldValue);
             Assert.AreSame(t, eventArg.ChangedObject);
         }
+
+        [TestMethod]
+        public void TestINotifyPropertyChanged()
+        {
+            var t = new TestObject();
+            const string str1 = "Hallo Welt!";
+            const string str2 = "Hallo Welt!2";
+
+            PropertyChangedEventArgs eventArg = null;
+
+            t.PropertyChanged+= (sender, e) =>
+            {
+                eventArg = e;
+            };
+
+            t.NotifyTest = str1;
+
+            Assert.IsNotNull(eventArg);
+            Assert.AreEqual(nameof(t.NotifyTest), eventArg.PropertyName);
+            eventArg = null;
+
+            t.NotifyTest = str2;
+
+            Assert.IsNotNull(eventArg);
+            Assert.AreEqual(nameof(t.NotifyTest), eventArg.PropertyName);
+        }
+
 
         [TestMethod]
         public void TestSettingsCallOnChangedEquals()
@@ -551,7 +579,7 @@ namespace NDProperty.Test
         }
     }
 
-    public partial class TestObject
+    public partial class TestObject : System.ComponentModel.INotifyPropertyChanged
     {
 
         public bool Reject { get; set; }
@@ -570,6 +598,12 @@ namespace NDProperty.Test
         {
             var test = TestAttributeProperty.ToString();
         }
+
+        [NDP]
+        private void OnNotifyTestChanging(OnChangingArg<Configuration, string> arg)
+        {
+        }
+
 
         #region Attach
         public static readonly global::NDProperty.Propertys.NDAttachedPropertyKey<Configuration, string, object> AttachProperty = global::NDProperty.PropertyRegistar<Configuration>.RegisterAttached<string, object>(OnAttachChanged, default(string), global::NDProperty.Propertys.NDPropertySettings.None);
@@ -657,6 +691,8 @@ namespace NDProperty.Test
         }
 
         public OnChangingArg<Configuration, string> testArguments;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         internal void TestChangeMethod(OnChangingArg<Configuration, string> arg)
         {

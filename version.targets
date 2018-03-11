@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>0.13.4</Version>
+    <Version>0.13.5</Version>
     <Version Condition="'$(Configuration)'=='Debug'">$(Version)-Debug</Version>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
@@ -11,8 +11,7 @@
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
- - Readonly on Attached Propertys did not work as intended.
- - Fix problem with NDPropertys on generic classes.
+ - Code generator now supports INotifyProeprtyChanged
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

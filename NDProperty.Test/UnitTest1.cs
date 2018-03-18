@@ -199,6 +199,7 @@ namespace NDProperty.Test
             Assert.AreEqual(str3, eventArg.NewValue);
             Assert.AreEqual(str1, eventArg.OldValue);
             Assert.AreSame(t, eventArg.ChangedObject);
+            Assert.AreEqual(str3, t.Str);
         }
 
         [TestMethod]

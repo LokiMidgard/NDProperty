@@ -8,7 +8,7 @@ namespace NDProperty.Providers
 {
     public sealed class InheritenceValueProvider<TKey> : ValueProvider<TKey>
     {
-        private InheritenceValueProvider() : base(false)
+        private InheritenceValueProvider() : base(false, false, false)
         {
 
         }
@@ -91,7 +91,7 @@ namespace NDProperty.Providers
         {
             if (sender == null)
                 sender = targetObject;
-            Update(sender, targetObject, property, newValue, hasNewValue, () =>
+            Update(sender, targetObject, property, newValue, hasNewValue, (mutatedValue) =>
             {
                 var dic = table.GetOrCreateValue(targetObject);
                 if (hasNewValue)

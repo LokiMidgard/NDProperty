@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>0.13.6</Version>
+    <Version>0.13.7</Version>
     <Version Condition="'$(Configuration)'=='Debug'">$(Version)-Debug</Version>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
@@ -11,7 +11,7 @@
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
- - Fix Bug that Attached propertys generator tried to add callback for INotifyPropertyChanged
+ - Fix Bug that prevented Value Mutation from working.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

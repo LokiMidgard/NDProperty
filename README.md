@@ -210,9 +210,7 @@ You can create your own value provider by also extending the type ```ValueProvid
 public abstract (TValue value, bool hasValue) GetValue<TValue, TType>(TType targetObject, Propertys.NDReadOnlyPropertyKey<TKey, TValue, TType> property) where TType : class;
 ```
 
-The ```Update``` method has an parameter ```updateCode```. This delegate should be updating your value. This is nessesary to safe the old value before the new value was set.
-
-Alternativly you can provide the old value and the provider that provided the value.
+The ```Update``` method has an parameter ```updateCode```. This delegate should be updating your value. This is nessesary to safe the old value before the new value was set. It also has a Parameter that contains the new Value. You need to use this value instead of the one you are expecting to be the new value. This allows for the Mutated feature. If your Provider does not support mutation, than this value is always your new value.
 
 To use your provider use it in the configuration type.
 

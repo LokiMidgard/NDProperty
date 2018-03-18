@@ -84,10 +84,10 @@ namespace NDProperty.Test
 
             PropertyChangedEventArgs eventArg = null;
 
-            t.PropertyChanged+= (sender, e) =>
-            {
-                eventArg = e;
-            };
+            t.PropertyChanged += (sender, e) =>
+             {
+                 eventArg = e;
+             };
 
             t.NotifyTest = str1;
 
@@ -133,17 +133,25 @@ namespace NDProperty.Test
             ChangedEventArgs<Configuration, TestObject, string> eventArg = null;
             t.Str = str1;
 
-            t.Reject = true;
-
-            t.StrChanged += (sender, e) =>
+            try
             {
-                eventArg = e;
-            };
 
-            t.Str = str2;
+                t.Reject = true;
 
-            Assert.IsNull(eventArg);
-            Assert.AreEqual(str1, t.Str);
+                t.StrChanged += (sender, e) =>
+                {
+                    eventArg = e;
+                };
+
+                t.Str = str2;
+
+                Assert.IsNull(eventArg);
+                Assert.AreEqual(str1, t.Str);
+            }
+            finally
+            {
+                t.Reject = false;
+            }
         }
 
 
@@ -160,17 +168,24 @@ namespace NDProperty.Test
             t.Str = str1;
 
             t.Reject = true;
-            t.Mutate = str3;
-
-            t.StrChanged += (sender, e) =>
+            try
             {
-                eventArg = e;
-            };
+                t.Mutate = str3;
 
-            t.Str = str2;
+                t.StrChanged += (sender, e) =>
+                {
+                    eventArg = e;
+                };
 
-            Assert.IsNull(eventArg);
-            Assert.AreEqual(str1, t.Str);
+                t.Str = str2;
+
+                Assert.IsNull(eventArg);
+                Assert.AreEqual(str1, t.Str);
+            }
+            finally
+            {
+                t.Mutate = null;
+            }
         }
 
         [TestMethod]
@@ -635,7 +650,8 @@ namespace NDProperty.Test
 
         private void OnStrChanged(OnChangingArg<Configuration, string> arg)
         {
-            arg.Provider.Reject = Reject;
+            if (Reject)
+                arg.Provider.Reject = Reject;
             if (Mutate != null)
                 arg.Provider.MutatedValue = Mutate;
         }

@@ -15,12 +15,14 @@ namespace NDProperty.Providers
     public abstract class ValueProvider<TKey>
     {
 
-        protected ValueProvider(bool canDeletionBePrevented)
+        protected ValueProvider(bool canDeletionBePrevented, bool canBeMutated, bool canBeRejected)
         {
             this.canDeletionBePrevented = canDeletionBePrevented;
+            this.canBeMutated = canBeMutated;
+            this.canBeRejected = canBeRejected;
         }
 
-        protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, Func<bool> updateCode)
+        protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, Func<TValue, bool> updateCode)
             where TType : class
         {
             var (currentValue, currentProvider) = PropertyRegistar<TKey>.GetValueAndProvider(property, targetObject);
@@ -29,13 +31,13 @@ namespace NDProperty.Providers
             return Update(sender, targetObject, property, newValue, hasNewValue, updateCode, oldValue, hasOldValue, currentProvider, currentValue);
         }
 
-        protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue)
-            where TType : class
-        {
-            return Update(sender, targetObject, property, newValue, hasNewValue, () => true, oldValue, hasOldValue, currentProvider, currentValue);
-        }
+        //protected bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newValue, bool hasNewValue, TValue oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, TValue currentValue)
+        //    where TType : class
+        //{
+        //    return Update(sender, targetObject, property, newValue, hasNewValue, () => true, oldValue, hasOldValue, currentProvider, currentValue);
+        //}
 
-        internal bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newProviderValue, bool hasNewValue, Func<bool> updateCode, TValue oldProviderValue, bool hasOldValue, ValueProvider<TKey> oldActualProvider, TValue oldActualValue)
+        internal bool Update<TType, TValue>(object sender, TType targetObject, NDBasePropertyKey<TKey, TType, TValue> property, TValue newProviderValue, bool hasNewValue, Func<TValue, bool> updateCode, TValue oldProviderValue, bool hasOldValue, ValueProvider<TKey> oldActualProvider, TValue oldActualValue)
             where TType : class
         {
             var otherProviderIndex = PropertyRegistar<TKey>.ProviderOrder[oldActualProvider];
@@ -110,6 +112,8 @@ namespace NDProperty.Providers
 
         private readonly ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, EventWrapper>> listener = new ConditionalWeakTable<object, Dictionary<IInternalNDReadOnlyProperty<TKey>, EventWrapper>>();
         private readonly bool canDeletionBePrevented;
+        internal readonly bool canBeMutated;
+        internal readonly bool canBeRejected;
 
         private class EventWrapper { }
         private class EventWrapper<T> : EventWrapper

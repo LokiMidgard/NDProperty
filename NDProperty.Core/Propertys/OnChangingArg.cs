@@ -51,14 +51,13 @@ namespace NDProperty.Propertys
             public ProviderChanged(OnChangingArg<TKey, TValue> parent, ValueProvider<TKey> changingProvider, bool rejectAllowed, TValue oldValue, TValue newValue, bool hasOldValue, bool hasNewValue)
             {
                 this.parent = parent;
-                CanChange = true;
                 HasOldValue = hasOldValue;
                 HasNewValue = hasNewValue;
                 OldValue = oldValue;
                 NewValue = newValue;
-                MutatedValue = newValue;
+                this.mutatedValue = newValue;
                 ChangingProvider = changingProvider;
-                CanChange = rejectAllowed;
+                CanReject = rejectAllowed && ChangingProvider.canBeRejected;
             }
 
             /// <summary>
@@ -96,8 +95,8 @@ namespace NDProperty.Propertys
                 get => this.mutatedValue;
                 set
                 {
-                    if (!CanChange)
-                        throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(MutatedValue)} is not allowed");
+                    if (!ChangingProvider.canBeMutated)
+                        throw new InvalidOperationException($"{nameof(CanReject)} is {CanReject}. Setting {nameof(MutatedValue)} is not allowed");
                     this.mutatedValue = value;
                     if (ChangingProvider == this.parent.Property.NewProvider) // we need to publicate the mutation to Property
                     {
@@ -120,8 +119,8 @@ namespace NDProperty.Propertys
                 get => this.reject;
                 set
                 {
-                    if (!CanChange)
-                        throw new InvalidOperationException($"{nameof(CanChange)} is {CanChange}. Setting {nameof(Reject)} is not allowed");
+                    if (!CanReject)
+                        throw new InvalidOperationException($"{nameof(CanReject)} is {CanReject}. Setting {nameof(Reject)} is not allowed");
                     this.reject = value;
                 }
             }
@@ -129,9 +128,15 @@ namespace NDProperty.Propertys
             private readonly OnChangingArg<TKey, TValue> parent;
 
             /// <summary>
-            /// Defines if rejecting is and modifing allowed.
+            /// Defines if rejecting is allowed.
             /// </summary>
-            public bool CanChange { get; private set; }
+            public bool CanReject { get; private set; }
+
+            /// <summary>
+            /// Defines if Mutating is allowed.
+            /// </summary>
+            public bool CanMutate => ChangingProvider.canBeMutated;
+
         }
 
         public class PropertyChanged
@@ -195,7 +200,7 @@ namespace NDProperty.Propertys
     {
         public OnChangingArg(TType changedObject, TValue oldProviderValue, bool hasOldValue, TValue newProviderValue, bool hasNewValue, ValueProvider<TKey> changingProvider, ValueProvider<TKey> oldProvider, ValueProvider<TKey> newProvider, TValue oldPropertyValue, TValue newPropertyValue, bool rejectAllowed) : base(oldProviderValue, hasOldValue, newProviderValue, hasNewValue, changingProvider, oldProvider, newProvider, oldPropertyValue, newPropertyValue, rejectAllowed)
         {
-            this.ChangedObject = changedObject;
+            ChangedObject = changedObject;
         }
 
         /// <summary>

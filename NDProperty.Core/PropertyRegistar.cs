@@ -277,7 +277,7 @@ namespace NDProperty
         /// <param name="obj"></param>
         /// <param name="onChangedArg"></param>
         /// <returns>true if <paramref name="onChangedArg"/> did not had reject set and the update function returns true.</returns>
-        internal static bool ChangeValue<TType, TValue>(object sender, NDBasePropertyKey<TKey, TType, TValue> property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<bool> updateCode)
+        internal static bool ChangeValue<TType, TValue>(object sender, NDBasePropertyKey<TKey, TType, TValue> property, TType obj, OnChangingArg<TKey, TValue> onChangedArg, Func<TValue, bool> updateCode)
             where TType : class
         {
             var value = onChangedArg.Provider.MutatedValue;
@@ -309,14 +309,14 @@ namespace NDProperty
                             foreach (var child in tree.Childrean)
                                 queue.Enqueue(child);
                     }
-                    updateSuccsessfull = updateCode();
+                    updateSuccsessfull = updateCode(value);
                     if (!updateSuccsessfull)
                         return false;
                     foreach (var item in oldValueList)
                         InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.Provider.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
                 }
                 else
-                    updateSuccsessfull = updateCode();
+                    updateSuccsessfull = updateCode(value);
 
                 if (!updateSuccsessfull)
                     return false;
@@ -375,7 +375,7 @@ namespace NDProperty
                     handler(sender, ChangedEventArgs.Create(objectOfValueChange, property, oldValue, newValue));
             }
             FireValueForAllChanged(property, objectOfValueChange, sender, oldValue, newValue);
-            if(property is NDPropertyKey<TKey, TType, TValue> key)
+            if (property is NDPropertyKey<TKey, TType, TValue> key)
                 key.FirePropertyChanged(objectOfValueChange);
         }
         private static void FireValueForAllChanged<TType, TValue>(NDReadOnlyPropertyKey<TKey, TType, TValue> property, TType objectOfValueChange, object sender, TValue oldValue, TValue newValue) where TType : class

@@ -469,7 +469,7 @@ namespace NDProperty.Providers.Binding
             configuration.NewValue += Configuration_NewValue;
             BindingProvider<TKey>.Instance.RegisterBinding(this);
 
-            BindingProvider<TKey>.Instance.Update(this, configuration.CurrentValue, true, () =>
+            BindingProvider<TKey>.Instance.Update(this, configuration.CurrentValue, true, (mutatedValue) =>
            {
                CurrentValue = configuration.CurrentValue;
                HasValue = true;
@@ -480,7 +480,7 @@ namespace NDProperty.Providers.Binding
         private void Configuration_NewValue(TSourceValue obj)
         {
 
-            BindingProvider<TKey>.Instance.Update(this, obj, true, () =>
+            BindingProvider<TKey>.Instance.Update(this, obj, true, (mutatedValue) =>
             {
                 CurrentValue = obj;
                 HasValue = true;
@@ -490,7 +490,7 @@ namespace NDProperty.Providers.Binding
 
         internal void RemoveValue()
         {
-            BindingProvider<TKey>.Instance.Update(this, default, false, () =>
+            BindingProvider<TKey>.Instance.Update(this, default, false, (mutatedValue) =>
             {
                 HasValue = false;
                 CurrentValue = default; return true;
@@ -542,7 +542,7 @@ namespace NDProperty.Providers.Binding
     {
         public static BindingProvider<TKey> Instance { get; } = new BindingProvider<TKey>();
 
-        private BindingProvider() : base(false) { }
+        private BindingProvider() : base(false, false, false) { }
 
 
         private readonly System.Runtime.CompilerServices.ConditionalWeakTable<object, Dictionary<object, object>> table = new ConditionalWeakTable<object, Dictionary<object, object>>();
@@ -571,7 +571,7 @@ namespace NDProperty.Providers.Binding
             return binding;
         }
 
-        internal bool Update<TType, TValue>(BindingWritable<TKey, TType, TValue> binding, TValue newValue, bool hasNewValue, Func<bool> updateCode)
+        internal bool Update<TType, TValue>(BindingWritable<TKey, TType, TValue> binding, TValue newValue, bool hasNewValue, Func<TValue, bool> updateCode)
             where TType : class
         {
             return base.Update(binding, binding.Target, binding.Property, newValue, hasNewValue, updateCode);
@@ -598,7 +598,7 @@ namespace NDProperty.Providers.Binding
             where TTargetType : class
             where TSourceType : class
         {
-            Update(binding, default, false, () =>
+            Update(binding, default, false, (mutatedValue) =>
             {
                 if (this.table.TryGetValue(binding.Target, out var dictinary))
                 {

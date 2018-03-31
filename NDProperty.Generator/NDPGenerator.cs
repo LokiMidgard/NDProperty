@@ -477,6 +477,11 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
     public abstract class NDPGenerator : ICodeGenerator
     {
         /// <summary>
+        /// Unkown Error.
+        /// </summary>
+        public const string NDP0000 = "NDP0000";
+
+        /// <summary>
         /// Method must be named after Convention. Normal Attribute.
         /// </summary>
         public const string NDP0001 = "NDP0001";
@@ -574,14 +579,19 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
             this.isParentReference = this.propertySettings.HasFlag(Propertys.NDPropertySettings.ParentReference);
         }
         internal NDPGenerator() { }
-        [System.ComponentModel.DefaultValue("")]
-        public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
+        public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(TransformationContext context, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
+//public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
             if (this.errorParsingAttribute)
                 return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
 
+
+            var applyTo = context.ProcessingMember;
+            var compilation = context.Compilation;
+
+
             var method = applyTo as MethodDeclarationSyntax;
-            var semanticModel = compilation.GetSemanticModel(method.SyntaxTree, true);
+            var semanticModel = context.SemanticModel;
             var diagnostics = GenerateDiagnostics(method, semanticModel);
 
             bool detectedError = false;

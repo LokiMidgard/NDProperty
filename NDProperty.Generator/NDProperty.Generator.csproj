@@ -30,6 +30,12 @@
       <PackagePath>build\</PackagePath>
     </Content>
   </ItemGroup>
+  
+  <!-- Include deps files because the source code generator framework needs them-->
+  <ItemGroup>
+    <None Remove="bin\**" Visible="false" />
+    <None Include="bin\$(Configuration)\$(TargetFramework)\*.deps.json" Pack="true" PackagePath="tools" Visible="false" />
+  </ItemGroup>
 
   <!-- Not posible to include dependencys So this is a temporary FIX -->
   <ItemGroup>

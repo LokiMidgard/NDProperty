@@ -32,10 +32,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CodeGeneration.Roslyn, Version=0.4.0.0, Culture=neutral, PublicKeyToken=ec41cf4c17a5eaf3, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CodeGeneration.Roslyn.0.4.26-gc7537ced7c\lib\netstandard1.6\CodeGeneration.Roslyn.dll</HintPath>
+      <HintPath>..\..\packages\CodeGeneration.Roslyn.0.4.42\lib\netstandard1.6\CodeGeneration.Roslyn.dll</HintPath>
     </Reference>
     <Reference Include="CodeGeneration.Roslyn.Attributes, Version=0.4.0.0, Culture=neutral, PublicKeyToken=ec41cf4c17a5eaf3, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CodeGeneration.Roslyn.Attributes.0.4.26-gc7537ced7c\lib\net40\CodeGeneration.Roslyn.Attributes.dll</HintPath>
+      <HintPath>..\..\packages\CodeGeneration.Roslyn.Attributes.0.4.42\lib\net40\CodeGeneration.Roslyn.Attributes.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Common.2.2.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>

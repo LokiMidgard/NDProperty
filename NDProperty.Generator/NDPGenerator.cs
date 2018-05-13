@@ -19,22 +19,23 @@ namespace NDProperty.Generator
         public NDPGeneratorProperty() { }
 
 
+
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0001, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0002, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,>).FullName}.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
-        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0003, "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0003, "Class is not partial", $"The containing class must be partial.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Generator could not find Class
         /// </summary>
-        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0004, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0004, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
 
         public override DiagnosticDescriptor MethodNameConvention => methodNameConvention;
 
@@ -314,24 +315,25 @@ namespace NDProperty.Generator
 
         public NDPGeneratorAttachedProperty() { }
 
+
         /// <summary>
         /// Method must be named after Convention
         /// </summary>
-        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0005, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor methodNameConvention = new DiagnosticDescriptor(NDP0005, "Method must be named after Convention", "Method must be named after Convention 'On<Property name>Changing.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Wrong Parameter
         /// </summary>
-        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,,>).FullName}.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor wrongParameter = new DiagnosticDescriptor(NDP0006, "Wrong Parameter", $"The method must have a singel parameter of the type {typeof(Propertys.OnChangingArg<,,>).FullName}.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Class is not partial
         /// </summary>
-        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0007, "Class is not partial", $"The containing class must be partial.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotPartial = new DiagnosticDescriptor(NDP0007, "Class is not partial", $"The containing class must be partial.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
         /// <summary>
         /// Generator could not find Class
         /// </summary>
-        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0008, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor classNotFound = new DiagnosticDescriptor(NDP0008, "Generator could not find Class", $"The Attribute must be applied to a member of an class.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
 
-        public static readonly DiagnosticDescriptor notStatic = new DiagnosticDescriptor(NDP0009, "Change handler must be static", $"The Change handler of an Attached Property must be static.", "NDP", DiagnosticSeverity.Error, true);
+        public static readonly DiagnosticDescriptor notStatic = new DiagnosticDescriptor(NDP0009, "Change handler must be static", $"The Change handler of an Attached Property must be static.", DIAGNOSTIC_CATEGORY, DiagnosticSeverity.Error, true);
 
         public override DiagnosticDescriptor MethodNameConvention => methodNameConvention;
 
@@ -476,6 +478,9 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
     }
     public abstract class NDPGenerator : ICodeGenerator
     {
+        public const string DIAGNOSTIC_CATEGORY = "NDP";
+
+
         /// <summary>
         /// Unkown Error.
         /// </summary>
@@ -580,31 +585,36 @@ SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
         }
         internal NDPGenerator() { }
         public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(TransformationContext context, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
-//public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
+        //public Task<SyntaxList<MemberDeclarationSyntax>> GenerateAsync(MemberDeclarationSyntax applyTo, CSharpCompilation compilation, IProgress<Diagnostic> progress, CancellationToken cancellationToken)
         {
-            if (this.errorParsingAttribute)
-                return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
-
-
-            var applyTo = context.ProcessingMember;
-            var compilation = context.Compilation;
-
-
-            var method = applyTo as MethodDeclarationSyntax;
-            var semanticModel = context.SemanticModel;
-            var diagnostics = GenerateDiagnostics(method, semanticModel);
-
-            bool detectedError = false;
-
-            foreach (var d in diagnostics)
+            try
             {
-                detectedError = true;
-                progress.Report(d);
-            }
-            if (detectedError)
-                return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
+                if (this.errorParsingAttribute)
+                    return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
 
-            return Task.FromResult(GenerateProperty(method, semanticModel, this.isReadOnly));
+                var compilation = context.Compilation;
+
+                var method = context.ProcessingNode as MethodDeclarationSyntax;
+                var semanticModel = context.SemanticModel;
+                var diagnostics = GenerateDiagnostics(method, semanticModel);
+
+                bool detectedError = false;
+
+                foreach (var d in diagnostics)
+                {
+                    detectedError = true;
+                    progress.Report(d);
+                }
+                if (detectedError)
+                    return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
+
+                return Task.FromResult(GenerateProperty(method, semanticModel, this.isReadOnly));
+            }
+            catch (Exception ex)
+            {
+                progress.Report(Diagnostic.Create(NDP0000, DIAGNOSTIC_CATEGORY, ex.ToString(), DiagnosticSeverity.Error, DiagnosticSeverity.Error, true, 4, false, "Unexpected error"));
+                return Task.FromResult(SyntaxFactory.List<MemberDeclarationSyntax>());
+            }
         }
 
         public virtual IEnumerable<Diagnostic> GenerateDiagnostics(MethodDeclarationSyntax method, SemanticModel semanticModel)

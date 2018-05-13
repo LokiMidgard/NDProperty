@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
-    <PackageReference Include="CodeGeneration.Roslyn" Version="0.4.26-gc7537ced7c" PrivateAssets="all" />
+    <PackageReference Include="CodeGeneration.Roslyn" Version="0.4.42" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
@@ -28,8 +28,8 @@
 
   <!-- Not posible to include dependencys So this is a temporary FIX -->
   <ItemGroup>
-    <None Include="..\..\packages\CodeGeneration.Roslyn.0.4.26-gc7537ced7c\lib\netstandard1.6\CodeGeneration.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="..\..\packages\CodeGeneration.Roslyn.attributes.0.4.26-gc7537ced7c\lib\netstandard1.0\CodeGeneration.Roslyn.Attributes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\packages\CodeGeneration.Roslyn.0.4.42\lib\netstandard1.6\CodeGeneration.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\packages\CodeGeneration.Roslyn.attributes.0.4.42\lib\netstandard1.0\CodeGeneration.Roslyn.Attributes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\..\packages\validation\2.4.13\lib\netstandard1.3\Validation.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\..\packages\validation\2.4.13\lib\netstandard1.3\Validation.xml" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 

@@ -3,14 +3,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>NDProperty.Core</PackageId>
     <Description>These are the core classes that provides functionality for the NDProperty Framework.</Description>
-    <VersionSuffix>Debug</VersionSuffix>
     <PackageTags>NDProperty</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>

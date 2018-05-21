@@ -13,6 +13,7 @@
     <PackageTags>NDProperty</PackageTags>
     <IsTool>false</IsTool>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

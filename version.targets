@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/LokiMidgard/NDProperty</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LokiMidgard/NDProperty.git</RepositoryUrl>
     <Copyright>Patrick Kranz</Copyright>
+    <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
@@ -18,4 +19,9 @@ Changes:
 
   <PropertyGroup >
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta*">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>

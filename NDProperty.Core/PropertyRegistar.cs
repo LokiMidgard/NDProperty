@@ -47,7 +47,7 @@ namespace NDProperty
                     throw new ArgumentException($"If TypeParameter is of type {nameof(IInitializer<TKey>)}, then it must have a default constructor", nameof(TKey));
 
                 var initilizer = typeof(TKey).GetConstructor(Type.EmptyTypes).Invoke(new object[0]) as IInitializer<TKey>;
-                valueProvider = initilizer.ValueProvider;
+                valueProvider = initilizer.ValueProviders;
             }
             else
                 valueProvider = new ValueProvider<TKey>[] { LocalValueProvider<TKey>.Instance, InheritenceValueProvider<TKey>.Instance, DefaultValueProvider<TKey>.Instance };

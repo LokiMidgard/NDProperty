@@ -224,7 +224,7 @@ An configuration equivalent to the default configuration would be following:
 
 class MyConfiguration : IInitializer<MyConfiguration>
 {
-    public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
+    public IEnumerable<ValueProvider<MyConfiguration>> ValueProviders {get;} new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,

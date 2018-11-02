@@ -7,15 +7,15 @@ namespace NDProperty
 {
     public interface IInitializer<TKey>
     {
-        IEnumerable<ValueProvider<TKey>> ValueProvider { get; }
+        IEnumerable<ValueProvider<TKey>> ValueProviders { get; }
     }
 
-class MyConfiguration : IInitializer<MyConfiguration>
-{
-    public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
+    internal class MyConfiguration : IInitializer<MyConfiguration>
+    {
+        public IEnumerable<ValueProvider<MyConfiguration>> ValueProviders { get; } = new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,
     };
-}
+    }
 }

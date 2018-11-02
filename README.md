@@ -201,7 +201,7 @@ If no local value was set, it will checked if an inherited value exists. If this
 
 This functionality is provided by types extending ```ValueProvider<TKey>```. For the supplyed functionality these are:
 + ```LocalValueProvider<TKey>```
-+ ```InheritenceValueProvider<TKey>```
++ ```InheritanceValueProvider<TKey>```
 + ```DefaultValueProvider<TKey>```
 
 You can create your own value provider by also extending the type ```ValueProvider<TKey>```. You have to implement the method and need to call Update whenever the value of this provider change. 
@@ -226,7 +226,7 @@ class MyConfiguration : IInitializer<MyConfiguration>
 {
     public IEnumerable<ValueProvider<MyConfiguration>> ValueProviders {get;} new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
-        NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.InheritanceValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,
     };
 }

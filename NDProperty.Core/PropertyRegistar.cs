@@ -50,7 +50,7 @@ namespace NDProperty
                 valueProvider = initilizer.ValueProviders;
             }
             else
-                valueProvider = new ValueProvider<TKey>[] { LocalValueProvider<TKey>.Instance, InheritenceValueProvider<TKey>.Instance, DefaultValueProvider<TKey>.Instance };
+                valueProvider = new ValueProvider<TKey>[] { LocalValueProvider<TKey>.Instance, InheritanceValueProvider<TKey>.Instance, DefaultValueProvider<TKey>.Instance };
 
 
 
@@ -191,10 +191,10 @@ namespace NDProperty
 
                         {
                             foreach (var affectedProperty in inheritedPropertys.Where(x => x.Key.IsAssignableFrom(tree.Current.GetType())).SelectMany(x => x.Value.Select(y => new { Value = y, Key = x.Key })))
-                                if (InheritenceValueProvider<TKey>.Instance.IsParantChangeInteresting(tree.Current, affectedProperty.Value, affectedProperty.Key, removedParent))
+                                if (InheritanceValueProvider<TKey>.Instance.IsParantChangeInteresting(tree.Current, affectedProperty.Value, affectedProperty.Key, removedParent))
                                 {
                                     var (currentValue, currentProvider) = affectedProperty.Value.GetValueAndProvider(tree.Current);
-                                    var (oldValue, hasOldValue) = affectedProperty.Value.GetProviderValue(tree.Current, InheritenceValueProvider<TKey>.Instance);
+                                    var (oldValue, hasOldValue) = affectedProperty.Value.GetProviderValue(tree.Current, InheritanceValueProvider<TKey>.Instance);
 
 
                                     affectedItems.Add((tree.Current, oldValue, hasOldValue, affectedProperty.Value, affectedProperty.Key, currentProvider, currentValue));
@@ -220,7 +220,7 @@ namespace NDProperty
                 // Notify AffectedItems
                 foreach (var item in affectedItems)
                 {
-                    var searchedNewValue = InheritenceValueProvider<TKey>.Instance.SearchNewValue(item.affectedObject, item.affectedProperty, item.propertyDefinedOn);
+                    var searchedNewValue = InheritanceValueProvider<TKey>.Instance.SearchNewValue(item.affectedObject, item.affectedProperty, item.propertyDefinedOn);
                     if (searchedNewValue.source != null)
                     {
                         (item.affectedProperty).CallSetOmInHeritanceProvider(item.affectedObject, searchedNewValue.source, searchedNewValue.value, true, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue);
@@ -287,7 +287,7 @@ namespace NDProperty
                 bool updateSuccsessfull;
                 if (property.Inherited)
                 {
-                    var inheritanceProviderIndex = ProviderOrder[InheritenceValueProvider<TKey>.Instance];
+                    var inheritanceProviderIndex = ProviderOrder[InheritanceValueProvider<TKey>.Instance];
 
                     var oldValueList = new List<(TType targetObject, ValueProvider<TKey> currentProvider, TValue currentValue, TValue oldValue, bool hasOldValue)>();
 
@@ -302,7 +302,7 @@ namespace NDProperty
                         if (tree.Current is TType t) // the childrean of this child will be notified when updating InheritanceValueProvider.
                         {
                             var (currentValue, currentManger) = GetValueAndProvider(property, t);
-                            var (oldValue, hasOldValue) = InheritenceValueProvider<TKey>.Instance.GetValue(t, property);
+                            var (oldValue, hasOldValue) = InheritanceValueProvider<TKey>.Instance.GetValue(t, property);
                             oldValueList.Add((t, currentManger, currentValue, oldValue, hasOldValue));
                         }
                         else
@@ -313,7 +313,7 @@ namespace NDProperty
                     if (!updateSuccsessfull)
                         return false;
                     foreach (var item in oldValueList)
-                        InheritenceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.Provider.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
+                        InheritanceValueProvider<TKey>.Instance.SetValue(item.targetObject, property, obj, value, onChangedArg.Provider.HasNewValue, item.oldValue, item.hasOldValue, item.currentProvider, item.currentValue, sender);
                 }
                 else
                     updateSuccsessfull = updateCode(value);

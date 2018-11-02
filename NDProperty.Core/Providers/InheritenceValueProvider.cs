@@ -6,13 +6,13 @@ using NDProperty.Propertys;
 
 namespace NDProperty.Providers
 {
-    public sealed class InheritenceValueProvider<TKey> : ValueProvider<TKey>
+    public sealed class InheritanceValueProvider<TKey> : ValueProvider<TKey>
     {
-        private InheritenceValueProvider() : base(false, false, false)
+        private InheritanceValueProvider() : base(false, false, false)
         {
 
         }
-        public static InheritenceValueProvider<TKey> Instance { get; } = new InheritenceValueProvider<TKey>();
+        public static InheritanceValueProvider<TKey> Instance { get; } = new InheritanceValueProvider<TKey>();
         public override (TValue value, bool hasValue) GetValue<TType, TValue>(TType targetObject, NDReadOnlyPropertyKey<TKey, TType, TValue> property)
         {
             if (property.Inherited)

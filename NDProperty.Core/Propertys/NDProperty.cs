@@ -25,7 +25,7 @@ namespace NDProperty.Propertys
         void IInternalNDProperty<TKey>.CallSetOmInHeritanceProvider(object obj, object source, object newValue, bool hasNewValue, object oldValue, bool hasOldValue, ValueProvider<TKey> currentProvider, object currentValue)
         {
             if (obj is TType t && source is TType sourceObject)
-                InheritenceValueProvider<TKey>.Instance.SetValue(t, this, sourceObject, (TValue)newValue, hasNewValue, (TValue)oldValue, hasOldValue, currentProvider, (TValue)currentValue);
+                InheritanceValueProvider<TKey>.Instance.SetValue(t, this, sourceObject, (TValue)newValue, hasNewValue, (TValue)oldValue, hasOldValue, currentProvider, (TValue)currentValue);
             else
                 throw new ArgumentException($"Parameter was not of Type {typeof(TType).FullName}");
         }

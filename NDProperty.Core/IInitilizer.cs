@@ -14,7 +14,7 @@ namespace NDProperty
     {
         public IEnumerable<ValueProvider<MyConfiguration>> ValueProviders { get; } = new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,
-        NDProperty.Providers.InheritenceValueProvider<MyConfiguration>.Instance,
+        NDProperty.Providers.InheritanceValueProvider<MyConfiguration>.Instance,
         NDProperty.Providers.DefaultValueProvider<MyConfiguration>.Instance,
     };
     }

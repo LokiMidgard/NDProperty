@@ -581,7 +581,7 @@ namespace NDProperty.Test
         {
             BindingProvider<Configuration>.Instance,
             LocalValueProvider<Configuration>.Instance,
-            InheritenceValueProvider<Configuration>.Instance,
+            InheritanceValueProvider<Configuration>.Instance,
 
             DefaultValueProvider<Configuration>.Instance,
         };

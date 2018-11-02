@@ -575,7 +575,7 @@ namespace NDProperty.Test
     }
 
 
-    public class Configuration : NDProperty.IInitilizer<Configuration>
+    public class Configuration : NDProperty.IInitializer<Configuration>
     {
         public IEnumerable<Providers.ValueProvider<Configuration>> ValueProvider => new Providers.ValueProvider<Configuration>[]
         {

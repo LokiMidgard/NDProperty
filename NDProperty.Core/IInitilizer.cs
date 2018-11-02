@@ -5,12 +5,12 @@ using NDProperty.Providers;
 
 namespace NDProperty
 {
-    public interface IInitilizer<TKey>
+    public interface IInitializer<TKey>
     {
         IEnumerable<ValueProvider<TKey>> ValueProvider { get; }
     }
 
-class MyConfiguration : IInitilizer<MyConfiguration>
+class MyConfiguration : IInitializer<MyConfiguration>
 {
     public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,

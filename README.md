@@ -216,13 +216,13 @@ To use your provider use it in the configuration type.
 
 ### Configuration
 
-As mentioned above the configuration type is used to use different instances of this framework side by side. In order to change the default configuration this type must have an public parameterless constructor and implement the interface ```IInitilizer<TKey>``` where ```TKey``` is the configuration Type.
+As mentioned above the configuration type is used to use different instances of this framework side by side. In order to change the default configuration this type must have an public parameterless constructor and implement the interface ```IInitializer<TKey>``` where ```TKey``` is the configuration Type.
 
 An configuration equivalent to the default configuration would be following:
 
 ```c#
 
-class MyConfiguration : IInitilizer<MyConfiguration>
+class MyConfiguration : IInitializer<MyConfiguration>
 {
     public IEnumerable<ValueProvider<MyConfiguration>> ValueProvider => new ValueProvider<MyConfiguration>[] {
         NDProperty.Providers.LocalValueProvider<MyConfiguration>.Instance,

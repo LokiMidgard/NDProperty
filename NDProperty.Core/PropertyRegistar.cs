@@ -40,13 +40,13 @@ namespace NDProperty
 
             IEnumerable<Providers.ValueProvider<TKey>> valueProvider;
 
-            if (typeof(IInitilizer<TKey>).GetTypeInfo().IsAssignableFrom(typeof(TKey).GetTypeInfo()))
+            if (typeof(IInitializer<TKey>).GetTypeInfo().IsAssignableFrom(typeof(TKey).GetTypeInfo()))
             {
 
                 if (typeof(TKey).GetConstructor(Type.EmptyTypes) == null)
-                    throw new ArgumentException($"If TypeParameter is of type {nameof(IInitilizer<TKey>)}, then it must have a default constructor", nameof(TKey));
+                    throw new ArgumentException($"If TypeParameter is of type {nameof(IInitializer<TKey>)}, then it must have a default constructor", nameof(TKey));
 
-                var initilizer = typeof(TKey).GetConstructor(Type.EmptyTypes).Invoke(new object[0]) as IInitilizer<TKey>;
+                var initilizer = typeof(TKey).GetConstructor(Type.EmptyTypes).Invoke(new object[0]) as IInitializer<TKey>;
                 valueProvider = initilizer.ValueProvider;
             }
             else

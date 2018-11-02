@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>0.13.12</Version>
     <Version Condition="'$(Configuration)'=='Debug'">$(Version)-Debug</Version>
     <Authors>Patrick Kranz</Authors>
     <PackageLicenseUrl>https://github.com/LokiMidgard/NDProperty/blob/master/license.md</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/LokiMidgard/NDProperty</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LokiMidgard/NDProperty.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Copyright>Patrick Kranz</Copyright>
-    <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
+    <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
     <PackageReleaseNotes>
       <![CDATA[
 Changes:
@@ -20,8 +21,7 @@ Changes:
   <PropertyGroup >
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
+    <PackageReference Include="GitVersionTask" Version="4.0.1-beta*" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
